@@ -1,7 +1,7 @@
 {
   "name": "Pip's Postcards",
   "short_name": "Pip's Postcards",
-  "description": "Read Pip's postcards, help Pip find the way, and raise a baby penguin.",
+  "description": "Read Pip's postcards, help Pip find the way, and raise a baby animal.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

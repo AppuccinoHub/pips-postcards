@@ -313,9 +313,9 @@ input, select { font: inherit; }
 .gate-q { margin: 0; font-size: 2rem; font-weight: 700; }
 #gateIn { min-height: 54px; border-radius: 12px; border: 2px solid #ccc; font-size: 1.5rem; text-align: center; }
 .gate-row { display: flex; gap: 10px; justify-content: center; }
-.parent { padding: 16px 18px 60px; max-width: 900px; margin: 0 auto; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; color: #243044; }
+.parent { padding: 16px 18px 60px; max-width: 900px; width: 100%; box-sizing: border-box; margin: 0 auto; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; color: #243044; }
 .pa-note { background: #eaf7f0; padding: 10px 12px; border-radius: 12px; margin: 0 0 10px; }
-.pa-sec { background: #fff; border: 1px solid #eadfca; border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; }
+.pa-sec { background: #fff; border: 1px solid #eadfca; border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; overflow-x: auto; } /* v2.7.3: a wide table scrolls inside its card, the page no longer scrolls sideways on phones */
 .pa-sec h2 { margin: 0 0 8px; font-size: 17px; font-family: var(--head); }
 .pa-sec h3 { margin: 12px 0 4px; font-size: 14px; }
 .pa-small { font-size: 13px; color: #56627a; margin: 4px 0; }
@@ -325,6 +325,12 @@ input, select { font: inherit; }
 .pa-btn { min-height: 40px; padding: 6px 14px; border-radius: 10px; background: var(--teal); color: #fff; font-weight: 600; font-size: 14px; }
 .pa-btn.ghost { background: #f0f0f0; color: #333; }
 .pa-btn.danger { background: #c0392b; margin-top: 8px; }
+.so-item { margin: 0 0 12px; }
+.so-item:last-child { margin-bottom: 0; }
+.so-btn { display: block; width: 100%; text-align: left; min-height: 48px; font-size: 15px; line-height: 1.25; }
+.so-btn.danger { margin-top: 0; }
+.so-btn:disabled { opacity: .5; cursor: default; }
+.so-note { margin: 4px 2px 0; }
 .pa-tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; display: block; overflow-x: auto; }
 .pa-tbl th, .pa-tbl td { border-bottom: 1px solid #eee; padding: 6px; text-align: left; white-space: nowrap; }
 .pa-bars { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
@@ -564,6 +570,7 @@ input, select { font: inherit; }
 .pip-wrap .pip { flex: 0 1 auto; min-height: 48px; }
 .bubble { flex: none; width: max-content; max-width: 140%; line-height: 1.34; padding: 8px 12px 10px; overflow: visible; overflow-wrap: break-word; }
 .bubble .cap { min-width: 0; }
+.guide-intro .intro-bubble { max-width: min(560px, 100%); } /* v2.7.3: the guide's "Hi, I'm ..." bubble stays on screen on phones */
 .card.tall .bubble { width: auto; max-width: none; }
 .pip-wrap.squeeze .bubble { font-size: .82rem; padding: 6px 10px 8px; }
 .pip-wrap.squeeze .pip { max-width: 104px; }

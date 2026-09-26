@@ -18,7 +18,7 @@ window.PIP_GUIDES = {
     pigeon: { label: 'Pigeon', species: 'pigeon', img: 'guides/pigeon/main.webp', icon: '🐦', part: 'wing', nose: 'beak', go: 'fly', travel: 'flies the mail across the sky', me: "fly the mail across the sky",
       mishaps: ['Oops, a feather got in my eye! 🪶', 'Coo! I was counting my toes instead! 🐾', 'Silly me, I was chasing a crumb! 🍞'],
       landing: ['Whoa! A big gust blew me back up! 🌬️', 'Oops! I slid on my tail feathers! 🪶', 'I did it! I kept trying, and I landed! 🎉'] },
-    puffin: { label: 'Puffin', species: 'puffin', img: 'guides/puffin/main.webp', icon: '🐧', part: 'wing', nose: 'beak', go: 'fly', travel: 'flaps fast over the sea (and crash-lands a lot!)', me: "flap fast over the sea (and crash-land a lot!)",
+    puffin: { label: 'Puffin', species: 'puffin', img: 'guides/puffin/main.webp', icon: '🐦', part: 'wing', nose: 'beak', go: 'fly', travel: 'flaps fast over the sea (and crash-lands a lot!)', me: "flap fast over the sea (and crash-land a lot!)",
       mishaps: ['Oops, I was looking at a fish! 🐟', 'Whoops, my beak bumped the page! 🧡', 'Silly me, sea spray on my eyes! 🌊'],
       landing: ['Flap flap... BOING! I bounced off a rock! 🪨', 'Flap flap... SPLASH! I landed in a puddle! 💦', 'Flap flap... I did it! Crash-landers never give up! 🎉'] },
     penguin: { label: 'Penguin explorer', species: 'penguin', img: 'guides/penguin/main.webp', icon: '🐧', part: 'flipper', nose: 'beak', go: 'travel', travel: 'can\'t fly, so she rides icebergs, boats and sleds', me: "can't fly, so I ride icebergs, boats and sleds",

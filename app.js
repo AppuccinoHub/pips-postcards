@@ -98,18 +98,29 @@
      drawings are used bare; hello, hurray, question, dream, ciao and group_hug are drawn to the waist, so they come
      pre-framed as portraits (see art/sue2/export2.py). */
   const GIRL = {
-    hello: ['hello'], home: ['fox_walk', 'penguin_binoculars', 'backpack'], picker: ['zoo_explorer_map', 'otter_point'],
+    hello: ['hello'], home: ['backpack'], picker: ['zoo_explorer_map', 'otter_point'],
     found: { penguin: 'penguin_find', puffin: 'puffin_hug', pigeon: 'pigeon_hug', turtle: 'turtle_find', bat: 'bat_find', fox: 'fox_find', otter: 'otter_find' },
-    zoo: { penguin: 'penguin_hug', puffin: 'puffin_post', pigeon: 'pigeon_hug', turtle: 'turtle_pet', bat: 'bat_hold', fox: 'fox_hug', otter: 'otter_hug' },
+    zoo: { penguin: 'penguin_hug', puffin: 'puffin_hug', pigeon: 'pigeon_hug', turtle: 'turtle_pet', bat: 'bat_hold', fox: 'fox_hug', otter: 'otter_hug' },
     zooTop: ['group_hug'], zooEnd: ['walk_away'], grow: ['hurray', 'peace', 'roller'], grown: ['graduation'],
     boss: ['pirate_spyglass', 'pirate_map', 'pirate_flag'], bossWin: ['pirate_chest', 'pirate_cheer'], italia: ['ciao', 'italia_hat', 'pizza'],
-    think: ['question', 'dream', 'writing_plan'], read: ['books'], spell: ['writing_books'], mail: ['special_message', 'puffin_post'],
+    think: ['question', 'dream', 'writing_plan'], read: ['books'], spell: ['writing_books'], mail: ['special_message'],
     end: ['pillow_pj', 'pajamas_dog'], parent: ['bigger_dreams']
   };
+  /* v2.7.3 (Sue: "she picked a new animal but still sees a penguin"): pictures with an animal in them follow HER choice.
+     Home: the girl with her own baby's kind, taking turns with the backpack picture (was fox / penguin / backpack for
+     everyone). The "Puffin Post" letter only shows with the puffin guide; the zoo group hug (the girl hugging a penguin)
+     only when a penguin lives in her zoo. */
+  const GIRL_HOME = { penguin: 'penguin_binoculars', fox: 'fox_walk', otter: 'otter_point', turtle: 'turtle_pet', bat: 'bat_hold', pigeon: 'pigeon_hug', puffin: 'puffin_hug' };
+  function girlSlot(slot) {
+    const kind = (S.chick && S.chick.kind) || '';
+    if (slot === 'home') return kind && GIRL_HOME[kind] ? [GIRL_HOME[kind], 'backpack'] : GIRL.home;
+    if (slot === 'mail') return G().kind === 'puffin' ? ['special_message', 'puffin_post'] : GIRL.mail;
+    return GIRL[slot] || slot;
+  }
   const STICKERS = ['heart', 'star', 'paw', 'book', 'globe', 'camera', 'compass', 'map', 'backpack', 'leaf', 'zoo_explorer', 'kindness', 'small_steps', 'heart_globe', 'postcard', 'backpack2', 'my_zoo'];
   const girlTurn = {};
   function girlSrc(slot, fixed) {
-    const l = [].concat(GIRL[slot] || slot); const n = fixed ? 0 : (girlTurn[slot] = ((girlTurn[slot] == null ? -1 : girlTurn[slot]) + 1));
+    const l = [].concat(girlSlot(slot)); const n = fixed ? 0 : (girlTurn[slot] = ((girlTurn[slot] == null ? -1 : girlTurn[slot]) + 1));
     return 'img/girl/' + l[n % l.length] + '.webp';
   }
   function girlEl(slot, cls, fixed) { const im = el('img', 'girl ' + (cls || '')); im.src = /\//.test(slot) ? slot : girlSrc(slot, fixed); im.alt = ''; im.setAttribute('aria-hidden', 'true'); im.decoding = 'async'; return im; }
@@ -219,7 +230,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.7.2';
+  const SFX_VER = '2.7.3';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -733,11 +744,12 @@
     if (!resume) S.progress = null;
     if (resume && S.progress && S.progress.alt && day.alt) day = day.alt;
     let lv = mode === 'boss' ? LEVELS[Math.min(LEVELS.indexOf(S.level) + 1, 2)] : (mode === 'italia' ? 'ground' : S.level);
-    let res = {}, idx = 0, fish = 0, started = Date.now();
+    let res = {}, idx = 0, fish = 0, started = Date.now(), fishBy = {}, fed = false;
     if (resume && S.progress && S.progress.week === week.id && S.progress.day === day.day) {
       lv = S.progress.lv; res = S.progress.res || {}; idx = S.progress.idx || 0; fish = S.progress.fish || 0; started = S.progress.started || started;
+      fishBy = S.progress.fishBy || null; fed = !!S.progress.fed; // v2.7.3: fish per stop (null = a save from before, estimated)
     }
-    Object.assign(P, { week, day, lv, L: day.levels[lv], res, fish, started, idx: 0, cards: [], key: sessionKey(week, day, lv) + (mode ? '-' + mode : ''), alt: !!(resume && S.progress && S.progress.alt), mode: mode || '', order: 'words', finished: false });
+    Object.assign(P, { week, day, lv, L: day.levels[lv], res, fish, fishBy, fed, started, idx: 0, cards: [], key: sessionKey(week, day, lv) + (mode ? '-' + mode : ''), alt: !!(resume && S.progress && S.progress.alt), mode: mode || '', order: 'words', finished: false });
     const resumed = !!(resume && S.progress && S.progress.specs);
     P.specs = resumed ? S.progress.specs : buildSpecs(week, day, lv, mode);
     // Before she picks on the map, the progress bar shows the default order (Word lab, Postcard, Fly on).
@@ -772,7 +784,7 @@
   }
   function saveProgress() {
     if (P.mode === 'italia') return; // the Italian bonus is tiny: no resume needed
-    S.progress = { v: PLAN_V, saved: Date.now(), week: P.week.id, day: P.day.day, alt: !!P.alt, lv: P.lv, idx: Math.max(P.idx, P.cards.length - 1), res: P.res, fish: P.fish, started: P.started, specs: P.specs, mode: P.mode, order: P.order };
+    S.progress = { v: PLAN_V, saved: Date.now(), week: P.week.id, day: P.day.day, alt: !!P.alt, lv: P.lv, idx: Math.max(P.idx, P.cards.length - 1), res: P.res, fish: P.fish, fishBy: P.fishBy, fed: !!P.fed, started: P.started, specs: P.specs, mode: P.mode, order: P.order };
     save();
   }
   function appendCard(i, done) {
@@ -803,7 +815,7 @@
     if (card.pip && !(opts && opts.pose === false)) card.pip.pose((opts && opts.pose) || (stopLast(card.i) ? 'love' : (result ? winPose() : card.pip.dataset.pose)));
     if (card.pip && card.pip.moveTo) card.pip.moveTo(stopFrac(card.i, true), true);
     const fish = opts && opts.fish != null ? opts.fish : 1;
-    if (fish) { P.fish += fish; fishPop(card.el, fish); }
+    if (fish) { P.fish += fish; if (P.fishBy) { const sk = card.spec.stop || card.spec.k; P.fishBy[sk] = (P.fishBy[sk] || 0) + fish; } fishPop(card.el, fish); }
     if (result || fish) babyReact(result && result.first === false ? 'soft' : 'yay');
     appendCard(card.i + 1, false);
     saveProgress();
@@ -960,7 +972,7 @@
     return 'guides/' + k + '/' + (f.indexOf('.') >= 0 ? f : f + '.webp');
   }
   function allPoseSrcs(kind) { const k = kind || G().kind, out = new Set([(GUIDES.kinds[k] || {}).img]); Object.values((POSE.art || {})[k] || {}).forEach((l) => l.forEach((f) => out.add('guides/' + k + '/' + (f.indexOf('.') >= 0 ? f : f + '.webp')))); return [...out].filter(Boolean); }
-  function allGirlSrcs() { const out = new Set(); Object.values(GIRL).forEach((v) => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : Object.values(v)).forEach((n) => out.add('img/girl/' + n + '.webp'))); STICKERS.forEach((n) => out.add('img/stickers/' + n + '.webp')); return [...out]; }
+  function allGirlSrcs() { const out = new Set(); Object.values(GIRL).concat([Object.values(GIRL_HOME), 'puffin_post']).forEach((v) => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : Object.values(v)).forEach((n) => out.add('img/girl/' + n + '.webp'))); STICKERS.forEach((n) => out.add('img/stickers/' + n + '.webp')); return [...out]; }
   function warmPoses() { if (navigator.onLine === false) return; const pp = S.chick && S.chick.kind ? pet() : null; allPoseSrcs().concat(pp ? stagesOf(pp).map((x) => x.img).concat(pp.pre.map((st) => babyImg(pp.id, st))) : [], allGirlSrcs()).forEach((u) => { const i = new Image(); i.src = u; }); }
   function guideImg(mood) { return poseSrc(mood || 'talk'); }
   let winTurn = 0;
@@ -1699,11 +1711,16 @@
   BUILD.feed = (card, sec) => {
     const pp = pet();
     const { vis, body } = frame(sec, { kicker: `${pp.food} Feed & grow`, title: `Feed ${chickName()}!` });
-    vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'));
+    vis.classList.add('hab-bg', 'pet-' + pet().id);
     const before = S.chick.fish;
     let ch = chickEl(before, 'big');
     vis.appendChild(ch);
     const n = P.fish;
+    if (P.fed) { // came back after feeding (v2.7.3): today's food was already given, so no second helping
+      body.appendChild(el('p', 'c-text', `${chickName()} already ate today's ${n} ${pp.foodName}! ${pp.food}`));
+      body.appendChild(btn('big-btn', 'Finish ✓', () => { finishSession(); }));
+      return;
+    }
     body.appendChild(el('p', 'c-text', `You earned ${n} ${pp.foodName} today! ${pp.food}`));
     const fishRow = el('div', 'fish-row');
     for (let i = 0; i < Math.min(n, 24); i++) fishRow.appendChild(el('span', 'fishy', pp.food));
@@ -1715,7 +1732,7 @@
       setTimeout(() => {
         const after = before + n;
         const sb = stageFor(before), sa = stageFor(after);
-        S.chick.fish = after; save();
+        S.chick.fish = after; P.fed = true; save(); saveProgress();
         const nc = chickEl(after, 'big grow'); ch.replaceWith(nc); ch = nc;
         const newItems = itemsOf(pp).filter((it) => it.at > before && it.at <= after);
         let msg = sa > sb ? (sa === STAGE_KEYS.length - 1 ? `${chickName()} is all grown up! 🎓🎉` : `${chickName()} grew! Now: ${stagesOf(pp)[sa].name}! 🎉`) : `Yum! ${chickName()} is getting bigger! 😋`;
@@ -2104,7 +2121,7 @@
   BUILD.feedme = (card, sec) => {
     const pp = pet();
     const { vis, body } = frame(sec, { kicker: `${pp.food} Quick game · feed ${chickName()}` , title: `Which one can ${chickName()} eat?` });
-    vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'));
+    vis.classList.add('hab-bg', 'pet-' + pet().id);
     const ch = chickEl(S.chick.fish, 'big'); vis.appendChild(ch);
     const nope = shuffle(['sock', 'rock', 'hat', 'drum', 'bell', 'shoe', 'kite', 'box', 'lamp'], P.key + card.i).slice(0, 2);
     const fb = feedback(body); card.answer = pp.foodName;
@@ -2127,7 +2144,7 @@
     const punct = (pick.w.match(/[.,!?]$/) || [''])[0];
     const pp = pet(); card.answer = silly + punct;
     const { vis, body } = frame(sec, { kicker: '🤪 Silly word!', title: 'Tap the word that is silly' });
-    vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'));
+    vis.classList.add('hab-bg', 'pet-' + pet().id);
     const ch = chickEl(S.chick.fish, 'big'); vis.appendChild(ch);
     const fb = feedback(body);
     const line = el('p', 'silly-line');
@@ -2641,7 +2658,7 @@
     const top = el('div', 'home-top');
     habitat(top);
     const pp = pet();
-    top.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'));
+    top.classList.add('hab-bg', 'pet-' + pet().id);
     const st = stagesOf(pp)[stageFor(S.chick.fish)];
     const next = itemsOf(pp).find((it) => it.at > S.chick.fish);
     const info = el('p', 'home-chick', `${chickName()} · ${st.name} · ${pp.food} ${S.chick.fish}` + (next ? `  ·  next: ${next.name} at ${next.at}` : ''));
@@ -2695,7 +2712,8 @@
   function zooEl() {
     const z = el('section', 'zoo');
     const head = el('div', 'zoo-head');
-    head.appendChild(girlEl((S.family || []).length ? 'zooTop' : 'img/girl/' + GIRL.zoo[pet().id] + '.webp', 'girl-zoo'));
+    const zooKinds = (S.family || []).map((f) => f.kind).concat(S.chick.kind ? [S.chick.kind] : []);
+    head.appendChild(girlEl((S.family || []).length && zooKinds.includes('penguin') ? 'zooTop' : 'img/girl/' + GIRL.zoo[pet().id] + '.webp', 'girl-zoo'));
     const sign = el('div', 'zoo-sign');
     sign.appendChild(el('h2', 'zoo-h', kidName() ? `${kidName()}'s Little Zoo` : 'My Little Zoo'));
     const n = (S.family || []).length;
@@ -2801,6 +2819,7 @@
         grid.appendChild(b);
       });
       box.appendChild(grid);
+      if (guideSwitch && guideSwitch.from) box.appendChild(btn('link-btn', `Keep ${guideSwitch.from.name}, go back`, () => { if (nameBack) { const f = nameBack; nameBack = null; f(); } }));
       setTimeout(() => sayList([{ text: 'Pick your mail carrier friend! Pigeon, puffin, penguin explorer, sea otter, fox mail carrier, or sea turtle.', word: false }]), 400);
       return;
     }
@@ -2827,11 +2846,18 @@
     S.guide = { kind: st.kind, name: st.name }; save(); warmPoses();
     const vis = el('div', 'guide-intro');
     const im = el('img', 'guide-hero'); im.src = poseSrc((POSE.screens || {}).intro || 'hello', st.kind, true); im.alt = g.label;
-    const line = `Hi! I'm your guide, ${st.name}! I'm a ${g.species}. I ${g.me || g.travel}. Let's find a baby animal for you to take care of!`; // her typed name is dropped from the spoken line (caption only)
+    const line = `Hi! I'm your ${guideSwitch ? 'new ' : ''}guide, ${st.name}! I'm a ${g.species}. I ${g.me || g.travel}. ` + (guideSwitch ? `Let's keep going!` : `Let's find a baby animal for you to take care of!`); // her typed name is dropped from the spoken line (caption only)
     const bub = el('div', 'bubble intro-bubble'); const cap = el('span', 'cap', line); const rp = btn('replay', '🔁', () => { speakingWrap = vis; sayList([{ text: line, word: false }]); }); rp.setAttribute('aria-label', 'Hear it again');
     bub.append(cap, rp); vis.append(bub, im); box.appendChild(vis);
     capMode(vis); speakingWrap = vis;
     sayList([{ text: line, word: false }]);
+    if (guideSwitch) { // switched from the grown-up area: straight back home, everything else as it was
+      const done = () => { guideSwitch = null; renderGuide.st = null; stopVoice(); box.classList.remove('choosing'); goHome(); };
+      nameBack = done;
+      box.appendChild(btn('big-btn', `Hi, ${st.name}! 👋`, done));
+      showScreen('screenName');
+      return;
+    }
     box.appendChild(btn('big-btn', `Hi, ${st.name}! 👋`, () => { renderGuide.st = null; stopVoice(); renderName(); }));
     showScreen('screenName');
   }
@@ -2943,6 +2969,77 @@
     soon.forEach((k) => card(k, true));
     box.appendChild(grid);
     if (S.choosing) box.appendChild(btn('link-btn', 'Not now, go back', () => { S.choosing = false; save(); goHome(); }));
+  }
+
+  /* ---------------- Start over (grown-ups, v2.7.3) ----------------
+     Sue: "One for the whole game, one to switch mail carrier, and one just to reset the section."
+     The data model: a week has days (one postcard day = one session). A day has three stops she picks on the map:
+     Word lab, Postcard, Fly on. A day in progress lives in S.progress (cards, results, fish, the card she is on);
+     a finished day is an entry in S.sessions (its ✅, a sticker, its fish, already fed to her baby).
+     "Redo this section" = the stop she is in (or just finished) on the day in progress. "Redo today" = that whole day.
+     These take the state as an argument so the tests can check them on a copy. */
+  const soFedToCurrent = (st, sess) => !(st.family || []).some((f) => f.date > sess.date); // fish went to a baby now in the zoo? then keep it off the new one
+  function soStopPlan(st) {
+    const pr = st.progress;
+    if (!pr || pr.v !== PLAN_V || !Array.isArray(pr.specs) || !pr.specs.length || pr.mode === 'italia' || pr.mode === 'bonus') return null;
+    const idx = Math.max(0, Math.min(pr.idx || 0, pr.specs.length - 1));
+    let j = idx; while (j >= 0 && !(pr.specs[j] && pr.specs[j].stop)) j--; // on the map / feed card: the stop she just finished
+    if (j < 0) return null; // still on the first postcard (nothing played yet)
+    const id = pr.specs[j].stop;
+    let at = j; while (at > 0 && pr.specs[at - 1] && pr.specs[at - 1].stop === id) at--;
+    let end = j; while (end < pr.specs.length && pr.specs[end].stop === id) end++;
+    const res = pr.res || {};
+    let lost;
+    if (pr.fishBy) lost = pr.fishBy[id] || 0;
+    else { lost = 0; for (let i = at; i < Math.min(end, idx + 1); i++) if (res[i] && !res[i].skipped) lost++; } // a save from before v2.7.3: one per card
+    lost = Math.max(0, Math.min(lost, pr.fish || 0));
+    return { id, at, end, idx, lost, week: pr.week, day: pr.day, mode: pr.mode || '', fed: !!pr.fed };
+  }
+  function soRedoStop(st) {
+    const plan = soStopPlan(st); if (!plan) return null;
+    const pr = st.progress, res = pr.res || (pr.res = {});
+    Object.keys(res).forEach((k) => { if (/^\d+$/.test(k) && +k >= plan.at) delete res[k]; }); // nothing after this stop has been played yet
+    if (plan.id === 'words') delete res.wcheck;
+    // Word-check help cards are added again when she redoes the check, so drop the old ones.
+    pr.specs = pr.specs.filter((x, i) => !(i >= plan.at && i < plan.end && x.k === 'decode' && x.help && !x.bonus));
+    if (pr.fed) { st.chick.fish = Math.max(0, (st.chick.fish || 0) - (pr.fish || 0)); pr.fed = false; } // already fed: take that helping back, she feeds again at the end
+    pr.fish = Math.max(0, (pr.fish || 0) - plan.lost);
+    if (pr.fishBy) pr.fishBy[plan.id] = 0;
+    pr.idx = plan.at; pr.saved = Date.now();
+    return plan;
+  }
+  function soDayPlan(st, week) {
+    const pr = st.progress;
+    const live = pr && pr.v === PLAN_V && pr.week === week.id && pr.mode !== 'italia' && week.days.some((d) => d.day === pr.day) ? pr : null;
+    const normal = (x) => x.week === week.id && typeof x.day === 'number' && !x.bonus;
+    let dayId = live ? live.day : null;
+    if (dayId == null) { const last = (st.sessions || []).filter(normal).sort((a, b) => b.date - a.date)[0]; if (last) dayId = last.day; }
+    if (dayId == null) return null;
+    const day = week.days.find((d) => d.day === dayId);
+    const sess = (st.sessions || []).filter((x) => normal(x) && x.day === dayId);
+    const fedFish = sess.filter((x) => soFedToCurrent(st, x)).reduce((a, x) => a + (x.fish || 0), 0) + (live && live.fed ? (live.fish || 0) : 0);
+    const shown = sess.reduce((a, x) => a + (x.fish || 0), 0) + (live ? (live.fish || 0) : 0);
+    return { day: dayId, name: day ? day.name : 'Today', live: !!live, done: sess.length, fedFish, fish: shown };
+  }
+  function soRedoDay(st, week) {
+    const plan = soDayPlan(st, week); if (!plan) return null;
+    st.chick.fish = Math.max(0, (st.chick.fish || 0) - plan.fedFish);
+    st.sessions = (st.sessions || []).filter((x) => !(x.week === week.id && x.day === plan.day && !x.bonus));
+    if (plan.live) st.progress = null;
+    return plan;
+  }
+  window.__pipsStartOver = { soStopPlan, soRedoStop, soDayPlan, soRedoDay }; // test hook (pure: works on the state passed in)
+  /* "Switch mail carrier": the same picture cards as the first screen (names said out loud), then she names her.
+     Progress, the baby and recordings are untouched; afterwards she is back on the home screen (Keep going = same card). */
+  let guideSwitch = null;
+  function switchGuide() {
+    stopVoice();
+    guideSwitch = { from: S.guide ? Object.assign({}, S.guide) : null };
+    renderGuide.st = { kind: '' };
+    const box = $('nameBox'); box.replaceChildren(); box.classList.remove('kid-step');
+    nameBack = () => { guideSwitch = null; renderGuide.st = null; stopVoice(); goHome(); };
+    renderGuide(box);
+    showScreen('screenName');
   }
 
   /* ---------------- grown-up gate: hold 3 seconds, then a multiplication ---------------- */
@@ -3102,7 +3199,7 @@
     kprow.append(el('span', 'pa-small', 'Her name (zoo sign):'), kin, btn('pa-btn', 'Save', () => { S.kid = kin.value.trim().slice(0, 16); save(); toast('Saved ✓'); }));
     st.appendChild(kprow);
     const krow = el('div', 'pa-row'); const ks = el('select'); ks.setAttribute('aria-label', 'Baby animal');
-    PET_KINDS.forEach((k) => { const o = el('option', null, PETS[k].icon + ' ' + PETS[k].kind); o.value = k; if (k === (S.chick.kind || 'penguin')) o.selected = true; ks.appendChild(o); });
+    PET_KINDS.forEach((k) => { const o = el('option', null, PETS[k].icon + ' ' + PETS[k].kind); o.value = k; if (k === pet().id) o.selected = true; ks.appendChild(o); });
     krow.append(ks, btn('pa-btn', 'Switch animal (keeps growth)', () => { S.chick.kind = ks.value; save(); toast('Switched ✓'); }));
     st.appendChild(krow);
     if ((S.family || []).length) st.appendChild(el('p', 'pa-note', 'In the zoo (safe forever): ' + S.family.map((f) => `${PETS[f.kind] ? PETS[f.kind].icon : ''} ${f.name}`).join(', ')));
@@ -3112,12 +3209,34 @@
       wrow.append(ws, btn('pa-btn', 'Use this week', () => { S.weekId = ws.value; S.progress = null; save(); toast('Week changed ✓'); openParent(); }));
       st.appendChild(wrow);
     }
-    st.appendChild(btn('pa-btn danger', 'Reset everything', async () => {
+    st.appendChild(el('p', 'pa-small', 'To let her pick a new mail carrier herself (picture cards), use Start over below.'));
+
+    /* v2.7.3 Start over: switch mail carrier / redo this section (a stop) or today / reset the whole game. */
+    const so = sec('Start over'); so.id = 'paStartOver'; so.classList.add('so-sec');
+    const pp = pet(), food = pp.food, foodName = pp.foodName;
+    const item = (label, cls, fn, note, off) => { const d = el('div', 'so-item'); const b = btn('pa-btn so-btn ' + cls, label, fn); b.disabled = !!off; d.append(b, el('p', 'pa-small so-note', note)); so.appendChild(d); return b; };
+    item('🔄 Switch mail carrier', 'so-guide', () => switchGuide(),
+      `She picks a new mail carrier friend on the picture cards (names are said out loud) and names her. Now: ${G().name}. Keeps: all progress, ${chickName()}, recordings. Then back to the home screen, where she left off.`);
+    const stp = soStopPlan(S), stpDay = stp ? (week.days.find((d) => d.day === stp.day) || {}).name || '' : '';
+    const stpOk = !!(stp && stp.week === week.id);
+    const stopName = stpOk ? (stp.mode === 'boss' ? 'Boss postcard' : STOPS[stp.id][1]) : '';
+    item(stpOk ? `↩️ Redo this section: ${STOPS[stp.id][0]} ${stopName} (${stpDay})` : '↩️ Redo this section', 'so-stop', () => {
+      if (!confirm(`Redo ${stopName} on ${stpDay}? The cards she did in it and the ${stp.lost} ${foodName} she earned there are cleared, and she starts it again from its first card.`)) return;
+      soRedoStop(S); save(); toast(`${stopName} starts fresh ✓`); goHome();
+    }, stpOk ? `A section is one stop of a day (Word lab, Postcard, Fly on). Erases: this stop's cards and answers, the ${stp.lost} ${food} she earned in it, and her place in it (she restarts at its first card). Keeps: her other stops today, other days, ${chickName()}'s growth, the week, recordings.`
+      : `A section is one stop of a day (Word lab, Postcard, Fly on). Nothing is in progress right now, so there is no section to redo. To replay a finished day, use Redo today.`, !stpOk);
+    const dp = soDayPlan(S, week);
+    item(dp ? `📅 Redo today: ${dp.name}` : '📅 Redo today', 'so-day', () => {
+      if (!confirm(`Redo ${dp.name}? All of ${dp.name} is cleared (${dp.done ? 'its ✅ and sticker, ' : ''}the ${dp.fish} ${foodName} earned in it), and she plays it again from the start.`)) return;
+      soRedoDay(S, week); save(); toast(`${dp.name} starts fresh ✓`); goHome();
+    }, dp ? `Erases: all of ${dp.name}${dp.live ? ' so far (in progress)' : ''}: ${[dp.live ? 'every stop she has done' : 'its stops', dp.done ? `its ✅ and sticker${dp.done > 1 ? ` (${dp.done} plays)` : ''}` : '', `the ${dp.fish} ${food} earned in it`].filter(Boolean).join(', ')}. Keeps: other days, ${chickName()}'s growth from other days, the week, the reading level, recordings, the boss postcard.`
+      : 'Nothing played this week yet.', !dp);
+    item('⚠️ Reset the whole game', 'danger so-all', async () => {
       if (!confirm('Erase all progress, the baby animal, and all recordings on this device?')) return;
       if (!confirm('Are you sure? This cannot be undone.')) return;
       try { await recClear(); } catch (_) {}
       S = fresh(); save(); renderName(); showScreen('screenName');
-    }));
+    }, `Erases everything on this device: progress, ${chickName()} and the zoo, the mail carrier, her name, settings and all recordings. Starts at the very first screen. Asks twice.`);
     showScreen('screenParent');
     $('screenParent').scrollTop = 0;
   }
@@ -3195,10 +3314,10 @@
     if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7.2') return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7.3') return;
       const list = [...new Set(Object.values(AUD))];
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.7.2'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.7.3'); } catch (_) {}
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

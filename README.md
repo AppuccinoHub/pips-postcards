@@ -130,6 +130,14 @@ Ground = this week's words, Sky = next week's words, Space = 3rd grade stretch. 
 
 ## First launch, babies and the zoo
 
+**Start over (v2.7.3, grown-up area, last group).** Four buttons, each with a line saying what it keeps and erases:
+* **🔄 Switch mail carrier:** the first-screen picture cards (names said out loud), then she names her new guide. Progress, the baby, the zoo and recordings are kept; afterwards she is back on the home screen and "Keep going" opens the same card. (Settings still has the quick guide dropdown.)
+* **↩️ Redo this section:** a *section* is one stop of the day in progress (Word lab, Postcard or Fly on; on the map or feed card it is the stop she just finished). Clears that stop's answers, the fish earned in it (tracked per stop in `S.progress.fishBy`) and her place (she restarts at its first card). Other stops, other days, the baby's growth, the week and recordings are kept. One confirm. Greyed out when no day is in progress.
+* **📅 Redo today:** the whole day in progress, or if none, the most recently finished day of this week. Removes its session(s) (✅ and sticker) and takes its fish back off the baby (not if that baby has since grown up and moved to the zoo). Other days, growth from other days, level, recordings and the boss postcard are kept. One confirm.
+* **⚠️ Reset the whole game:** erases everything, including recordings (asks twice).
+
+Tests: `tests/reset.py [base] [--size WxH] [--browser webkit] [--shots DIR]` (unit checks of the reset logic + the real flow through the grown-up gate).
+
 **Her name.** The very first screen asks "What's your name?" (first name only, optional, "Skip for now"). It is stored on this device only (`kid` in localStorage) and shows on the home screen and the zoo sign ("Mia's Little Zoo"). A grown-up can change it in the parent area.
 
 **Babies.** She picks one of 7 babies: penguin chick, sea turtle hatchling, fennec fox kit, sea otter pup, puffin chick (puffling), pigeon chick (squab), or bat pup. There are no parrots anywhere (removed in v2.3: an old saved parrot baby becomes a pigeon chick with the same name and growth; the parrot bonus postcard is now the koala postcard). She names her baby herself. When a baby is fully grown it lives safely in her zoo forever, and a new nest offers new babies.
