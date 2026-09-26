@@ -246,7 +246,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.8';
+  const SFX_VER = '2.8.1';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -929,8 +929,9 @@
       if (c.pip && !c.noAutoSay && first && !c.done) setTimeout(() => { if (P.cards[P.idx] === c) c.pip.speakNow(true); }, 250);
       if (c.pip && c.pip.moveTo) requestAnimationFrame(() => { c.pip.moveTo(stopFrac(i, c.done), false); });
       if (c.onShow) c.onShow();
-      // v2.8: an idle clue waits until the voice has finished (never lands while the guide or a word is still talking).
-      if (!c.done) (c.idle || []).forEach((x) => { const fire = () => { if (P.cards[P.idx] !== c || c.done) return; if (voiceBusy()) { idleTimers.push(setTimeout(fire, 1200)); return; } x.fn(); if (c.pip && !x.quiet) c.pip.say(x.say || 'Here is a clue! 💡'); }; idleTimers.push(setTimeout(fire, x.ms)); });
+      // v2.8.1: pause help counts from the moment the voice has finished AND she stopped touching (a card that asks her to
+      // read first adds its reading time: c.idleDelay), so the clue never lands while the guide is still talking.
+      if (!c.done) { const st = { quiet: Date.now() + (c.idleDelay || 0), fired: false }; (c.idle || []).forEach((x) => afterQuiet(x.ms, () => { x.fn(); if (c.pip && !x.quiet) c.pip.say(x.say || 'Here is a clue! 💡'); }, () => P.cards[P.idx] === c && !c.done, 0, st)); }
     }
     $('swipeHint').hidden = true;
     updateNav();
@@ -1134,7 +1135,19 @@
   // "Not yet": a gentle wobble and a soft boop. No red, no X, no buzzer.
   function shake(b) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); sound('wrong'); const c = P.cards && P.cards[P.idx]; if (c && c.pip && c.pip.act) c.pip.act('wobble'); }
   /* Idle help: if she pauses, a clue appears by itself (before she can get stuck). */
-  function onIdle(fn, ms, o) { const c = BUILDING; if (c) (c.idle = c.idle || []).push(Object.assign({ fn, ms: ms || 12000 }, o || {})); }
+  /* v2.8.1 (Sue: help the moment she hesitates): PAUSE_1 = the clue / the answer glows, PAUSE_2 = the answer is shown. */
+  const PAUSE_1 = 5000, PAUSE_2 = 10000;
+  let LAST_ACT = 0;
+  ['pointerdown', 'keydown', 'input'].forEach((ev) => document.addEventListener(ev, () => { LAST_ACT = Date.now(); }, true));
+  // fn() once there has been ms of quiet (no voice playing, no tap or typing), counted from now + delay; stops when alive() is false.
+  // Steps that share one clock (st) count from the same quiet moment: the clue the guide says at step 1 does not push step 2 back.
+  function afterQuiet(ms, fn, alive, delay, st) {
+    st = st || { quiet: Date.now() + (delay || 0), fired: false };
+    const tick = () => { if (!alive()) return; const now = Date.now(); if (!st.fired && voiceBusy()) st.quiet = Math.max(st.quiet, now); if (LAST_ACT > st.quiet) { st.quiet = LAST_ACT; st.fired = false; } if (now - st.quiet >= ms) { st.fired = true; fn(); return; } idleTimers.push(setTimeout(tick, 250)); };
+    idleTimers.push(setTimeout(tick, 250));
+    return st;
+  }
+  function onIdle(fn, ms, o) { const c = BUILDING; if (c) (c.idle = c.idle || []).push(Object.assign({ fn, ms: ms || PAUSE_1 }, o || {})); }
   function sparkle(b) { b.classList.add('right'); sound('ok'); const s = el('span', 'spark', '✨'); b.appendChild(s); setTimeout(() => s.remove(), 900); }
   /* Multiple choice. opts: correct FIRST (shuffled here). onRight(first), onWrong(btn, tries).
      Never a dead end: after one miss the choices narrow to 2, after a second only the answer is left (glowing).
@@ -1165,10 +1178,15 @@
       btns.push({ b, i });
       row.appendChild(b);
     });
-    // v2.8 (Sue: instant help the moment she hesitates): after a pause the right answer glows (one other choice left),
-    // after a longer pause only the answer is left, glowing, for an easy tap. Shown = helped, never a failure.
-    onIdle(() => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } }, 8000);
-    onIdle(() => { if (!over) { fadeWrong(0); rightB().classList.add('glow', 'shown'); if (card) card.helped = true; } }, 16000, { say: 'Here it is! Tap it! ✨' });
+    // v2.8.1 (Sue: instant help the moment she hesitates): about 5 s after the voice ends the right answer glows (one other
+    // choice left); about 10 s: only the answer is left, glowing, for an easy tap. Shown = helped, never a failure.
+    onIdle(() => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } }, PAUSE_1);
+    onIdle(() => { if (!over) { fadeWrong(0); rightB().classList.add('glow', 'shown'); if (card) card.helped = true; } }, PAUSE_2, { say: 'Here it is! Tap it! ✨' });
+    if (!card) { // choices added after the card was built (e.g. the picture question after typing): same pause help
+      const live = () => !over && row.isConnected && !(P.cards[P.idx] || {}).done;
+      const st = afterQuiet(PAUSE_1, () => { fadeWrong(1); rightB().classList.add('glow'); }, live);
+      afterQuiet(PAUSE_2, () => { fadeWrong(0); rightB().classList.add('glow', 'shown'); }, live, 0, st);
+    }
     if (card) card.help = () => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } };
     parent.appendChild(row);
     return row;
@@ -1188,7 +1206,8 @@
       box.querySelectorAll('.evi-s').forEach((x) => { if (!x._right && lvl >= 1) x.closest('.evi-p').classList.add('dim'); });
       if (lvl >= 2) box.querySelectorAll('.evi-s').forEach((x) => { if (x._right) x.classList.add('glow'); });
     };
-    onIdle(() => { if (!over) help(1); }, 20000);
+    onIdle(() => { if (!over) help(1); }, PAUSE_1);
+    onIdle(() => { if (!over) help(2); }, PAUSE_2, { say: 'Here it is! Tap it! ✨' });
     if (owner) owner.help = () => { if (!over) help(2); };
     placeAnswer(pick, (x) => x.r === 'right', (owner ? owner.spec.k : '?') + ':evi').forEach(({ i, s, r }) => {
       const p = el('p', 'evi-p');
@@ -1447,6 +1466,7 @@
     hear.hidden = true; body.insertBefore(hear, fb);
     const showHear = () => { hear.hidden = false; };
     card.onShow = () => { setTimeout(showHear, j != null ? 9000 : 6000); };
+    card.idleDelay = j != null ? 9000 : 6000; // v2.8.1: she reads first; the pause help starts when the Hear-it button appears
   };
   /* "Greetings from ___" lettering on the day's scene: the picture side of the postcard (instead of a floating emoji). */
   function greetings() {
@@ -1981,6 +2001,10 @@
       if (cur.review) {
         stage.setPic('📖'); step.textContent = '📖 Read it yourself! Then tap Next.';
         pip.say('Can you read this one by yourself?', null, true);
+        // v2.8.1 pause help: Help me glows, then the word plays by itself (she says it with the guide, then taps Next)
+        const mine = cur; helpB.classList.remove('glow'); const alive = () => cur === mine && !played && P.cards[P.idx] === card && !card.done;
+        const st = afterQuiet(PAUSE_1, () => helpB.classList.add('glow'), alive);
+        afterQuiet(PAUSE_2, () => { helpB.classList.remove('glow'); step.textContent = '👂 Listen, say it with me, then tap Next.'; playWord(); }, alive, 0, st);
       } else {
         stage.setPic(cur.v.pic || '👀'); step.textContent = '👀 Watch me… then 🗣️ your turn: say it out loud!';
         pip.say('Watch me, then you say it!', null, true);
@@ -2007,6 +2031,7 @@
     };
     const helpMe = () => {
       if (!cur || card.done) return;
+      helpB.classList.remove('glow');
       helpW.add(cur.v.w); const m = S.words[cur.v.w]; m.help = (m.help || 0) + 1; save();
       P.res.helpWords = (P.res.helpWords || 0) + 1;
       helpBox.hidden = false; helpBox.replaceChildren();
@@ -2336,6 +2361,10 @@
     body.insertBefore(tools, fb); body.insertBefore(form, fb); body.insertBefore(help, fb);
     card.onShow = () => { if (!card.done) { hear(false); setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (_) {} }, 300); } };
     let tries = 0, copy = false, won = false;
+    // v2.8.1 pause help: the first sound (and the word again, slowly), then the whole word to copy.
+    const copyMode = () => { copy = true; help.replaceChildren(el('p', 'c-text', `Here it is! Copy it into the box. ✨`), (() => { const d = el('div', 'dec-word'); d.appendChild(wordEl(it.w, { big: true })); return d; })()); };
+    onIdle(() => { if (won || copy || tries) return; help.replaceChildren(el('p', 'c-text', `It starts with “${it.w[0]}”. 👂`)); sayAfter([{ text: it.w, word: true, slow: true }]); }, PAUSE_1, { quiet: true });
+    onIdle(() => { if (won || copy) return; copyMode(); pip.say('Here it is! Copy it, letter by letter.'); }, PAUSE_2, { quiet: true });
     inp.addEventListener('input', () => { if (!won && inp.value.trim().toLowerCase() === it.w.toLowerCase()) { won = true; sound('ok'); win(tries === 0 && !copy); } });
     const win = (first) => {
       won = true;
@@ -2382,8 +2411,7 @@
         sayAfter([{ text: it.w, word: true, slow: true }]);
       }
       if (tries >= 2) {
-        copy = true;
-        help.replaceChildren(el('p', 'c-text', `Here it is! Copy it into the box. ✨`), (() => { const d = el('div', 'dec-word'); d.appendChild(wordEl(it.w, { big: true })); return d; })());
+        copyMode();
         pip.say('Here it is! Copy it, letter by letter.');
       }
       inp.value = ''; try { inp.focus({ preventScroll: true }); } catch (_) {}
@@ -2764,7 +2792,7 @@
     }, typeof c.a === 'string' ? 'words two' : 'nums');
     body.insertBefore(row, fb);
     card.help = ((h) => () => { h && h(); V.hint(1); })(card.help);
-    onIdle(() => V.hint(1), 8000, { quiet: true });
+    onIdle(() => V.hint(1), PAUSE_1, { quiet: true });
     // v2.8: even or odd = one tap. The buddy pairs make themselves (no "tap two at a time" step); a lone one stands out.
     if (c.k === 'evenodd') { const before = card.onShow; card.onShow = () => { if (before) before(); if (!card._paired) { card._paired = true; setTimeout(() => { if (P.cards[P.idx] === card) V.hint(1); }, 900); } }; }
   };
@@ -3234,7 +3262,7 @@
   const soFedToCurrent = (st, sess) => !(st.family || []).some((f) => f.date > sess.date); // fish went to a baby now in the zoo? then keep it off the new one
   function soStopPlan(st) {
     const pr = st.progress;
-    if (!pr || pr.v !== PLAN_V || !Array.isArray(pr.specs) || !pr.specs.length || pr.mode === 'italia' || pr.mode === 'bonus') return null;
+    if (!pr || pr.v !== PLAN_V || !Array.isArray(pr.specs) || !pr.specs.length || (pr.mode && pr.mode !== 'boss')) return null; // Zoo Math / bonus / Italia: not a postcard stop
     const idx = Math.max(0, Math.min(pr.idx || 0, pr.specs.length - 1));
     let j = idx; while (j >= 0 && !(pr.specs[j] && pr.specs[j].stop)) j--; // on the map / feed card: the stop she just finished
     if (j < 0) return null; // still on the first postcard (nothing played yet)
@@ -3263,7 +3291,7 @@
   }
   function soDayPlan(st, week) {
     const pr = st.progress;
-    const live = pr && pr.v === PLAN_V && pr.week === week.id && pr.mode !== 'italia' && week.days.some((d) => d.day === pr.day) ? pr : null;
+    const live = pr && pr.v === PLAN_V && pr.week === week.id && !pr.mode && week.days.some((d) => d.day === pr.day) ? pr : null; // a Zoo Math / boss / bonus in progress is not "today"
     const normal = (x) => x.week === week.id && typeof x.day === 'number' && !x.bonus;
     let dayId = live ? live.day : null;
     if (dayId == null) { const last = (st.sessions || []).filter(normal).sort((a, b) => b.date - a.date)[0]; if (last) dayId = last.day; }
@@ -3581,7 +3609,7 @@
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
       const wid = (() => { try { return ':' + currentWeek().id; } catch (_) { return ''; } })();
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8' + wid) return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.1' + wid) return;
       // v2.8: five weeks of clips (~21 MB) would be a lot to fetch at once, so warm this week's words (+ names and other
       // words no week uses); another week's clips are fetched when it starts (and cached as they play).
       let list;
@@ -3590,7 +3618,7 @@
         list = [...new Set(Object.keys(AUD).filter((k) => { const b = k.replace(/^slow:/, ''); return cur.includes(b) || !all.some((t) => t.includes(b)); }).map((k) => AUD[k]))];
       } catch (_) { list = [...new Set(Object.values(AUD))]; }
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.8' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
+      try { localStorage.setItem('pipsAudioWarm', 'v2.8.1' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

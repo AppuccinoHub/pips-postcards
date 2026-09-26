@@ -902,6 +902,7 @@ html.theme-dark { --green-d: #86dc8d; }
 .wp-tricky .pulse { animation: pop .3s ease 2; }
 .theme-dark .wp-word { background: #2a3244; border-color: #465270; }
 .theme-dark .wp-help { margin-top: 10px !important; background: #242b3a; border-color: #7a6424; }
+.wp-helpme.glow { animation: glow 1s ease-in-out infinite; border-color: var(--gold); } /* v2.8.1: pause help */
 .theme-dark .wp-helpme { background: #3d3314; color: #ffe39a; border-color: #7a6424; }
 
 /* ---- v2.7 ---- */

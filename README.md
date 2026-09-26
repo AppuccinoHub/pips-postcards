@@ -30,7 +30,7 @@ Full design notes are kept with the project in `ux-audit.md` (outside this repo)
 
 * A **🦓 Zoo Math** button on the home screen (today's math day; chips for Mon–Fri, so any day works on a weekend).
 * A session is 3 quick warm-up wins (Topic 1 facts, with a ten-frame) + 6 cards at her math level + feeding her baby: about 8–10 minutes. The word problem is always last.
-* Same one-tap rules as reading: tap an answer; 1st miss = a hint (the picture shows the strategy: pairs, rows, jumps, tens and ones); 2nd miss = the answer is shown and the feed moves on. If she pauses, help comes by itself: after about 8 s the picture hint shows and the right answer glows, after about 16 s only the answer is left for an easy tap (the clue waits until the voice has finished). No countdowns or time limits.
+* Same one-tap rules as reading: tap an answer; 1st miss = a hint (the picture shows the strategy: pairs, rows, jumps, tens and ones); 2nd miss = the answer is shown and the feed moves on. If she pauses, help comes by itself: about 5 s after the voice ends the picture hint shows and the right answer glows, about 10 s after only the answer is left for an easy tap. No countdowns or time limits.
 * **Even or odd:** the buddy pairs make themselves on the card, so the lone one stands out; she only taps Even or Odd. (v2.8 removed the "tap two at a time" step and the type-it number pad: Sue wants one tap per card.)
 * **🔊 Hear it** reads every card out loud (word problems are read automatically), so reading never stops the math. Hear-it taps are counted for the parent area.
 * Simple pictures, no image files: ten-frames, buddy pairs, equal teams, skip-count rows, arrays (tap a row to count it), equal groups, the rows of the hundred chart she needs, an open number line, base-ten blocks.
@@ -43,7 +43,15 @@ The app picks the week whose `dates.start` is the latest one on or before today.
 
 Live in v2.8: u1w2 (until Sun Sep 27) and **u1w3 from Mon Sep 28** (Sue confirmed the date), plus Zoo Math for the week of Sep 28 (Topic 2: equal groups). The later weeks (u2w1 Oct 5, u2w2 Oct 12, u2w3 Oct 19, all estimated) and their Zoo Math files are drafts in `weeks/` and `math/`. They are not loaded yet: add them to `weeks/index.js` and `index.html` when they are ready (`art/bump.py` only adds files that index.html loads to the offline list).
 
-**Keep it simple (Sue, for all Sept–Oct content):** this is a light preview of each week's key words, spelling pattern and story idea, not the full curriculum. Every card is one tap, and help comes the moment she pauses or misses: on any multiple-choice card, a pause of about 8 s makes the right answer glow (one other choice left), and about 16 s leaves only the answer for her to tap. Shown answers count as helped, never as failed.
+**Keep it simple (Sue, for all Sept–Oct content):** this is a light preview of each week's key words, spelling pattern and story idea, not the full curriculum. Every card is one tap, and help comes the moment she pauses or misses (v2.8.1, everywhere): the pause clock starts when the guide has finished talking and restarts whenever she taps or types.
+* Multiple choice (all word, postcard and math cards): about 5 s = the right answer glows (one other choice left); about 10 s = only the answer is left, glowing, for an easy tap.
+* Tap-the-sentence proof: 5 s = the other sentences dim; 10 s = the right one glows.
+* Sort: 5 s = the colour clue shows.
+* Type the word: 5 s = "It starts with …" and the word again, slowly; 10 s = the word is shown to copy.
+* Word practice, read-it-yourself words: 5 s = Help me glows; 10 s = the word plays by itself.
+* Postcard reading checks start the clock after her reading time (6–9 s, when "Hear it read" appears), so the answer is never given away before she has read.
+* Space level: no grammar terms on her cards (endings "that change the word", "words that compare", "tells why").
+Shown answers count as helped, never as failed. Timings: `PAUSE_1` / `PAUSE_2` in app.js.
 
 ## Word practice (v2.6, Sue's spec)
 

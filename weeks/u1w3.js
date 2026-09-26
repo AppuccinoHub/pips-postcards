@@ -30,7 +30,7 @@
   levels: {
     ground: { focus: 'This week: long a (ai, ay, a_e, break/great)' },
     sky: { focus: 'Next week: long o (oa, oe, o_e, ow) mixed with this week' },
-    space: { focus: '3rd-grade stretch: suffixes -ment, -able, -tion, long words, similes and metaphors, cause and effect' }
+    space: { focus: '3rd-grade stretch: long words, endings -ment, -able, -tion ("endings that change the word"), words that compare, why things happen. No grammar terms on her cards (v2.8.1).' }
   },
   days: [
   /* ======================= MONDAY ======================= */
@@ -103,15 +103,15 @@
         title: 'The Case of the Missing Puffins',
         targets: ['excitement', 'astonishment', 'disappointment', 'moment', 'discovery', 'dependable', 'adaptable', 'unbelievable', 'completely', 'decided'],
         model: {
-          title: 'Suffixes: -ment and -able',
+          title: 'Endings that change the word: -ment and -able',
           lines: ['-ment turns an action into a thing: excite → excitement.', '-able means "can be" or "able to": depend → dependable.'],
           ex: [{ w: 'ex|cite|[ment]', tag: 'a feeling' }, { w: 'as|ton|ish|[ment]', tag: 'a big surprise' }, { w: 'de|pend|[able]', tag: 'can be depended on' }, { w: 'a|dapt|[able]', tag: 'able to adapt' }]
         },
-        sort: { a: '-ment = a thing 📦', b: '-able = can be ✅', items: [['excitement', 'a'], ['dependable', 'b'], ['payment', 'a'], ['adaptable', 'b']], hint: 'Cover the base word. Which ending is left?', split: { excitement: 'excite[ment]', dependable: 'depend[able]', payment: 'pay[ment]', adaptable: 'adapt[able]' } },
+        sort: { a: '-ment = a thing 📦', b: '-able = can be ✅', items: [['excitement', 'a'], ['dependable', 'b'], ['payment', 'a'], ['adaptable', 'b']], hint: 'Look at the very end of the word.', split: { excitement: 'excite[ment]', dependable: 'depend[able]', payment: 'pay[ment]', adaptable: 'adapt[able]' } },
         build: { w: 'dis|ap|point|ment', tiles: ['dis', 'ap', 'point', 'ment', 'mint'], pic: '😞', clue: 'The feeling when things are not what you hoped.' },
         pick: { w: 'adaptable', opts: ['adaptable', 'adaptible', 'adabtable'], pic: '🦎', clue: 'Able to change to fit in.', split: 'a|dapt|[able]' },
         hear: { w: 'astonishment', opts: ['astonishment', 'astonishmint', 'astonishement'], pic: '😲', clue: 'A feeling of great surprise.', split: 'as|ton|ish|[ment]' },
-        rebel: { words: ['table', 'dependable', 'adaptable', 'washable'], why: 'In "table," -able is not a suffix. There is no base word "t"!' },
+        rebel: { words: ['table', 'dependable', 'adaptable', 'washable'], why: '"table" just ends in -able. Take it off and only "t" is left, so it does not mean "can be"!' },
         chunks: [
           { s: ['Greetings from the Gulf of Maine, where I arrived with great excitement to photograph Atlantic puffins.', 'To my astonishment, their rocky island was completely deserted!'], pic: '🏝️', focus: '70% 40%', check: ['🐦🏝️😲', '🐦🎉🐦🐦', '🐦🌋'] },
           { s: ['After a moment of disappointment, I flew out over the open ocean and made a remarkable discovery.', 'Hundreds of puffins were bobbing on the waves like a scattered handful of corks.'], pic: '🌊', focus: '40% 70%', check: ['🐦🐦🐦🌊', '🐦🏝️', '🐦🌳'] },
@@ -120,7 +120,7 @@
           { s: ['In summer, both parents took turns carrying beakfuls of fish to their puffling, which waited in a dark burrow.', 'When it was ready, the puffling left the burrow at night and fluttered to the sea on its own.'], pic: '🌙', focus: '75% 40%', check: ['🐣🌙🌊', '🐣🏫', '🐣🎈'] },
           { s: ['That journey sounded unbelievable to me, because I would be nervous in the dark.', 'I decided that puffins are the most adaptable birds I have ever met!'], pic: '🏅', focus: '50% 50%', check: ['🐦😊🏅', '🐦😡', '🐦😴'] }
         ],
-        question: { q: 'Cause and effect: WHY does a winter puffin look plain? Tap the sentence that tells the cause.', a: 'outer plates of the bill fall off', mishap: 'Oops! I tried to paint a puffin\'s bill with markers. It swam away! 🖍️ Look for the word "so"!' },
+        question: { q: 'WHY does a winter puffin look plain? Tap the sentence that tells why.', a: 'outer plates of the bill fall off', mishap: 'Oops! I tried to paint a puffin\'s bill with markers. It swam away! 🖍️ Look for the word "so"!' },
         advisor: { type: 'mistake', pip: 'A puffling stays with its parents until it is all grown up.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'on its own', mishap: 'That sentence does not tell how the puffling leaves. Try another, advisor!' },
         fill: { kind: 'word', sent: 'Their famous rainbow-colored bills are not ___ decorations.', opts: ['dependable', 'adorable', 'breakable'] },
         spell: { w: 'excitement', sent: 'I arrived with great ___.', split: 'ex|cite|[ment]', pic: '🤩' }
@@ -200,7 +200,7 @@
         title: 'Guardians of the Kelp Forest',
         targets: ['insulation', 'admiration', 'information', 'observed', 'returned', 'prevent', 'destroy', 'entire', 'enormous', 'important'],
         model: {
-          title: 'Suffix: -tion',
+          title: 'The ending -tion',
           lines: ['-tion says "shun." It often turns an action into a thing.', 'inform → information, admire → admiration'],
           ex: [{ w: 'in|for|ma|[tion]', tag: 'facts you learn' }, { w: 'ad|mi|ra|[tion]', tag: 'great respect' }, { w: 'in|su|la|[tion]', tag: 'holds heat in' }]
         },
@@ -208,7 +208,7 @@
         build: { w: 'in|su|la|tion', tiles: ['in', 'su', 'la', 'tion', 'shun'], pic: '🧥', clue: 'A layer that holds heat in.' },
         pick: { w: 'information', opts: ['information', 'informashun', 'infermation'], pic: 'ℹ️', clue: 'Facts that tell you about something.', split: 'in|for|ma|[tion]' },
         hear: { w: 'admiration', opts: ['admiration', 'admirashon', 'admeration'], pic: '🤩', clue: 'A feeling of great respect.', split: 'ad|mi|ra|[tion]' },
-        rebel: { words: ['nation', 'information', 'insulation', 'admiration'], why: '"nation" ends in -tion, but take it off and "na" is not a base word!' },
+        rebel: { words: ['nation', 'information', 'insulation', 'admiration'], why: '"nation" ends in -tion, but take it off and "na" is not a word!' },
         chunks: [
           { s: ['Greetings from Monterey Bay in California, where an underwater forest of giant kelp stretches toward the surface like a tangle of green ribbons.', 'Giant kelp can grow about two feet in a single day!'], pic: '🌿', focus: '30% 50%', check: ['🌿🌊', '🌵🏜️', '🌲❄️'] },
           { s: ['Floating among the swaying kelp, I observed a mother sea otter cradling her pup on her chest.', 'Unlike whales and seals, sea otters have no blubber for insulation, which means a layer that holds in heat.'], pic: '🦦', focus: '55% 45%', check: ['🦦👶🌊', '🦦🚗', '🦦🎂'] },
@@ -296,11 +296,11 @@
         title: 'The Desert Fox (Not the Dessert Fox!)',
         targets: ['remarkable', 'comfortable', 'noticeable', 'adaptations', 'sensitive', 'surface', 'temperatures', 'protect', 'disappeared', 'desert'],
         model: {
-          title: 'Suffix: -able (and a silent-e trick)',
-          lines: ['-able means "can be." comfort → comfortable.', 'Some base words keep their e before -able so the c stays soft: notice → noticeable.'],
+          title: 'The ending -able',
+          lines: ['-able means "can be." comfort → comfortable.', 'Some words keep their e: notice → noticeable.'],
           ex: [{ w: 're|mark|[able]', tag: 'worth noticing' }, { w: 'com|fort|[able]', tag: 'cozy' }, { w: 'no|tice|[able]', tag: 'easy to see' }]
         },
-        sort: { a: 'Real base word + -able ✅', b: 'Not a suffix 🚫', items: [['comfortable', 'a'], ['table', 'b'], ['remarkable', 'a'], ['cable', 'b']], hint: 'Take off -able. Is a real word left?', split: { comfortable: 'comfort[able]', remarkable: 'remark[able]' } },
+        sort: { a: 'A real word + -able ✅', b: 'Just ends in -able 🚫', items: [['comfortable', 'a'], ['table', 'b'], ['remarkable', 'a'], ['cable', 'b']], hint: 'Take off -able. Is a real word left?', split: { comfortable: 'comfort[able]', remarkable: 'remark[able]', table: 't[able]', cable: 'c[able]' } },
         build: { w: 'ad|ap|ta|tions', tiles: ['ad', 'ap', 'ta', 'tions', 'shuns'], pic: '🦎', clue: 'Body parts or habits that help an animal survive.' },
         pick: { w: 'sensitive', opts: ['sensitive', 'sensative', 'sensitiv'], pic: '👂', clue: 'Able to notice tiny things.', split: 'sen|si|tive' },
         hear: { w: 'temperature', opts: ['temperature', 'temprature', 'temperchure'], pic: '🌡️', clue: 'How hot or cold something is.', split: 'tem|per|a|ture' },
@@ -313,8 +313,8 @@
           { s: ['During the blazing day, the fox rests in a cool, comfortable burrow that it digs in the sand.', 'After dark, it hunts, and it can go a long time without drinking because it gets water from its food.'], pic: '🕳️', focus: '40% 75%', check: ['🦊😴🕳️', '🦊🏊', '🦊🍦'] },
           { s: ['When the fox noticed me, it disappeared down its burrow in a flash.', 'I think it was shy, or perhaps it thought I was a hungry hawk!'], pic: '💨', focus: '60% 60%', check: ['🦊💨🕳️', '🦊🤝🐦', '🦊🎤'] }
         ],
-        question: { pre: { q: 'Pip says the paws are "like built-in slippers." What does that help you picture?', opts: ['🥿 Soft fur covering the paws', '👟 The fox wearing sneakers', '🧦 Socks with holes'], mishap: 'A simile compares two things. The fox does not really wear slippers!' },
-          q: 'Tap the sentence with the simile about the paws.', a: 'like built-in slippers', mishap: 'Oops! I bought the fox some real slippers. It chewed them! 🥿 Try again!' },
+        question: { pre: { q: 'Pip says the paws are "like built-in slippers." What does that help you picture?', opts: ['🥿 Soft fur covering the paws', '👟 The fox wearing sneakers', '🧦 Socks with holes'], mishap: 'Pip compares the paws to slippers. The fox does not really wear slippers!' },
+          q: 'Tap the sentence that compares the paws to slippers.', a: 'like built-in slippers', mishap: 'Oops! I bought the fox some real slippers. It chewed them! 🥿 Try again!' },
         advisor: { type: 'mistake', pip: 'The fennec fox must drink from a pond every day.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'gets water from its food', mishap: 'That sentence does not tell about water. Try another, advisor!' },
         fill: { kind: 'word', sent: 'Those ears are remarkable ___.', opts: ['adaptations', 'admirations', 'addresses'] },
         spell: { w: 'protect', sent: 'Thick fur helps ___ the paws from the hot sand.', split: 'pro|tect', pic: '🛡️' }
@@ -395,30 +395,29 @@
         spell: { w: 'alone', sent: 'A pigeon struts down the street ___.', split: 'a|l[o]n[e]', pic: '🧍' }
       },
       space: {
-        title: 'Ode to a City Pigeon',
-        targets: ['ancestors', 'navigator', 'presence', 'determined', 'magnificent', 'ordinary', 'enjoyable', 'stanza', 'metaphor', 'simile'],
+        title: 'A Poem for a City Pigeon',
+        targets: ['ancestors', 'navigator', 'presence', 'determined', 'magnificent', 'ordinary', 'enjoyable'],
         model: {
-          title: 'Simile or metaphor?',
-          lines: ['A simile compares with "like" or "as": fast as a rocket.', 'A metaphor says one thing IS another: the city is a jungle.'],
-          ex: [{ w: 'sim|i|le', tag: 'uses like or as' }, { w: 'met|a|phor', tag: 'says it IS something' }, { w: 'stan|za', tag: 'a group of lines' }]
+          title: 'Words that compare',
+          lines: ['Some words compare two things with "like" or "as": fast as a rocket.', 'Some say one thing IS another: the city is a jungle.'],
+          ex: [{ w: 'like', tag: 'like a compass' }, { w: 'as', tag: 'as gray as rain' }, { w: 'is', tag: 'the sidewalk is a stage' }]
         },
-        sort: { a: 'Simile 🟢', b: 'Metaphor 🟣', items: [['as gray as rain', 'a'], ['a shadow in a coat', 'b'], ['like a compass', 'a'], ['the sidewalk is your stage', 'b']], hint: 'Look for "like" or "as." If you see one, it is a simile.' },
+        sort: { a: 'Uses like or as 🟢', b: 'Says it IS something 🟣', items: [['as gray as rain', 'a'], ['a shadow in a coat', 'b'], ['like a compass', 'a'], ['the sidewalk is your stage', 'b']], hint: 'Look for "like" or "as."' },
         build: { w: 'nav|i|ga|tor', tiles: ['nav', 'i', 'ga', 'tor', 'ter'], pic: '🧭', clue: 'Someone who finds the way.' },
         pick: { w: 'magnificent', opts: ['magnificent', 'magnifisent', 'magnificant'], pic: '👑', clue: 'Grand and amazing.', split: 'mag|nif|i|cent' },
         hear: { w: 'ancestors', opts: ['ancestors', 'ansestors', 'ancesters'], pic: '👵', clue: 'Family members who lived long ago.', split: 'an|ces|tors' },
-        rebel: { words: ['table', 'enjoyable', 'breakable', 'washable'], why: '"table" ends in -able, but "t" is not a base word! The others are base word + -able.' },
+        rebel: { words: ['table', 'enjoyable', 'breakable', 'washable'], why: '"table" just ends in -able: take it off and only "t" is left! The others are a real word + -able.' },
         chunks: [
-          { s: ['I wrote a poem in four stanzas, or groups of lines, about the pigeons of New York City.', 'Here is stanza one: O pigeon, as gray as rain on stone, you strut the busy streets alone.'], pic: '📜', focus: '50% 40%', check: ['📜🕊️', '📜🦈', '📜🎈'] },
-          { s: ['Stanza two: Your neck is a rainbow in disguise, flashing purple before our eyes.', 'The sidewalk is your stage and floor, you bow and coo, and bow some more.'], pic: '🌈', focus: '55% 60%', check: ['🕊️🌈', '🕊️⬛', '🕊️🍩'] },
-          { s: ['Stanza three: Your ancestors lived on rocky cliffs by the sea, so a ledge on a skyscraper suits you perfectly.', 'People think you are ordinary, but your presence here is extraordinary.'], pic: '🏢', focus: '70% 30%', check: ['🕊️🪨🏢', '🕊️🌳', '🕊️🏊'] },
-          { s: ['Stanza four: Your brain works like a compass, so you are a navigator who always finds home.', 'Determined and magnificent, you are the true king of this concrete jungle!'], pic: '🧭', focus: '60% 50%', check: ['🕊️🧭🏠', '🕊️❓', '🕊️😴'] },
-          { s: ['Did you spot the simile in stanza one?', '"As gray as rain" is a simile because it compares with the word "as."', '"Your neck is a rainbow" is a metaphor, because it says the neck IS a rainbow, even though it is really made of feathers.'], pic: '🌈', focus: '55% 60%', check: ['🔍🌈🕊️', '🔍🍕', '🔍🚗'] },
-          { s: ['Writing this ode was so enjoyable that I nearly missed my train.', 'Tomorrow I am visiting some ancient reptiles who were swimming in the ocean when dinosaurs were alive!'], pic: '🦖', focus: '50% 50%', check: ['🐦🦖🌊', '🐦🍕', '🐦⛷️'] }
+          { s: ['I wrote a poem in four parts about the pigeons of New York City.', 'Here is part one: O pigeon, as gray as rain on stone, you strut the busy streets alone.'], pic: '📜', focus: '50% 40%', check: ['📜🕊️', '📜🦈', '📜🎈'] },
+          { s: ['Part two: Your neck is a rainbow in disguise, flashing purple before our eyes.', 'The sidewalk is your stage and floor, you bow and coo, and bow some more.'], pic: '🌈', focus: '55% 60%', check: ['🕊️🌈', '🕊️⬛', '🕊️🍩'] },
+          { s: ['Part three: Your ancestors lived on rocky cliffs by the sea, so a ledge on a skyscraper suits you perfectly.', 'People think you are ordinary, but your presence here is extraordinary.'], pic: '🏢', focus: '70% 30%', check: ['🕊️🪨🏢', '🕊️🌳', '🕊️🏊'] },
+          { s: ['Part four: Your brain works like a compass, so you are a navigator who always finds home.', 'Determined and magnificent, you are the true king of this concrete jungle!'], pic: '🧭', focus: '60% 50%', check: ['🕊️🧭🏠', '🕊️❓', '🕊️😴'] },
+          { s: ['Writing this poem was so enjoyable that I nearly missed my train.', 'Tomorrow I am visiting some ancient reptiles who were swimming in the ocean when dinosaurs were alive!'], pic: '🦖', focus: '50% 50%', check: ['🐦🦖🌊', '🐦🍕', '🐦⛷️'] }
         ],
-        question: { pre: { q: 'Cause and effect: WHY do pigeons like ledges on tall buildings?', opts: ['🪨 Their ancestors lived on rocky cliffs', '🍕 Ledges have pizza', '🌧️ Ledges are always dry'], mishap: 'Look for the word "so" in stanza three.' },
-          q: 'Tap the line that tells the cause.', a: 'ancestors lived on rocky cliffs', mishap: 'Oops! I looked for a cliff in the subway. Wrong way! 🚇 Try again!' },
+        question: { pre: { q: 'WHY do pigeons like ledges on tall buildings?', opts: ['🪨 Their ancestors lived on rocky cliffs', '🍕 Ledges have pizza', '🌧️ Ledges are always dry'], mishap: 'Look for the word "so" in part three.' },
+          q: 'Tap the line that tells why.', a: 'ancestors lived on rocky cliffs', mishap: 'Oops! I looked for a cliff in the subway. Wrong way! 🚇 Try again!' },
         advisor: { type: 'predict', q: 'Who will Pip visit tomorrow?', opts: ['🐢 Sea turtles', '🐧 Penguins on ice', '🦒 Giraffes'], evQ: 'Tap the clue in the postcard.', a: ['ancient reptiles'], mishap: 'Look for a clue about tomorrow! Which animals are reptiles that swim in the ocean?' },
-        fill: { kind: 'word', sent: 'Writing this ode was so ___ that I nearly missed my train.', opts: ['enjoyable', 'enormous', 'enjoying'] },
+        fill: { kind: 'word', sent: 'Writing this poem was so ___ that I nearly missed my train.', opts: ['enjoyable', 'enormous', 'enjoying'] },
         spell: { w: 'determined', sent: '___ and magnificent, you are the king of this jungle!', split: 'de|ter|mined', pic: '💪' }
       }
     }
@@ -519,15 +518,15 @@
         title: 'A Moonlit Journey',
         targets: ['extraordinary', 'championship', 'disqualification', 'movement', 'instinct', 'reflection', 'direction', 'dependable', 'determined', 'compared'],
         model: {
-          title: 'Suffix review: -ment, -able, -tion',
+          title: 'Endings review: -ment, -able, -tion',
           lines: ['-ment and -tion make a thing: move → movement, direct → direction.', '-able means "can be": depend → dependable.'],
           ex: [{ w: 'move|[ment]', tag: 'a thing' }, { w: 'di|rec|[tion]', tag: 'a thing' }, { w: 're|flec|[tion]', tag: 'a thing' }, { w: 'de|pend|[able]', tag: 'can be' }]
         },
-        sort: { a: '-ment / -tion 📦', b: '-able ✅', items: [['movement', 'a'], ['dependable', 'b'], ['direction', 'a'], ['comfortable', 'b']], hint: 'Cover the base word. Which ending is left?', split: { movement: 'move[ment]', dependable: 'depend[able]', direction: 'direc[tion]', comfortable: 'comfort[able]' } },
+        sort: { a: '-ment / -tion 📦', b: '-able ✅', items: [['movement', 'a'], ['dependable', 'b'], ['direction', 'a'], ['comfortable', 'b']], hint: 'Look at the very end of the word.', split: { movement: 'move[ment]', dependable: 'depend[able]', direction: 'direc[tion]', comfortable: 'comfort[able]' } },
         build: { w: 'ex|tra|or|di|nar|y', tiles: ['ex', 'tra', 'or', 'di', 'nar', 'y', 'ner'], pic: '🌟', clue: 'Much more than ordinary. Amazing!' },
         pick: { w: 'reflection', opts: ['reflection', 'reflecshun', 'refection'], pic: '🪞', clue: 'An image you see in water or a mirror.', split: 're|flec|[tion]' },
         hear: { w: 'instinct', opts: ['instinct', 'instink', 'instint'], pic: '🧠', clue: 'Something you know how to do without learning.', split: 'in|stinct' },
-        rebel: { words: ['station', 'movement', 'reflection', 'direction'], why: '"station" ends in -tion, but "sta" is not a base word you know!' },
+        rebel: { words: ['station', 'movement', 'reflection', 'direction'], why: '"station" ends in -tion, but take it off and "sta" is not a word!' },
         chunks: [
           { s: ['Greetings from a moonlit beach in Florida, where I witnessed something extraordinary.', 'Two months ago, a loggerhead sea turtle crawled ashore, dug a deep nest, and laid about one hundred eggs.'], pic: '🥚', focus: '40% 70%', check: ['🐢🥚🏖️', '🐢🌳', '🐢🏠'] },
           { s: ['She covered them with sand and returned to the ocean, leaving the warm sand to do the rest.', 'Amazingly, the temperature of the sand helps decide whether the babies become males or females.'], pic: '🌡️', focus: '50% 60%', check: ['🐢🌡️🏖️', '🐢❄️', '🐢🍕'] },
