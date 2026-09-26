@@ -26,11 +26,39 @@ A reading and spelling game for a 2nd grader. Her guide (she picks one on the fi
 
 ## Voice
 
-The guide speaks every line out loud, always with the words shown in her speech bubble (captions are always on) and a 🔁 replay button on every line. All of it is pre-made audio in one voice, free offline Kokoro TTS voice **af_heart** at normal speed:
+The guide speaks every line out loud, with a 🔁 replay button on every line. **Guide captions (v2.5):** while the sound is on, her chatter (jokes, mishaps, praise, instructions) is heard, not written: the speech bubble shrinks to just the 🔁 button. The words appear in the bubble when the sound is off, when a line could not play (e.g. the browser blocked audio), or when a grown-up ticks **Always show what the guide says** (grown-up area → Settings, default off). Reading content always stays written: postcards, word cards, questions, answer options, and the type-the-word sentence. All of it is pre-made audio in one voice, free offline Kokoro TTS voice **af_heart** at normal speed:
 * words, syllable chunks, the guide's misreadings and the suggested names: `audio/w/` + `audio/index.js` (`art/make_audio.py`; Italian words use if_sara);
 * every fixed guide line, praise, hint, clue, card instruction and postcard sentence: `audio/l/` + `audio/lines.js` (`art/make_lines.py`), matched on the exact text.
 
-Names she types are never read by the robot voice when it can be avoided: a suggested name plays its pre-made file; a name used like "Great job, Mia!" or "I'm your guide, Zuzu!" stays in the caption only; a name in the middle of a sentence is said as "the puffin" (guide), "your baby" or "friend". Numbers play pre-made files (0–100). Only a line that has no pre-made audio falls back to the device's best natural female en-US voice (pitch 1.0, rate 0.95). The voice is ONE setting, `GUIDE_VOICE` (and `GUIDE_SPEED`) at the top of `art/make_audio.py`; after changing it or any text, run `art/make_lines.py plan tests-capture.json…`, `gen 0 1`, `index` (see the script header), then `tests/voice_cover.py` to list any line that would still use the device voice. The guide never reads a postcard aloud until she has read it herself. 🔊 in the top bar cycles loud → soft → off.
+Names she types are never read by the robot voice when it can be avoided: a suggested name plays its pre-made file; a name used like "Great job, Mia!" or "I'm your guide, Zuzu!" stays in the caption only; a name in the middle of a sentence is said as "the puffin" (guide), "your baby" or "friend". Numbers play pre-made files (0–100). Only a line that has no pre-made audio falls back to the device's best natural female en-US voice (pitch 1.0, rate 0.95). The voice is ONE setting, `GUIDE_VOICE` (and `GUIDE_SPEED`) at the top of `art/make_audio.py`; after changing it or any text, run `art/make_lines.py plan tests-capture.json…`, `gen 0 1`, `index` (see the script header), then `tests/voice_cover.py` to list any line that would still use the device voice. The guide never reads a postcard aloud until she has read it herself.
+
+## Quick settings (the 🔊 button, top right)
+
+One tap opens big buttons she can reach herself, saved on this device:
+
+* **Sound:** 🔇 Off · 🔈 Soft (40%) · 🔉 Normal (the files at full level, the old default) · 🔊 Loud (the voice is boosted past full through Web Audio with a gentle limiter, so it does not distort; sound effects scale along and stay below the voice). On iPad Safari, where page audio ignores the volume setting, the levels go through Web Audio too.
+* **Screen:** ☀️ Light · 🌤️ Dim (warm paper, softer contrast) · 🌙 Dark (dark background, light text). Pictures are dimmed only slightly. `tests/themes.py` checks text contrast (WCAG 4.5:1, 3:1 for big text) on home, cards, the grown-up area and this panel at phone, iPad and TV sizes.
+
+## Sound effects (v2.5)
+
+Short, soft sounds, all **synthesized from scratch** by `art/make_sfx.py` (numpy sine tones and filtered noise; no samples, no third-party audio). They are released as **CC0 / public domain**. Files: `sfx/*.mp3` (mono 32 kHz, 15 files, about 60 KB in all), pre-loaded and decoded once into Web Audio buffers, so fast taps never lag; a small pool of `<audio>` elements is the fallback. On iPad Safari the audio is unlocked on her first tap.
+
+| Sound | When |
+|---|---|
+| `crack1`, `crack2`, `crack3` | egg babies: Crack!, Peek-a-boo, Almost out (the turtle has no Crack! drawing, so it gets the last two) |
+| `hatch` | the "Hatched!" card: rising bell sparkle |
+| `rustle`, `snuggle` | born babies (bat, fox, otter), never egg sounds: soft blanket rustle while waking up, then a warm hum on "Born!" |
+| `tap` | every button and answer tap (very soft wood tick) |
+| `key` | typing, very quiet |
+| `swoosh` | moving between cards |
+| `right` | a right answer: bubble pop + ding |
+| `notyet` | "Not yet": one soft, round, low "bloop" (neutral, never a buzzer) |
+| `food` | food earned / eaten |
+| `grow` | the baby grows a stage: chime |
+| `fanfare` | a day (session) finished, including level-up |
+| `plink` | a new zoo sticker |
+
+Rules: nothing plays when the sound is off; Soft/Normal/Loud scale them; each level was set by measuring the file against the voice files so every effect sits well below the voice; while the guide talks, effects duck (a sound that starts during speech is 60% quieter, one already playing dips). A separate **Sound effects** switch in the grown-up area (default on) turns only the effects off. Change a sound: edit `art/make_sfx.py`, run `python3 art/make_sfx.py`, bump `SFX_VER` in `app.js` and the `sfx/…?v=` entries in `sw.js`.
 
 ## The guide
 

@@ -55,6 +55,8 @@
   const STAGE_SCALE = [0.6, 0.7, 0.8, 0.9, 1];
   const ITEM_AT = [12, 26, 40, 55, 70, 88, 105];
   const EGG = ['egg', 'cracked', 'peeking', 'halfout'], BORN = ['snug', 'waking'];
+  /* The sound each hidden stage makes (egg cracks for egg babies; born babies only rustle and snuggle, never egg sounds). */
+  const PRE_SFX = { cracked: 'crack1', peeking: 'crack2', halfout: 'crack3', waking: 'rustle' };
   const PETS = {
     penguin: { kind: 'Penguin chick', nest: 'Snowy ice', icon: '🐧', food: '🐟', foodName: 'fish', how: 'egg', pre: EGG, scene: true, reveal: true,
       found: 'Pip found this baby emperor penguin on the ice.', sugs: ['Waddles', 'Snowy', 'Pebble', 'Flip'],
@@ -118,7 +120,7 @@
     guide: null, kid: '', tryAgain: {}, soundLog: [], rOn: true, rWords: null, italiaOn: true, italiaDone: {}, bossDone: {}, vol: 1,
     chick: { name: '', kind: '', fish: 0 }, family: [], level: 'ground', levelLock: false, good: 0, roughStreak: 0,
     sessions: [], sessionsDone: 0, review: [], levelLog: [], routeEcho: null, progress: null,
-    muted: false, hinted: false, weekId: null
+    muted: false, sfxOn: true, capsAlways: false, theme: 'light', hinted: false, weekId: null
   });
   let S = fresh();
   function load() { try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (_) {} }
@@ -164,25 +166,64 @@
     return wrap;
   }
   function btn(cls, txt, onClick) { const b = el('button', cls, txt); b.type = 'button'; if (onClick) b.addEventListener('click', onClick); return b; }
-  function toast(msg, ms) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, ms || 1800); }
+  function toast(msg, ms) { const t = $('toast'); t.textContent = fillName(msg); t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, ms || 1800); }
   const fmtDate = (d) => new Date(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   const fmtTime = (d) => new Date(d).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
-  /* ---------------- sound + speech ---------------- */
-  let actx = null;
-  function sound(kind) {
-    if (S.muted) return;
-    try {
-      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      const notes = kind === 'ok' ? [660, 880] : kind === 'grow' ? [523, 659, 784, 1046] : kind === 'fish' ? [990] : [523, 494]; // "not yet": a soft, friendly boop (no buzzer)
-      notes.forEach((f, i) => {
-        const o = actx.createOscillator(), g = actx.createGain();
-        o.type = 'sine'; o.frequency.value = f;
-        const t = actx.currentTime + i * 0.11;
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime((kind === 'wrong' ? 0.07 : 0.18) * (S.vol == null ? 1 : S.vol), t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-        o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.25);
-      });
-    } catch (_) {}
+  /* ---------------- sound effects ----------------
+     Tiny sounds in sfx/ (synthesized from scratch by art/make_sfx.py, CC0; about 60 KB in all). Decoded once into Web
+     Audio buffers so rapid taps never lag; a small pool of <audio> elements is the fallback. They obey mute and soft
+     volume, have their own switch in the grown-up area (S.sfxOn, default on), are set well below the voice, and duck
+     while the guide is talking. iPad Safari: the audio context is created/resumed on the first tap (unlock).
+     Levels (0..1, times the volume) were set by measuring each file against the voice files. */
+  const SFX = { crack1: 0.53, crack2: 0.72, crack3: 0.46, hatch: 0.29, rustle: 0.36, snuggle: 0.23, tap: 0.145, key: 0.1, swoosh: 0.2,
+    right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18 };
+  const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
+  const SFX_VER = '2.5';
+  const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
+  const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
+  function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
+  function sfxCtx() {
+    if (sfx.ctx) return sfx.ctx;
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { sfx.ctx = new AC(); } catch (_) { return null; }
+    sfx.bus = sfx.ctx.createGain(); sfx.bus.gain.value = 1; sfx.bus.connect(sfx.ctx.destination);
+    sfxFetch();
+    Object.keys(SFX).forEach((k) => sfx.raw[k].then((ab) => {
+      if (!ab) return;
+      new Promise((res) => { try { const pr = sfx.ctx.decodeAudioData(ab.slice(0), res, () => res(null)); if (pr && pr.then) pr.then(res, () => res(null)); } catch (_) { res(null); } })
+        .then((b) => { if (b) sfx.buf[k] = b; });
+    }));
+    return sfx.ctx;
+  }
+  function sfxUnlock() {
+    const c = sfxCtx(); if (!c) return;
+    if (c.state !== 'running') { try { const pr = c.resume(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {} }
+    if (!sfx.unlocked) { sfx.unlocked = true; try { const s0 = c.createBufferSource(); s0.buffer = c.createBuffer(1, 1, 22050); s0.connect(c.destination); s0.start(0); } catch (_) {} }
+  }
+  /* The guide's voice ducks the sound effects (a sound that starts while she talks is quieter; one already playing dips). */
+  function voiceActive() { try { return !!(curAudio && !curAudio.paused && !curAudio.ended) || !!(window.speechSynthesis && speechSynthesis.speaking); } catch (_) { return false; } }
+  function sfxDuck() {
+    const on = voiceActive(); if (on === sfx.duck) return; sfx.duck = on;
+    if (sfx.bus) { try { sfx.bus.gain.setTargetAtTime(on ? 0.4 : 1, sfx.ctx.currentTime, 0.04); } catch (_) {} }
+  }
+  /* Play one effect: tap, key, swoosh, right, notyet, food, crack1-3, hatch, rustle, snuggle, grow, fanfare, plink. */
+  function sound(kind, delay) {
+    const k = SFX_ALIAS[kind] || kind; if (!SFX[k] || !sfxAllowed()) return;
+    const now = Date.now(); if (sfx.last[k] && now - sfx.last[k] < (k === 'key' ? 45 : 35) && !delay) return; sfx.last[k] = now;
+    const g = SFX[k] * vol() * (voiceActive() ? 0.4 : 1);
+    if (window.__sfxLog) window.__sfxLog.push([k, Math.round(g * 1000) / 1000]); // test hook
+    const c = sfxCtx();
+    if (c) {
+      if (c.state === 'suspended' && sfx.unlocked) { try { c.resume().catch(() => {}); } catch (_) {} }
+      const b = sfx.buf[k]; if (!b) return; // still decoding (a few ms after the first tap)
+      try { const src = c.createBufferSource(), gn = c.createGain(); src.buffer = b; gn.gain.value = g; src.connect(gn).connect(sfx.bus); src.start(c.currentTime + (delay || 0) / 1000); } catch (_) {}
+      return;
+    }
+    const pool = sfx.pool[k] = sfx.pool[k] || [0, 1, 2].map(() => { const a = new Audio('sfx/' + k + '.mp3?v=' + SFX_VER); a.preload = 'auto'; return a; });
+    const a = pool.find((x) => x.paused || x.ended) || pool[0];
+    const go = () => { try { a.currentTime = 0; a.volume = Math.min(1, g); const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {} };
+    if (delay) setTimeout(go, delay); else go();
   }
   /* Voice. Words, chunks and suggested names: pre-made audio (audio/index.js). Guide lines, praise, hints and card
      instructions: pre-made audio too (audio/lines.js, same Kokoro af_heart voice), matched on the exact text. A line
@@ -199,7 +240,34 @@
   }
   if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
   const canSpeak = () => 'speechSynthesis' in window;
-  const vol = () => (S.muted ? 0 : (S.vol == null ? 1 : S.vol));
+  /* Volume (quick settings, per device): Off / Soft / Normal / Loud. Normal = the files at full level (the old default);
+     Loud boosts the voice past full through Web Audio with a gentle limiter; effects scale along, always below the voice. */
+  const VOL_LEVELS = { soft: 0.4, normal: 1, loud: 1.8 };
+  const volLevel = () => (S.muted ? 'off' : (S.vol == null || (S.vol >= 0.7 && S.vol < 1.4)) ? 'normal' : S.vol < 0.7 ? 'soft' : 'loud');
+  const vol = () => (S.muted ? 0 : VOL_LEVELS[volLevel()]);
+  let voiceOutNode = null;
+  function voiceOut() {
+    if (voiceOutNode) return voiceOutNode;
+    const c = sfx.ctx; const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.2;
+    comp.connect(c.destination); voiceOutNode = comp; return comp;
+  }
+  /* Level for one voice clip: element volume where the browser honours it (iPad Safari does not, so the rest goes
+     through a Web Audio gain), plus the Loud boost. */
+  function routeVoice(a) {
+    const v = vol(); a.volume = Math.min(1, v);
+    const c = sfx.ctx, eff = a.volume || 1, g = v / eff;
+    if (c && c.state === 'running' && Math.abs(g - 1) > 0.02) { try { const n = c.createMediaElementSource(a), gn = c.createGain(); gn.gain.value = g; n.connect(gn).connect(voiceOut()); } catch (_) {} }
+  }
+  /* Guide chatter captions: with sound on, the guide's spoken bubble lines are heard, not shown (a small 🔁 stays).
+     The words show when sound is off, when a line could not play, or when a grown-up turns on "Always show what the
+     guide says" (S.capsAlways). Reading content (postcards, words, questions, answers) always stays written. */
+  let voiceFails = 0, speakingWrap = null;
+  const capsShown = () => !!S.capsAlways || vol() === 0 || voiceFails >= 2;
+  function capMode(w) { if (!w || !w.classList) return; w.classList.toggle('cap-off', !w.classList.contains('content') && !capsShown()); if (w.fit) w.fit(); }
+  function capsRefresh() { document.querySelectorAll('.pip-wrap, .guide-intro').forEach(capMode); }
+  function voiceFailed() { voiceFails++; if (speakingWrap) { speakingWrap.classList.add('cap-fail'); if (speakingWrap.fit) speakingWrap.fit(); } if (voiceFails === 2) capsRefresh(); }
+  function voiceWorked() { if (voiceFails >= 2) { voiceFails = 0; capsRefresh(); } voiceFails = 0; }
   const AUD = window.PIP_AUDIO || {};
   const LINES = window.PIP_LINES || {};
   const lineKey = (s) => String(s).toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/'(?![a-z])|(^|\s)'/g, ' ').replace(/\s+/g, ' ').trim();
@@ -253,7 +321,7 @@
     return plan.length ? plan : null;
   }
   let curAudio = null, sayToken = 0;
-  function stopVoice() { sayToken++; try { speechSynthesis.cancel(); } catch (_) {} if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; } }
+  function stopVoice() { sayToken++; try { speechSynthesis.cancel(); } catch (_) {} if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; } sfxDuck(); }
   /* Speak one thing. opts: {rate, slow, lang, word} ; returns a Promise that resolves when done (or after a safety timeout). */
   function say1(text, opts) {
     opts = opts || {};
@@ -265,27 +333,27 @@
     }
     return new Promise((res) => {
       if (!t || vol() === 0) return setTimeout(res, opts.word ? 350 : 60);
-      let done = false; const fin = () => { if (!done) { done = true; res(); } };
+      let done = false; const fin = () => { if (!done) { done = true; res(); setTimeout(sfxDuck, 0); } };
       let guard = setTimeout(fin, opts.file ? 20000 : 900 + t.length * (opts.slow ? 130 : 95));
       const src = opts.file || AUD[(opts.lang ? opts.lang + ':' : '') + t.toLowerCase()];
       if (src && (opts.file || opts.word !== false)) {
         try {
-          const a = new Audio(src); a.volume = vol(); a.playbackRate = opts.slow ? 0.8 : 1; curAudio = a;
-          a.onended = () => { clearTimeout(guard); fin(); }; a.onerror = () => { clearTimeout(guard); fin(); };
+          const a = new Audio(src); routeVoice(a); a.playbackRate = opts.slow ? 0.8 : 1; curAudio = a; a.onplaying = () => { voiceWorked(); sfxDuck(); };
+          a.onended = () => { clearTimeout(guard); fin(); }; a.onerror = () => { clearTimeout(guard); voiceFailed(); fin(); };
           a.onloadedmetadata = () => { if (isFinite(a.duration) && a.duration > 0) { clearTimeout(guard); guard = setTimeout(fin, a.duration * 1000 / a.playbackRate + 1500); } };
-          const pr = a.play(); if (pr && pr.catch) pr.catch(() => { clearTimeout(guard); fin(); });
+          const pr = a.play(); if (pr && pr.catch) pr.catch((er) => { clearTimeout(guard); if (!er || er.name !== 'AbortError') voiceFailed(); fin(); });
           return;
         } catch (_) {}
       }
-      if (!canSpeak()) { clearTimeout(guard); return fin(); }
+      if (!canSpeak()) { clearTimeout(guard); voiceFailed(); return fin(); }
       try {
         if (window.__voiceMiss) window.__voiceMiss.push(t); // test hook: every time the device voice is used
         const u = new SpeechSynthesisUtterance(t);
         u.lang = opts.lang === 'it' ? 'it-IT' : 'en-US';
         const V = GUIDES.voice || {};
-        u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.95)); u.pitch = V.pitch || 1.0; u.volume = vol();
+        u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.95)); u.pitch = V.pitch || 1.0; u.volume = Math.min(1, vol());
         if (voice && opts.lang !== 'it') u.voice = voice;
-        u.onend = () => { clearTimeout(guard); fin(); }; u.onerror = () => { clearTimeout(guard); fin(); };
+        u.onstart = () => { voiceWorked(); sfxDuck(); }; u.onend = () => { clearTimeout(guard); fin(); }; u.onerror = (ev) => { clearTimeout(guard); if (!ev || !/interrupt|cancel/.test(ev.error || '')) voiceFailed(); fin(); };
         speechSynthesis.speak(u);
       } catch (_) { clearTimeout(guard); fin(); }
     });
@@ -532,7 +600,7 @@
   function setIndex(i) {
     if (i === P.idx && P.cards[i] && P.cards[i]._shown) { updateNav(); return; }
     const prev = P.cards[P.idx];
-    if (prev && prev !== P.cards[i]) { if (prev.onLeave) prev.onLeave(); stopVoice(); }
+    if (prev && prev !== P.cards[i]) { if (prev.onLeave) prev.onLeave(); stopVoice(); sound('swoosh'); }
     idleTimers.forEach(clearTimeout); idleTimers = [];
     P.idx = i;
     const c = P.cards[i];
@@ -612,30 +680,49 @@
     const slot = P && P.mode === 'boss' ? (k === 'feed' ? 'bossWin' : 'boss') : k === 'italia' ? 'italia' : (k === 'spell' || k === 'type') ? 'spell' : base === 'think' ? 'think' : k === 'mail' ? 'mail' : '';
     if (slot) vis.appendChild(girlEl(slot, 'girl-side'));
   }
-  function pipSay(vis, text, mood) {
+  function pipSay(vis, text, mood, content) {
     const card = BUILDING;
     const base = (card && card.spec && (POSE.byCard || {})[card.spec.k]) || 'talk';
-    const w = el('div', 'pip-wrap guide-' + G().kind + (mood === 'oops' ? ' oops' : ''));
+    const w = el('div', 'pip-wrap guide-' + G().kind + (mood === 'oops' ? ' oops' : '') + (content ? ' content' : ''));
     const img = el('img', 'pip'); img.src = guideImg(mood || base); img.alt = `${G().name} the ${G().species}`;
     img.onerror = () => { const m = G().img; if (m && !img.src.endsWith(m)) img.src = m; };
     w.base = base;
     w.pose = (slot) => { const nx = guideImg(slot || w.base); if (!img.src.endsWith(nx)) img.src = nx; w.classList.toggle('oops', slot === 'oops'); w.dataset.pose = slot || w.base; };
     w.dataset.pose = mood || base;
     const b = el('div', 'bubble');
-    const cap = el('span', 'cap', fillName(text || ''));
-    const rp = btn('replay', '🔁', (e) => { e.stopPropagation(); w.speakNow(); }); rp.setAttribute('aria-label', 'Hear it again');
+    const cap = el('span', 'cap'); setCap(cap, text || '');
+    const rp = btn('replay', '🔁', (e) => { e.stopPropagation(); w.speakNow(); }); rp.setAttribute('aria-label', 'Hear it again'); rp.title = 'Hear it again';
     b.append(cap, rp);
     if (!text) b.hidden = true;
     w.append(b, img); vis.appendChild(w);
     sidekick(vis, card, base);
     w.text = text || '';
-    w.speakNow = () => { if (w.text) sayList([{ text: fillName(w.text), word: false }]); };
+    w.speakNow = () => { if (w.text) { speakingWrap = w; w.classList.remove('cap-fail'); sayList([{ text: fillName(w.text), word: false }]); } };
+    capMode(w);
+    w.fit = () => fitBubble(w, b, vis);
+    requestAnimationFrame(w.fit);
     w.say = (t, m) => {
-      w.text = t || ''; b.hidden = !t; cap.textContent = fillName(t || ''); w.pose(m || w.base); w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop');
+      w.text = t || ''; b.hidden = !t; w.classList.remove('cap-fail'); capMode(w); setCap(cap, t || ''); w.pose(m || w.base); w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop'); w.fit();
       if (t && card && P.cards[P.idx] === card) w.speakNow();
     };
     if (card) card.pip = w;
     return w;
+  }
+  /* Caption text: names filled in, and a trailing emoji stays on the line with the last word (no lonely emoji line). */
+  /* Emoji sit in their own small box so a tall emoji glyph can never poke out of the line (iPhone clipped them). */
+  const EMOJI_RE = /((?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:\uFE0F|\u200D(?:\p{Extended_Pictographic})|\p{Emoji_Modifier}|\p{Regional_Indicator})*)/u;
+  function setCap(cap, t) {
+    cap.replaceChildren();
+    capText(t).split(EMOJI_RE).forEach((x, i) => { if (!x) return; if (i % 2) cap.appendChild(el('span', 'emo', x)); else cap.appendChild(document.createTextNode(x)); });
+  }
+  function capText(t) { return fillName(t).replace(/ ([^\sA-Za-z0-9]{1,6})$/u, '\u00a0$1'); }
+  /* Keep a speech bubble whole and inside the picture: if it would poke out of the top or sides, step the text down. */
+  function fitBubble(w, b, vis) {
+    if (!w.isConnected || b.hidden) return;
+    w.classList.remove('squeeze', 'squeeze2');
+    const V = vis.getBoundingClientRect(); if (!V.height) return;
+    const out = () => { const r = b.getBoundingClientRect(); return r.top < V.top + 2 || r.left < V.left + 2 || r.right > V.right + 1; };
+    if (out()) { w.classList.add('squeeze'); if (out()) w.classList.add('squeeze2'); }
   }
   function feedback(body) { const f = el('p', 'fb'); f.setAttribute('role', 'status'); f.setAttribute('aria-live', 'polite'); body.appendChild(f); return f; }
   function setFb(f, text, kind) { f.textContent = fillName(text); f.className = 'fb show ' + (kind || ''); }
@@ -662,7 +749,7 @@
           onWrong && onWrong(b, tries);
         }
       });
-      if (o instanceof Node) b.appendChild(o); else b.textContent = o;
+      if (o instanceof Node) b.appendChild(o); else b.textContent = fillName(o);
       btns.push({ b, i });
       row.appendChild(b);
     });
@@ -1193,7 +1280,7 @@
     const fb = feedback(body);
     const feedB = btn('big-btn', `Feed ${chickName()} ${pp.food}`, () => {
       feedB.disabled = true;
-      [...fishRow.children].forEach((f, i) => setTimeout(() => { f.classList.add('eaten'); sound('fish'); }, i * 90));
+      [...fishRow.children].forEach((f, i) => setTimeout(() => { f.classList.add('eaten'); sound('food'); }, i * 90));
       setTimeout(() => {
         const after = before + n;
         const sb = stageFor(before), sa = stageFor(after);
@@ -1201,7 +1288,7 @@
         const nc = chickEl(after, 'big grow'); ch.replaceWith(nc); ch = nc;
         const newItems = itemsOf(pp).filter((it) => it.at > before && it.at <= after);
         let msg = sa > sb ? (sa === STAGE_KEYS.length - 1 ? `${chickName()} is all grown up! 🎓🎉` : `${chickName()} grew! Now: ${stagesOf(pp)[sa].name}! 🎉`) : `Yum! ${chickName()} is getting bigger! 😋`;
-        sound(sa > sb ? 'grow' : 'ok');
+        sound(sa > sb ? 'grow' : 'right');
         if (sa > sb) { const cheer = girlEl(sa === STAGE_KEYS.length - 1 ? 'grown' : 'grow', 'girl-cheer'); vis.appendChild(cheer); }
         if (newItems.length) {
           msg += ` New for the habitat: ${newItems.map((i) => i.name).join(', ')}!`;
@@ -1262,7 +1349,7 @@
         const rec = { id: 'r' + Date.now() + Math.random().toString(36).slice(2, 6), date: Date.now(), dur: 3, mime: blob.type, blob, kind: kind || 'word', word: v.w, week: P.week.id, day: P.day.day, dayName: P.day.name, level: P.lv, title: v.w };
         try { await recPut(rec); } catch (_) {}
         b.textContent = '🎙️ Again';
-        out.replaceChildren(btn('mini-btn', '▶️ Me', () => { const a = audioFor(rec); a.volume = vol(); a.play().catch(() => {}); }), btn('mini-btn', `🔊 ${G().name}`, () => sayList([{ text: v.w, word: true }])));
+        out.replaceChildren(btn('mini-btn', '▶️ Me', () => { const a = audioFor(rec); a.volume = Math.min(1, vol()); a.play().catch(() => {}); }), btn('mini-btn', `🔊 ${G().name}`, () => sayList([{ text: v.w, word: true }])));
       };
       mr.start(); b.textContent = '⏹️ Stop'; setTimeout(() => { if (mr && mr.state === 'recording') mr.stop(); }, 4000);
     });
@@ -1286,7 +1373,7 @@
       n++;
       pip.say(line, n < 3 ? 'oops' : 'carry');
       pip.classList.remove('bump'); void pip.offsetWidth; pip.classList.add(n < 3 ? 'bump' : 'landed');
-      if (n < 3) land.textContent = g.landBtn[n];
+      if (n < 3) land.textContent = gtext(g.landBtn[n]);
       else { land.remove(); body.appendChild(el('p', 'c-sub', `${g.name} kept trying, and she made it! 🎉`)); complete(card, null, { fish: 0, delay: 1800 }); }
     });
     body.appendChild(land);
@@ -1461,7 +1548,7 @@
     const blankSent = fillName(it.sent).replace(new RegExp('\\b' + shown + '\\b', 'i'), '___');
     const { vis, body } = frame(sec, { kicker: '⌨️ Type the word you hear', title: null });
     vis.appendChild(el('div', 'pic-hero', it.pic));
-    const pip = pipSay(vis, `Type the word I say. “${blankSent}”`);
+    const pip = pipSay(vis, `Type the word I say. “${blankSent}”`, null, true);
     card.noAutoSay = true;
     const hear = (slow) => sayList([{ text: 'Type the word', word: false, pause: 150 }, { text: it.w, word: true, slow, pause: 350 }, { text: fillName(it.sent), word: false, rate: slow ? 0.7 : undefined, pause: 300 }, { text: it.w, word: true, slow }]);
     const tools = el('div', 'tool-row');
@@ -1774,9 +1861,15 @@
     if (rule.change && LEVELS.indexOf(rule.change.to) > LEVELS.indexOf(rule.change.from)) box.appendChild(el('p', 'end-up', `🚀 Pip can fly higher now! Next time: ${levelLabel(rule.change.to)}`));
     const bye = el('div', 'end-guide'); const bim = el('img', 'end-guide-img'); bim.src = poseSrc((POSE.screens || {}).end || 'sleep'); bim.alt = `${G().name} the ${G().species}`;
     bye.append(girlEl(P && P.mode === 'boss' ? 'bossWin' : 'end', 'girl-end'), bim, el('span', 'bubble end-bubble', 'See you tomorrow! 💤')); box.appendChild(bye);
+    const nStk = (S.sessions || []).length;
+    if (nStk >= 1 && nStk <= STICKERS.length) { // she just earned a sticker for the zoo shelf
+      const sk = el('p', 'end-sticker'); const im = el('img'); im.src = `img/stickers/${STICKERS[nStk - 1]}.webp`; im.alt = ''; sk.append(im, el('span', null, 'New sticker for your zoo!'));
+      box.insertBefore(sk, bye);
+      sound('plink', 1300);
+    }
     box.appendChild(btn('big-btn', `Back to ${chickName()} ${pet().icon}`, () => goHome()));
     showScreen('screenEnd');
-    sound('grow');
+    sound('fanfare');
   }
 
   /* ---------------- home + habitat ---------------- */
@@ -1928,7 +2021,7 @@
         const g = GUIDES.kinds[k];
         const b = btn('nest-btn guide-btn', null, () => {
           if (grid.classList.contains('picked')) return;
-          grid.classList.add('picked'); b.classList.add('chosen'); sound('ok');
+          grid.classList.add('picked'); b.classList.add('chosen'); sound('right');
           sayList([{ text: g.label, word: false }]);
           st.kind = k; setTimeout(() => { box.replaceChildren(); renderGuide(box); }, 800);
         });
@@ -1967,8 +2060,9 @@
     const vis = el('div', 'guide-intro');
     const im = el('img', 'guide-hero'); im.src = poseSrc((POSE.screens || {}).intro || 'hello', st.kind, true); im.alt = g.label;
     const line = `Hi! I'm your guide, ${st.name}! I'm a ${g.species}. I ${g.me || g.travel}. Let's find a baby animal for you to take care of!`; // her typed name is dropped from the spoken line (caption only)
-    const bub = el('div', 'bubble intro-bubble'); const cap = el('span', 'cap', line); const rp = btn('replay', '🔁', () => sayList([{ text: line, word: false }]));
+    const bub = el('div', 'bubble intro-bubble'); const cap = el('span', 'cap', line); const rp = btn('replay', '🔁', () => { speakingWrap = vis; sayList([{ text: line, word: false }]); }); rp.setAttribute('aria-label', 'Hear it again');
     bub.append(cap, rp); vis.append(bub, im); box.appendChild(vis);
+    capMode(vis); speakingWrap = vis;
     sayList([{ text: line, word: false }]);
     box.appendChild(btn('big-btn', `Hi, ${st.name}! 👋`, () => { renderGuide.st = null; stopVoice(); renderName(); }));
     showScreen('screenName');
@@ -1995,7 +2089,7 @@
     box.append(rv, h1, intro);
     const inp = el('input', 'spell-in'); inp.maxLength = 16; inp.placeholder = 'Name'; inp.setAttribute('aria-label', 'Baby animal name'); inp.autocomplete = 'off';
     const sug = el('div', 'sugs');
-    pp.sugs.forEach((n) => sug.appendChild(btn('sug', n, () => { inp.value = n; })));
+    pp.sugs.forEach((n) => sug.appendChild(btn('sug', n, () => { inp.value = gtext(n); })));
     const go = btn('big-btn', `That is the name! ${pp.icon}`); go.type = 'submit';
     f.append(inp, sug, go);
     f.addEventListener('submit', (e) => { e.preventDefault(); const v = inp.value.trim().slice(0, 16); if (!v) { inp.focus(); return; } S.chick.name = v; save(); goHome(); });
@@ -2014,7 +2108,7 @@
     let done = false; const timers = [];
     const open = () => {
       if (done) return; done = true; timers.forEach(clearTimeout);
-      hid.classList.add('out'); cap.classList.add('out'); sound('grow');
+      hid.classList.add('out'); cap.classList.add('out'); sound(born ? 'snuggle' : 'hatch');
       setTimeout(() => {
         hid.remove(); cap.remove();
         const card = el('div', 'scene-card');
@@ -2027,7 +2121,7 @@
         onDone && onDone();
       }, 420);
     };
-    pp.pre.slice(1).forEach((st, i) => timers.push(setTimeout(() => { pic.src = babyImg(pp.id, st); cap.textContent = PRE_NAMES[st] + (born ? ' 💤' : ' 🥚'); pic.classList.remove('bump'); void pic.offsetWidth; pic.classList.add('bump'); sound('ok'); }, 900 * (i + 1))));
+    pp.pre.slice(1).forEach((st, i) => timers.push(setTimeout(() => { pic.src = babyImg(pp.id, st); cap.textContent = PRE_NAMES[st] + (born ? ' 💤' : ' 🥚'); pic.classList.remove('bump'); void pic.offsetWidth; pic.classList.add('bump'); sound(PRE_SFX[st] || (born ? 'rustle' : 'crack1')); }, 900 * (i + 1))));
     timers.push(setTimeout(open, 900 * pp.pre.length + 300));
     pp.pre.forEach((st) => { const i = new Image(); i.src = babyImg(pp.id, st); });
     const pre2 = new Image(); pre2.src = revealOf(pp);
@@ -2057,7 +2151,7 @@
       const b = btn('nest-btn' + (locked ? ' locked' : ''), null, () => {
         if (locked) { toast('This one opens when your first baby is all grown up 🌟'); return; }
         if (grid.classList.contains('picked')) return;
-        grid.classList.add('picked'); b.classList.add('chosen'); sound('grow');
+        grid.classList.add('picked'); b.classList.add('chosen'); sound('right');
         if (S.choosing && S.chick.kind && S.chick.name) S.family = (S.family || []).concat([{ name: S.chick.name, kind: S.chick.kind, fish: S.chick.fish, date: Date.now() }]);
         S.choosing = false;
         S.chick = { name: '', kind: k, fish: 0 }; save();
@@ -2212,6 +2306,12 @@
     const irow = el('label', 'pa-row pa-check'); const ic = el('input'); ic.type = 'checkbox'; ic.checked = S.italiaOn !== false;
     ic.addEventListener('change', () => { S.italiaOn = ic.checked; save(); toast(ic.checked ? 'Italian bonus on ✓' : 'Italian bonus off ✓'); });
     irow.append(ic, document.createTextNode(' Italian bonus postcard (one per week, unlocks after Friday, optional)')); st.appendChild(irow);
+    const xrow = el('label', 'pa-row pa-check'); const xc = el('input'); xc.type = 'checkbox'; xc.checked = S.sfxOn !== false; xc.id = 'paSfx';
+    xc.addEventListener('change', () => { S.sfxOn = xc.checked; save(); toast(xc.checked ? 'Sound effects on ✓' : 'Sound effects off ✓'); if (xc.checked) sound('plink'); });
+    xrow.append(xc, document.createTextNode(' Sound effects (soft taps, egg cracks, chimes; the 🔊 button and mute still apply)')); st.appendChild(xrow);
+    const crow = el('label', 'pa-row pa-check'); const cc = el('input'); cc.type = 'checkbox'; cc.checked = !!S.capsAlways; cc.id = 'paCaps';
+    cc.addEventListener('change', () => { S.capsAlways = cc.checked; save(); capsRefresh(); toast(cc.checked ? 'Guide captions always on ✓' : 'Guide captions only when the sound is off ✓'); });
+    crow.append(cc, document.createTextNode(" Always show what the guide says (captions in her speech bubble even when the sound is on). Postcards, words, questions and answers are always written.")); st.appendChild(crow);
     const nrow = el('div', 'pa-row'); const nin = el('input'); nin.value = S.chick.name; nin.maxLength = 16; nin.setAttribute('aria-label', 'Baby animal name');
     nrow.append(nin, btn('pa-btn', 'Rename', () => { if (nin.value.trim()) { S.chick.name = nin.value.trim(); save(); toast('Saved ✓'); } }));
     st.appendChild(nrow);
@@ -2239,18 +2339,42 @@
     $('screenParent').scrollTop = 0;
   }
 
+  /* Screen: Light (default) / Dim (warm, softer contrast) / Dark (dark background, light text). Art is only dimmed a little. */
+  function applyTheme() {
+    const t = ['dim', 'dark'].includes(S.theme) ? S.theme : 'light', r = document.documentElement;
+    ['light', 'dim', 'dark'].forEach((x) => r.classList.toggle('theme-' + x, x === t));
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', { light: '#fbeed6', dim: '#e3d5b8', dark: '#171b26' }[t]);
+  }
+  applyTheme();
   /* ---------------- start up ---------------- */
   function init() {
     $('feed').addEventListener('scroll', onFeedScroll, { passive: true });
+    // Sound effects: unlock audio on the first touch (iPad Safari), a soft tap on every button, quiet key ticks.
+    ['pointerdown', 'touchend', 'keydown'].forEach((ev) => document.addEventListener(ev, sfxUnlock, { capture: true, passive: true }));
+    document.addEventListener('click', (e) => { const b = e.target && e.target.closest && e.target.closest('button, summary'); if (b && !b.disabled && b.id !== 'btnGrown') sound('tap'); }, true);
+    document.addEventListener('input', (e) => { const t = e.target; if (t && t.tagName === 'INPUT' && (t.type === 'text' || !t.type) && e.inputType !== 'deleteContentBackward') sound('key'); }, true);
+    sfxFetch();
     $('btnNext').addEventListener('click', goNext);
     $('btnPrev').addEventListener('click', goPrev);
     $('btnHome').addEventListener('click', goHome);
-    // Volume: loud → soft → off → loud
-    const volIcon = () => { $('muteIcon').textContent = S.muted ? '🔇' : (S.vol != null && S.vol < 1 ? '🔉' : '🔊'); $('btnMute').setAttribute('aria-pressed', String(!!S.muted)); $('btnMute').setAttribute('aria-label', S.muted ? 'Sound is off' : (S.vol < 1 ? 'Sound is soft' : 'Sound is on')); };
-    $('btnMute').addEventListener('click', () => {
-      if (S.muted) { S.muted = false; S.vol = 1; } else if (S.vol == null || S.vol >= 1) S.vol = 0.45; else { S.muted = true; stopVoice(); }
-      save(); volIcon(); if (!S.muted) toast(S.vol < 1 ? '🔉 Soft voice' : '🔊 Voice on');
+    // Quick settings (the 🔊 button, easy for her to reach): volume Off / Soft / Normal / Loud and screen Light / Dim / Dark.
+    const volIcon = () => { const l = volLevel(); $('muteIcon').textContent = { off: '🔇', soft: '🔈', normal: '🔉', loud: '🔊' }[l]; $('btnMute').setAttribute('aria-pressed', String(!!S.muted)); $('btnMute').setAttribute('aria-label', `Sound and screen settings. Sound is ${l}.`); };
+    const qs = el('div', 'quick'); qs.id = 'quick'; qs.hidden = true; qs.setAttribute('role', 'dialog'); qs.setAttribute('aria-label', 'Sound and screen');
+    const qb = el('div', 'quick-box'); qs.appendChild(qb);
+    const seg = (title, items, cur, onPick) => {
+      qb.appendChild(el('p', 'quick-h', title)); const row = el('div', 'seg');
+      items.forEach(([id, ic, lbl]) => { const b = btn('seg-btn' + (id === cur() ? ' on' : ''), null, () => { onPick(id); row.querySelectorAll('.seg-btn').forEach((x) => x.classList.toggle('on', x.dataset.id === cur())); }); b.dataset.id = id; b.append(el('span', 'seg-ic', ic), el('span', 'seg-lbl', lbl)); b.setAttribute('aria-label', lbl); row.appendChild(b); });
+      qb.appendChild(row);
+    };
+    seg('Sound', [['off', '🔇', 'Off'], ['soft', '🔈', 'Soft'], ['normal', '🔉', 'Normal'], ['loud', '🔊', 'Loud']], volLevel, (id) => {
+      if (id === 'off') { S.muted = true; stopVoice(); } else { S.muted = false; S.vol = VOL_LEVELS[id]; }
+      save(); volIcon(); capsRefresh(); if (id !== 'off') { sfxUnlock(); sound('plink'); }
     });
+    seg('Screen', [['light', '☀️', 'Light'], ['dim', '🌤️', 'Dim'], ['dark', '🌙', 'Dark']], () => S.theme || 'light', (id) => { S.theme = id; save(); applyTheme(); });
+    qb.appendChild(btn('big-btn quick-done', 'Done ✓', () => { qs.hidden = true; }));
+    qs.addEventListener('click', (e) => { if (e.target === qs) qs.hidden = true; });
+    $('app').appendChild(qs);
+    $('btnMute').addEventListener('click', () => { qs.hidden = !qs.hidden; });
     volIcon();
     document.addEventListener('keydown', (e) => {
       if (!$('screenPlay').classList.contains('active')) return;
@@ -2270,7 +2394,7 @@
     const hintText = () => { $('swipeHint').textContent = wideQ.matches ? 'swipe ↑ or ←  ·  arrow keys work too' : 'swipe up ↑'; };
     hintText(); if (wideQ.addEventListener) wideQ.addEventListener('change', hintText);
     let resizeT = null;
-    window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if ($('screenPlay').classList.contains('active')) scrollToIndex(P.idx, false); }, 150); });
+    window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if ($('screenPlay').classList.contains('active')) scrollToIndex(P.idx, false); document.querySelectorAll('.pip-wrap').forEach((w) => w.fit && w.fit()); }, 150); });
     setupGate();
     if (!S.guide || !S.chick.name) { renderName(); showScreen('screenName'); } else goHome();
     refreshThenNow();
@@ -2285,6 +2409,6 @@
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   // Small hook for automated tests (no effect on the child's experience).
-  window.PipApp = { soundAlike, linePlan, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; } };
+  window.PipApp = { soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

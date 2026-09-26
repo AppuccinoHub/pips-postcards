@@ -291,6 +291,9 @@ input, select { font: inherit; }
 .center-box .chick { position: relative; left: auto; bottom: auto; transform: none; margin: 0 auto; width: calc(46% * var(--s, 1)); max-width: 240px; }
 .end-h { margin: 0; font-size: 1.9rem; color: var(--teal); }
 .end-up { margin: 0; padding: 10px; border-radius: 14px; background: #eef6ff; font-weight: 600; }
+.end-sticker { margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; color: var(--ink2); }
+.end-sticker img { width: 54px; height: 54px; object-fit: contain; animation: stickerIn .6s 1.2s both cubic-bezier(.3,1.6,.5,1); }
+@keyframes stickerIn { from { transform: scale(0) rotate(-30deg); opacity: 0; } to { transform: none; opacity: 1; } }
 .sugs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .sug { min-height: 44px; padding: 6px 14px; border-radius: 999px; background: #fff; border: 2px solid #e2d4b5; font-weight: 600; }
 
@@ -553,3 +556,97 @@ input, select { font: inherit; }
 }
 .kid-name { width: 100%; align-self: stretch; }
 .kid-name .name-big { width: min(520px, 100%); }
+
+/* v2.5 speech bubbles grow to fit (never cut off): the bubble sizes to its text, can be a little wider than the guide's
+   column, the guide shrinks a bit when a long line needs the room, and JS (fitBubble) steps the text down a size if a
+   line still would not fit inside the picture. The bubble sits above (or beside) the guide, never over her face. */
+.pip-wrap { max-height: calc(100% - 8px); }
+.pip-wrap .pip { flex: 0 1 auto; min-height: 48px; }
+.bubble { flex: none; width: max-content; max-width: 140%; line-height: 1.34; padding: 8px 12px 10px; overflow: visible; overflow-wrap: break-word; }
+.bubble .cap { min-width: 0; }
+.card.tall .bubble { width: auto; max-width: none; }
+.pip-wrap.squeeze .bubble { font-size: .82rem; padding: 6px 10px 8px; }
+.pip-wrap.squeeze .pip { max-width: 104px; }
+.pip-wrap.squeeze2 .bubble { font-size: .74rem; line-height: 1.28; }
+.pip-wrap.squeeze2 .pip { max-width: 76px; }
+.pip-wrap.squeeze .replay, .pip-wrap.squeeze2 .replay { width: 30px; height: 30px; }
+@media (orientation: landscape) and (min-width: 700px) {
+  .bubble { max-width: 120%; }
+  .card.tall .bubble { width: max-content; max-width: 120%; }
+}
+
+/* v2.5 guide captions: with sound on, the guide's spoken lines are heard, not shown; only a small 🔁 stays. */
+.pip-wrap.cap-off:not(.cap-fail) .bubble, .guide-intro.cap-off:not(.cap-fail) .bubble { width: auto; max-width: none; padding: 4px; border-radius: 999px; flex: none; }
+.pip-wrap.cap-off:not(.cap-fail) .bubble .cap, .guide-intro.cap-off:not(.cap-fail) .bubble .cap { display: none; }
+.pip-wrap.cap-off:not(.cap-fail) .replay, .guide-intro.cap-off:not(.cap-fail) .replay { margin: 0; }
+.card.tall .pip-wrap.cap-off:not(.cap-fail) { left: auto; }
+.guide-intro.cap-off:not(.cap-fail) .intro-bubble { align-self: center; }
+
+/* v2.5 quick settings: sound Off / Soft / Normal / Loud, screen Light / Dim / Dark */
+.quick { position: absolute; inset: 0; z-index: 40; background: rgba(20, 30, 50, .35); display: flex; justify-content: flex-end; align-items: flex-start; padding: calc(var(--top-h) + var(--safe-t) + 4px) 8px 8px; }
+.quick[hidden] { display: none; }
+.quick-box { width: min(440px, 100%); background: #fff; border-radius: 20px; box-shadow: var(--shadow); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.quick-h { margin: 2px 0 0; font-weight: 700; color: var(--ink2); }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.seg-btn { min-height: 64px; border-radius: 14px; border: 3px solid #e2d4b5; background: #fffaf0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-weight: 700; color: var(--ink); }
+.seg-btn.on { border-color: var(--teal); background: #e3f6f9; box-shadow: 0 0 0 2px rgba(21, 151, 173, .25); }
+.seg-ic { font-size: 1.5rem; line-height: 1; }
+.seg-lbl { font-size: .85rem; }
+.quick-done { margin-top: 4px; }
+
+/* v2.5 screen themes. Dim = warm paper, softer contrast. Dark = dark surfaces, light text. Art is dimmed only a little. */
+html.theme-dim { --paper: #efe4cc; --paper2: #e6d8b8; --ink: #3b3226; --ink2: #5c4f3c; --muted: #6f6450; --sky: #d4e2ea; }
+html.theme-dim, html.theme-dim body { background: #d9ccb0; }
+.theme-dim .topbar { background: linear-gradient(180deg, #e8dcc0, #efe4cc); }
+.theme-dim .card:nth-child(odd) { background: #ece0c6; }
+.theme-dim :is(.fish-count, .bubble, .big-btn.soft, .hear-btn, .opt, .ex, .slot, .pv, .spell-in, .take, .part, .line, .reply, .route, .fish-pop, .nest-btn, .skip-btn, .zoo-pal, .day, .sug, .gate-box, .pa-sec, .mini-btn, .order-btn, .cmp-box, .extra-btn, .it-word, .quick-box, .seg-btn, .replay, .grown, .nav-btn, .icon-btn, .home-chick, .sticker, .pic-cap, .cmp figcaption) { background-color: #f5ead3; }
+.theme-dim :is(.evi, .pc-full, .dec-word, .mini-pc, .peek-word, .hint-btn, .zoo) { background: #f3e7cc; }
+.theme-dim :is(img, .scene) { filter: brightness(.95) sepia(.08); }
+.theme-dim .pip { filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .18)) brightness(.95) sepia(.08); }
+
+html.theme-dark { --paper: #1a1f2b; --paper2: #232a38; --ink: #eef1f6; --ink2: #c9d1de; --muted: #aab3c2; --sky: #2c4460; --teal: #1a8ea3; --teal-d: #137486; color-scheme: dark; }
+html.theme-dark, html.theme-dark body { background: #11151e; color: var(--ink); }
+.theme-dark .topbar { background: #171c27; border-bottom-color: #2c3446; }
+.theme-dark .card:nth-child(odd) { background: #1d2230; }
+.theme-dark .c-visual { background: linear-gradient(180deg, #2c4460, #3a4f68); }
+.theme-dark :is(.fish-count, .bubble, .big-btn.soft, .hear-btn, .opt, .ex, .slot, .pv, .spell-in, .take, .part, .line, .reply, .route, .fish-pop, .nest-btn, .skip-btn, .zoo-pal, .day, .sug, .gate-box, .pa-sec, .mini-btn, .order-btn, .cmp-box, .extra-btn, .it-word, .quick-box, .seg-btn, .replay, .grown, .nav-btn, .icon-btn, .home-chick, .sticker, .pic-cap, .cmp figcaption, .gate-box input, .pa-sec input, .pa-sec select, .pa-sec textarea) { background-color: #2a3244; color: var(--ink); border-color: #465270; }
+.theme-dark :is(.evi, .pc-full, .dec-word, .mini-pc, .peek-word, .hint-btn, .zoo, .italia-btn, .nest-scene.cut) { background: #242b3a; color: var(--ink); border-color: #465270; }
+.theme-dark .italia-btn { background: linear-gradient(#242b3a, #242b3a) padding-box, linear-gradient(90deg, #009246 0 33%, #f1f1f1 33% 66%, #ce2b37 66%) border-box; }
+.theme-dark .card.italia { background: linear-gradient(90deg, #009246 0 10px, transparent 10px calc(100% - 10px), #ce2b37 calc(100% - 10px)), #1d2420; }
+.theme-dark :is(.c-note, .pa-note) { background: #1f3a33; }
+.theme-dark :is(.fb.good, .day.done, .cmp-box.real) { background: #1f3a28; }
+.theme-dark :is(.fb.soft, .rec-off .rec-status, .bin:nth-child(2)) { background: #3d3020; }
+.theme-dark :is(.fb.hint, .clue-box, .end-up, .mouth, .peek, .bin, .evi-s.near, .seg-btn.on) { background: #22344e; color: var(--ink); }
+.theme-dark :is(.tile, .evi-s, .line.mine) { background: #3a3322; color: var(--ink); }
+.theme-dark .evi-s:hover { background: #4a4028; }
+.theme-dark :is(.evi-s.nope, .opt.nope, .nest-btn.locked, .pa-btn.ghost, .pa-bar) { background: #2b2d33; color: var(--ink); }
+.theme-dark :is(.vow, .pat, .pat-chip, .syl.on, .mini-w, .sneaky-word .pat, .dec-note.sneaky .pat) { color: #1f2f4a; }
+.theme-dark .toast { background: #eef1f6; color: #1a1f2b; }
+.theme-dark .bubble::after { border-top-color: #2a3244; }
+.theme-dark .card.tall .bubble::after { border-top-color: transparent; border-left-color: #2a3244; }
+.theme-dark .end-bubble::after { border-top-color: transparent; border-right-color: #2a3244; }
+.theme-dark :is(.c-kicker, .end-h, .zoo-h) { color: #5fd0e2; }
+.theme-dark a { color: #7fd6ff; }
+.theme-dark :is(img, .scene) { filter: brightness(.9); }
+.theme-dark .pip { filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .3)) brightness(.9); }
+.theme-dark .dot { background: #3a4458; }
+.theme-dark .pa-tbl :is(th, td) { border-color: #3a4458; }
+@media (orientation: landscape) and (min-width: 700px) { .theme-dark .card.tall .bubble::after { border-left-color: transparent; border-top-color: #2a3244; } }
+.bubble .cap { display: block; padding: 1px 0 3px; }
+.bubble .emo, .cap .emo { display: inline-block; font-size: .95em; line-height: 1; vertical-align: -0.08em; }
+/* v2.5 contrast fixes (tests/themes.py): deeper green on the main buttons, darker teal on small buttons, slightly
+   deeper syllable colors, and light text colors for the dark screen. */
+.big-btn, .big-btn.good { background: linear-gradient(180deg, #3f9f45, #2f8a35); }
+.pa-btn { background: var(--teal-d); }
+.syl-0 { color: #1858b5; } .syl-1 { color: #a8380a; } .syl-2 { color: #23773a; }
+html.theme-dim { --teal: #0f7f93; --teal-d: #0a5a68; --muted: #5a5040; }
+html.theme-dark { --green-d: #86dc8d; }
+.theme-dark .fb.good { color: #c4f5c8; } .theme-dark .fb.soft { color: #ffdcae; } .theme-dark .fb.hint { color: #c4dcff; }
+.theme-dark :is(.step-lbl, .c-kicker) { color: #6fd6e6; }
+.theme-dark .dec-note { color: #a8e6b5; } .theme-dark .dec-note.sneaky { color: #d9c2ff; }
+.theme-dark .syl-0 { color: #9ccbff; } .theme-dark .syl-1 { color: #ffb896; } .theme-dark .syl-2 { color: #98e4a6; }
+.theme-dark .w-gap { color: #7d8aa3; }
+.theme-dark .home-h { text-shadow: none; color: #6fd6e6; }
+.theme-dark .big-btn.soft { color: #9fe6a5; }
+.c-sub.quiet { color: var(--ink2); }
+.theme-dark .pa-small { color: #b4bdd0; }

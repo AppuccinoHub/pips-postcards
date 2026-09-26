@@ -2,16 +2,17 @@
    When you publish changes, bump VERSION and the ?v= numbers in index.html.
    CORE is the offline starter set; every other picture (guide poses, baby stages, the girl, stickers) is cached the
    first time it loads, and the app pre-loads the chosen guide's poses, the baby's stages and the girl art. */
-const VERSION = 'pips-v2.4';
+const VERSION = 'pips-v2.5';
 const CORE = [
-  './', 'index.html', 'styles.css?v=2.4', 'app.js?v=2.4', 'guide.js?v=2.4', 'audio/index.js?v=2.4', 'audio/lines.js?v=2.4', 'weeks/index.js?v=2.4', 'weeks/u1w2.js?v=2.4', 'manifest.webmanifest', 'favicon.png',
+  './', 'index.html', 'styles.css?v=2.5', 'app.js?v=2.5', 'guide.js?v=2.5', 'audio/index.js?v=2.5', 'audio/lines.js?v=2.5', 'weeks/index.js?v=2.5', 'weeks/u1w2.js?v=2.5', 'manifest.webmanifest', 'favicon.png',
   'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'fonts/andika-regular.woff2', 'fonts/andika-bold.woff2', 'fonts/fredoka.woff2', 'img/bonus_koala.webp', 'img/fri_barn.webp',
   'img/fri_radio.webp', 'img/item_aurora.webp', 'img/item_hill.webp', 'img/item_igloo.webp', 'img/item_pond.webp', 'img/item_sled.webp', 'img/item_slide.webp', 'img/item_snowman.webp',
   'img/koala.webp', 'img/mon_antarctica.webp', 'img/pip_happy.webp', 'img/thu_rainforest.webp', 'img/tue_batcave.webp', 'img/wed_desert.webp', 'guides/fox/main.webp', 'guides/otter/main.webp',
   'guides/penguin/main.webp', 'guides/pigeon/main.webp', 'guides/puffin/main.webp', 'guides/turtle/main.webp', 'babies/penguin/scene.webp', 'babies/penguin/reveal.webp',
   'babies/penguin/newborn.webp', 'babies/turtle/scene.webp', 'babies/turtle/reveal.webp', 'babies/turtle/newborn.webp', 'babies/fox/reveal.webp', 'babies/fox/newborn.webp',
   'babies/otter/reveal.webp', 'babies/otter/newborn.webp', 'babies/puffin/scene.webp', 'babies/puffin/reveal.webp', 'babies/puffin/newborn.webp', 'babies/pigeon/scene.webp',
-  'babies/pigeon/reveal.webp', 'babies/pigeon/newborn.webp', 'babies/bat/newborn.webp', 'img/girl/hello.webp', 'img/girl/zoo_explorer_map.webp', 'img/girl/fox_walk.webp'
+  'babies/pigeon/reveal.webp', 'babies/pigeon/newborn.webp', 'babies/bat/newborn.webp', 'img/girl/hello.webp', 'img/girl/zoo_explorer_map.webp', 'img/girl/fox_walk.webp',
+  'sfx/tap.mp3?v=2.5', 'sfx/key.mp3?v=2.5', 'sfx/swoosh.mp3?v=2.5', 'sfx/right.mp3?v=2.5', 'sfx/notyet.mp3?v=2.5', 'sfx/food.mp3?v=2.5', 'sfx/crack1.mp3?v=2.5', 'sfx/crack2.mp3?v=2.5', 'sfx/crack3.mp3?v=2.5', 'sfx/hatch.mp3?v=2.5', 'sfx/rustle.mp3?v=2.5', 'sfx/snuggle.mp3?v=2.5', 'sfx/grow.mp3?v=2.5', 'sfx/fanfare.mp3?v=2.5', 'sfx/plink.mp3?v=2.5'
 ];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
