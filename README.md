@@ -7,11 +7,11 @@ A reading and spelling game for a 2nd grader. Her guide (she picks one on the fi
 * iPad landscape / TV over AirPlay: picture on the left, words and buttons on the right, bigger text. Swipe up/down or left/right, or use the arrow keys.
 * Works offline after the first visit (service worker `sw.js`). "Add to Home Screen" works on iPad/iPhone.
 
-## How a session feels (v2.7: short, snappy, one tap, never stuck)
+## How a session feels (v2.8: short, snappy, one tap, never stuck)
 
 Full design notes are kept with the project in `ux-audit.md` (outside this repo).
 
-* **Mini map:** she picks the order of 3 stops: 🔤 Word lab, 📬 Postcard, 🗺️ Fly on. Then she feeds her baby. That is 15 short cards (16 on 6-part space postcards), about 8–10 minutes. Every postcard part is kept, and the optional extras fill the budget. On Friday, Fly on (the radio show) opens after the postcard.
+* **Mini map:** she picks the order of 3 stops: 🔤 Word lab, 📬 Postcard, 🗺️ Fly on. Then she feeds her baby. That is at most 15 short cards (6-part postcards skip the extra word game), about 8–10 minutes. Every postcard part is kept, and the optional extras fill the budget. On Friday, Fly on (the radio show) opens after the postcard.
 * **One tap per answer.** A right answer sparkles and the feed moves on by itself in about 1.1 s. There are no Check buttons. She can swipe up (or tap ↓) at any time to move on, and every card has **Skip ⏭**.
 * **Never stuck.**
   * 1st miss: a wrong option fades and the right one glows. 2nd miss: the guide shows the answer and moves on (no penalty, no red, no buzzer).
@@ -25,6 +25,25 @@ Full design notes are kept with the project in `ux-audit.md` (outside this repo)
 * **Rewards and jingles:** the baby hops, a heart pops, the progress bar fills to the ⭐; jingles play for the start, the baby growing, the day finished and a level up.
 * **Optional extras:** a Bonus round (challenge word, which sound?, R/W pairs), a Boss postcard, and Italia on Fridays.
 * She is the teacher: the guide misreads a word and she corrects her. Praise is for effort and strategy, never "smart". Levels are never announced as going down.
+
+## Zoo Math (v2.8)
+
+* A **🦓 Zoo Math** button on the home screen (today's math day; chips for Mon–Fri, so any day works on a weekend).
+* A session is 3 quick warm-up wins (Topic 1 facts, with a ten-frame) + 6 cards at her math level + feeding her baby: about 8–10 minutes. The word problem is always last.
+* Same one-tap rules as reading: tap an answer; 1st miss = a hint (the picture shows the strategy: pairs, rows, jumps, tens and ones); 2nd miss = the answer is shown and the feed moves on. If she pauses, help comes by itself: after about 8 s the picture hint shows and the right answer glows, after about 16 s only the answer is left for an easy tap (the clue waits until the voice has finished). No countdowns or time limits.
+* **Even or odd:** the buddy pairs make themselves on the card, so the lone one stands out; she only taps Even or Odd. (v2.8 removed the "tap two at a time" step and the type-it number pad: Sue wants one tap per card.)
+* **🔊 Hear it** reads every card out loud (word problems are read automatically), so reading never stops the math. Hear-it taps are counted for the parent area.
+* Simple pictures, no image files: ten-frames, buddy pairs, equal teams, skip-count rows, arrays (tap a row to count it), equal groups, the rows of the hundred chart she needs, an open number line, base-ten blocks.
+* Fish go to the same baby as reading. The **math level is separate** (`S.mathLevel`): up after 3 strong sessions (at most 1 of 6 missed on the first try), back after 2 tricky ones. A grown-up can set or lock it in the parent area.
+* Data: `math/zoo-math-<monday>.js` (made by `content-draft/math/tools/gen_math.py`; every answer is computed; check with `node content-draft/math/tools/validate-math.js`). Topic dates are estimates.
+
+## Weeks follow the school calendar (v2.8)
+
+The app picks the week whose `dates.start` is the latest one on or before today. A grown-up can pin a week in the parent area ("📅 Auto" = follow the calendar). Tests can pass `?today=YYYY-MM-DD`.
+
+Live in v2.8: u1w2 (until Sun Sep 27) and **u1w3 from Mon Sep 28** (Sue confirmed the date), plus Zoo Math for the week of Sep 28 (Topic 2: equal groups). The later weeks (u2w1 Oct 5, u2w2 Oct 12, u2w3 Oct 19, all estimated) and their Zoo Math files are drafts in `weeks/` and `math/`. They are not loaded yet: add them to `weeks/index.js` and `index.html` when they are ready (`art/bump.py` only adds files that index.html loads to the offline list).
+
+**Keep it simple (Sue, for all Sept–Oct content):** this is a light preview of each week's key words, spelling pattern and story idea, not the full curriculum. Every card is one tap, and help comes the moment she pauses or misses: on any multiple-choice card, a pause of about 8 s makes the right answer glow (one other choice left), and about 16 s leaves only the answer for her to tap. Shown answers count as helped, never as failed.
 
 ## Word practice (v2.6, Sue's spec)
 
@@ -112,7 +131,8 @@ Art still missing (these use their fallback for now): pigeon oops, think, love �
 GitHub Pages from the `main` branch, root folder. Publishing a change:
 
 1. Bump `VERSION` in `sw.js` (for example `pips-v2.1`) and the `?v=` numbers in `index.html` and `CORE`.
-   If you add words or lines, run `art/make_audio.py` and `art/make_lines.py` (plan, gen, index) to make their audio.
+   Or just run `python3 art/bump.py 2.8` (it does all of that, including new weeks/math files).
+   If you add words or lines, run `art/make_audio.py` and `art/make_lines.py` (plan, gen, index) to make their audio; Zoo Math lines are included.
 2. `git add -A && git commit -m "..." && git push`
 3. Pages redeploys in about a minute.
 

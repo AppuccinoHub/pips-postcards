@@ -142,7 +142,7 @@
     chick: { name: '', kind: '', fish: 0 }, family: [], level: 'ground', levelLock: false, good: 0, roughStreak: 0,
     sessions: [], sessionsDone: 0, review: [], levelLog: [], routeEcho: null, progress: null,
     muted: false, sfxOn: true, capsAlways: false, theme: 'light', hinted: false, weekId: null,
-    words: {}, helpTaps: 0
+    words: {}, helpTaps: 0, mathLevel: 'ground', mathLock: false, mathGood: 0, mathRough: 0
   });
   let S = fresh();
   function load() { try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (_) {} }
@@ -156,7 +156,23 @@
   delete S.showParrots;
 
   const weekList = () => (window.PIP_WEEK_LIST || Object.keys(window.PIP_WEEKS || {})).filter((id) => window.PIP_WEEKS && window.PIP_WEEKS[id]);
-  const currentWeek = () => { const l = weekList(); const id = (S.weekId && l.includes(S.weekId)) ? S.weekId : l[l.length - 1]; return window.PIP_WEEKS[id]; };
+  /* The week follows the school calendar: each week file has dates.start (a Monday). Weekends keep the week just finished.
+     The grown-up area can pin a week (S.weekId); "Auto (by date)" clears the pin. */
+  const WEEK_START_FALLBACK = { u1w2: '2026-09-14' };
+  const weekStart = (id) => ((window.PIP_WEEKS[id] || {}).dates || {}).start || WEEK_START_FALLBACK[id] || '0000-01-01';
+  const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function todayYmd() { try { const q = new URLSearchParams(location.search).get('today'); if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) return q; } catch (_) {} return ymd(new Date()); }
+  function pickWeek() {
+    const l = weekList();
+    if (S.weekId && l.includes(S.weekId)) return S.weekId;
+    const t = todayYmd(); const started = l.filter((id) => weekStart(id) <= t);
+    return started.length ? started[started.length - 1] : l[0];
+  }
+  const currentWeek = () => {
+    const id = pickWeek();
+    if (S.lastWeek !== id) { if (S.lastWeek && S.progress && S.progress.week !== id) S.progress = null; S.lastWeek = id; try { save(); } catch (_) {} }
+    return window.PIP_WEEKS[id];
+  };
   const chickName = () => S.chick.name || 'Baby';
   const shownDay = (d) => d;
   const fillName = (t) => gtext(String(t).replace(/\{chick\}/g, chickName()));
@@ -230,7 +246,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.7.3';
+  const SFX_VER = '2.8';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -660,8 +676,9 @@
     if (words.new.length) out.push({ k: 'wpractice', words: words.new, back: words.back }); // Watch me -> Your turn, one tap per word
     else out.push({ k: 'phrase', n: 0 });
     const pv = L.preview || [];
-    // Long postcards (5-6 parts) leave room for one word game only (the weekday's skill game), to keep ~12-15 cards.
-    WORD_GAMES[dayIdx(day)].slice(0, L.chunks.length >= 5 ? 1 : 2).forEach((k, j) => {
+    // Long postcards leave room for fewer word games, to keep every session at 15 cards or fewer (v2.8: 6-part postcards
+    // = word practice only; 5 parts = the weekday's skill game; shorter = 2 games).
+    WORD_GAMES[dayIdx(day)].slice(0, L.chunks.length >= 6 ? 0 : L.chunks.length >= 5 ? 1 : 2).forEach((k, j) => {
       if ((k === 'teach' || k === 'sneaky') && !pv.length) k = 'hear';
       if (k === 'teach') out.push({ k, v: pv[S.sessionsDone % pv.length] });
       else if (k === 'type') out.push({ k, n: dayIdx(day) % 3 });
@@ -718,6 +735,7 @@
     if (mode === 'boss') return [{ k: 'mail', boss: true }].concat(postcardStop(day, L, true).map((x) => Object.assign(x, { stop: 'postcard' })), [{ k: 'feed' }]);
     if (mode === 'italia') return [{ k: 'italia' }, { k: 'feed' }];
     if (mode === 'bonus') return bonusSpecs(week, day, L);
+    if (mode === 'math') { const MW = (window.PIP_MATH || {})[MATH_PICK.mw] || mathWeek(); return mathSpecs(MW, MATH_PICK.md || 0, lv); }
     return [{ k: 'mail', map: ['words', 'postcard', 'fly'] }];
   }
   /* Optional bonus round (never required): a challenge word, a listening game, R practice, extra word practice. */
@@ -733,7 +751,8 @@
   /* ---------------- play (feed) ---------------- */
   const PLAN_V = 2; // saved progress from another plan version is not resumed
   const P = { week: null, day: null, lv: null, L: null, specs: [], cards: [], idx: 0, res: {}, fish: 0, started: 0, key: '' };
-  let advanceTimer = null, BUILDING = null, idleTimers = [];
+  let advanceTimer = null, BUILDING = null, idleTimers = [], MATH_PICK = { mw: '', md: 0 };
+  function startMath(mdi) { const MW = mathWeek(); if (!MW) return; MATH_PICK = { mw: MW.id, md: mdi }; const week = currentWeek(); startSession(Math.min(mdi, week.days.length - 1), false, 'math'); }
   function sessionKey(week, day, lv) { return `${week.id}-${day.day}-${lv}`; }
 
   function startSession(dayIdx, resume, mode) {
@@ -743,7 +762,7 @@
     if (resume && S.progress && S.progress.mode) mode = S.progress.mode;
     if (!resume) S.progress = null;
     if (resume && S.progress && S.progress.alt && day.alt) day = day.alt;
-    let lv = mode === 'boss' ? LEVELS[Math.min(LEVELS.indexOf(S.level) + 1, 2)] : (mode === 'italia' ? 'ground' : S.level);
+    let lv = mode === 'boss' ? LEVELS[Math.min(LEVELS.indexOf(S.level) + 1, 2)] : (mode === 'italia' ? 'ground' : mode === 'math' ? (LEVELS.includes(S.mathLevel) ? S.mathLevel : 'ground') : S.level);
     let res = {}, idx = 0, fish = 0, started = Date.now(), fishBy = {}, fed = false;
     if (resume && S.progress && S.progress.week === week.id && S.progress.day === day.day) {
       lv = S.progress.lv; res = S.progress.res || {}; idx = S.progress.idx || 0; fish = S.progress.fish || 0; started = S.progress.started || started;
@@ -883,7 +902,7 @@
     if (fillEl) fillEl.style.width = pct + '%'; if (petEl) petEl.style.left = `calc(${pct}% - ${pct * 0.22}px)`;
     $('dots').setAttribute('aria-label', `Card ${P.idx + 1} of ${dots.length}`);
     { const c = P.cards[P.idx]; $('btnHelp').classList.toggle('hide-here', !!(c && c.spec && c.spec.k === 'wpractice')); }
-    $('topTitle').textContent = P.mode === 'italia' ? '🇮🇹 Italia' : P.mode === 'boss' ? `👑 ${P.day ? P.day.name : ''}` : P.mode === 'bonus' ? '⭐ Bonus round' : `${P.day ? P.day.name : ''}`;
+    $('topTitle').textContent = P.mode === 'math' ? '🦓 Zoo Math' : P.mode === 'italia' ? '🇮🇹 Italia' : P.mode === 'boss' ? `👑 ${P.day ? P.day.name : ''}` : P.mode === 'bonus' ? '⭐ Bonus round' : `${P.day ? P.day.name : ''}`;
     $('btnPrev').disabled = P.idx <= 0;
     const cur = P.cards[P.idx];
     $('btnNext').disabled = !cur || (cur.done && !P.cards[P.idx + 1] && cur.spec.k !== 'feed');
@@ -910,7 +929,8 @@
       if (c.pip && !c.noAutoSay && first && !c.done) setTimeout(() => { if (P.cards[P.idx] === c) c.pip.speakNow(true); }, 250);
       if (c.pip && c.pip.moveTo) requestAnimationFrame(() => { c.pip.moveTo(stopFrac(i, c.done), false); });
       if (c.onShow) c.onShow();
-      if (!c.done) (c.idle || []).forEach((x) => idleTimers.push(setTimeout(() => { if (P.cards[P.idx] === c && !c.done) { x.fn(); if (c.pip) c.pip.say('Here is a clue! 💡'); } }, x.ms)));
+      // v2.8: an idle clue waits until the voice has finished (never lands while the guide or a word is still talking).
+      if (!c.done) (c.idle || []).forEach((x) => { const fire = () => { if (P.cards[P.idx] !== c || c.done) return; if (voiceBusy()) { idleTimers.push(setTimeout(fire, 1200)); return; } x.fn(); if (c.pip && !x.quiet) c.pip.say(x.say || 'Here is a clue! 💡'); }; idleTimers.push(setTimeout(fire, x.ms)); });
     }
     $('swipeHint').hidden = true;
     updateNav();
@@ -1114,7 +1134,7 @@
   // "Not yet": a gentle wobble and a soft boop. No red, no X, no buzzer.
   function shake(b) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); sound('wrong'); const c = P.cards && P.cards[P.idx]; if (c && c.pip && c.pip.act) c.pip.act('wobble'); }
   /* Idle help: if she pauses, a clue appears by itself (before she can get stuck). */
-  function onIdle(fn, ms) { const c = BUILDING; if (c) (c.idle = c.idle || []).push({ fn, ms: ms || 12000 }); }
+  function onIdle(fn, ms, o) { const c = BUILDING; if (c) (c.idle = c.idle || []).push(Object.assign({ fn, ms: ms || 12000 }, o || {})); }
   function sparkle(b) { b.classList.add('right'); sound('ok'); const s = el('span', 'spark', '✨'); b.appendChild(s); setTimeout(() => s.remove(), 900); }
   /* Multiple choice. opts: correct FIRST (shuffled here). onRight(first), onWrong(btn, tries).
      Never a dead end: after one miss the choices narrow to 2, after a second only the answer is left (glowing).
@@ -1145,7 +1165,10 @@
       btns.push({ b, i });
       row.appendChild(b);
     });
-    onIdle(() => { if (!over) { fadeWrong(Math.max(1, btns.filter((x) => x.i !== 0 && !x.b.disabled).length - 1)); } });
+    // v2.8 (Sue: instant help the moment she hesitates): after a pause the right answer glows (one other choice left),
+    // after a longer pause only the answer is left, glowing, for an easy tap. Shown = helped, never a failure.
+    onIdle(() => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } }, 8000);
+    onIdle(() => { if (!over) { fadeWrong(0); rightB().classList.add('glow', 'shown'); if (card) card.helped = true; } }, 16000, { say: 'Here it is! Tap it! ✨' });
     if (card) card.help = () => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } };
     parent.appendChild(row);
     return row;
@@ -2524,7 +2547,7 @@
     sec.classList.add('italia');
     const { vis, body } = frame(sec, { kicker: '🇮🇹 Bonus Postcard from Italia!', title: `${I.place}` });
     vis.appendChild(picHero(I.scene, { scene: false }));
-    const pip = pipSay(vis, `Ciao! I am at the beach near Naples. Can you teach me 3 Italian words?`);
+    const pip = pipSay(vis, I.pip || `Ciao! I am at the beach near Naples. Can you teach me 3 Italian words?`);
     body.appendChild(el('p', 'it-flag', '🇮🇹 ' + I.region));
     const pc = el('div', 'pc-full it-pc'); I.postcard.forEach((t) => pc.appendChild(el('p', null, t))); body.appendChild(pc);
     const fb = feedback(body);
@@ -2550,6 +2573,200 @@
     });
     body.insertBefore(go, skip);
     card.onShow = () => { if (!card._go) { card._go = true; go.click(); } };
+  };
+
+  /* ================= Zoo Math (v2.8) =================
+     Data: math/zoo-math-<monday>.js (window.PIP_MATH, generated by content-draft/math/tools/gen_math.py; every answer is computed).
+     Session: 3 warm-up wins (Topic 1 facts) + 6 cards at her math level (S.mathLevel, separate from reading) + feed.
+     One tap: pick an answer. 1st miss = a hint (the picture shows the strategy); 2nd miss = the answer is shown and we move on.
+     Optional "type it" bonus (+1) after a first-try right answer; it never blocks (the feed moves on by itself). No timers. */
+  const MATH_SPEAK = (t) => String(t).replace(/×/g, ' times ').replace(/[−–]/g, ' minus ').replace(/ - /g, ' minus ').replace(/\+/g, ' plus ').replace(/=/g, ' is ').replace(/_+/g, ' blank ').replace(/\s+/g, ' ').trim();
+  function mondayOf(ymdS) { const d = new Date(ymdS + 'T12:00:00'); const wd = d.getDay(); d.setDate(d.getDate() - ((wd + 6) % 7)); return ymd(d); }
+  function mathWeek() {
+    const M = window.PIP_MATH || {}; const keys = Object.keys(M).sort(); if (!keys.length) return null;
+    const t = todayYmd(), mon = mondayOf(t);
+    if (M[mon]) return M[mon];
+    const past = keys.filter((k) => k <= t); return M[past.length ? past[past.length - 1] : keys[0]];
+  }
+  // Today's math day: the weekday (Mon-Fri); on a weekend (or before the first math week) the first day she has not done yet.
+  function mathDayIdx(MW) {
+    const t = todayYmd(), wd = new Date(t + 'T12:00:00').getDay();
+    if (mondayOf(t) === MW.id && wd >= 1 && wd <= 5) return Math.min(wd - 1, MW.days.length - 1);
+    const done = mathDone(MW); const i = MW.days.findIndex((d, j) => !done[j]); return i < 0 ? 0 : i;
+  }
+  function mathDone(MW) { const out = {}; (S.sessions || []).forEach((s) => { if (s.track === 'math' && s.mathWeek === MW.id) out[s.mathDay] = s; }); return out; }
+  function mathSpecs(MW, mdi, lv) {
+    const d = MW.days[mdi]; const base = { k: 'math', stop: 'math', mw: MW.id, md: mdi };
+    const warm = (d.warmups || []).slice(0, 3).map((c) => Object.assign({ c, part: 'warm' }, base));
+    let main = (d[lv] || []).slice();
+    if (main.length < 6) main = (d.ground || []).filter((c) => c.k !== 'story').slice(0, 6 - main.length).concat(main); // Sky/Space have 4: 2 class-topic cards first
+    main = main.slice(0, 6);
+    main = main.filter((c) => c.k !== 'story').concat(main.filter((c) => c.k === 'story')); // the word problem is last
+    return warm.concat(main.map((c) => Object.assign({ c, part: 'main' }, base)), [{ k: 'feed' }]);
+  }
+  const MATH_KICK = { warm: '⚡ Quick win', evenodd: '🤝 Even or odd?', doubles: '👯 Two equal teams', skip: '🦘 Skip-count', array: '🟦 Rows', groups: '🧺 Equal groups', hundred: '💯 Hundred chart', openline: '📏 Number line', breakapart: '✂️ Break apart', comp: '🎁 Make it friendly', partial: '🧱 Tens and ones', multi: '➕ Add them all', story: '📖 Word problem' };
+  const numTxt = (n) => String(n);
+  // The big question line: an equation where there is one ("27 + 14 = ?"), else a short question.
+  function mathQ(c) {
+    if (c.k === 'story') return c.q;
+    if (c.k === 'evenodd') return `${c.n} ${c.emoji}  Even or odd?`;
+    if (c.k === 'doubles') return `${c.n} = ? + ?`;
+    if (c.k === 'skip') return `Count by ${c.by}s`;
+    if (c.k === 'array') return `${c.rows} rows of ${c.cols}`;
+    if (c.k === 'groups') return `${c.groups} × ${c.each} ${c.item}`.replace(' × ', c.level === 'space' ? ' × ' : ' groups of ');
+    if (c.k === 'hundred') return `${c.start} ${c.plus < 0 ? '−' : '+'} ${Math.abs(c.plus)} = ?`;
+    if (c.k === 'openline') return `${c.start} ${c.dir < 0 ? '−' : '+'} ${c.jumps.reduce((a, b) => a + b, 0)} = ?`;
+    if (c.k === 'multi') return c.nums.join(' + ') + ' = ?';
+    const m = String(c.prompt).match(/^[^?]*?\d[\d\s+−×=-]*\?/); return m ? m[0] : c.prompt;
+  }
+  function tenFrames(a, b, op) {
+    const box = el('div', 'mv-tf'); const tot = op === '+' ? a + b : a; const frames = Math.max(1, Math.ceil(Math.max(tot, 1) / 10));
+    for (let f = 0; f < Math.min(frames, 2); f++) {
+      const fr = el('div', 'tf');
+      for (let i = 0; i < 10; i++) { const n = f * 10 + i; const cell = el('i', 'tf-c'); if (n < a) cell.classList.add('ca'); else if (op === '+' && n < a + b) cell.classList.add('cb'); if (op === '-' && n < a && n >= a - b) cell.classList.add('out'); fr.appendChild(cell); }
+      box.appendChild(fr);
+    }
+    return box;
+  }
+  function mathViz(c) {
+    const box = el('div', 'mviz mv-' + c.k); let hint = () => {};
+    const emo = (e, n, cls) => { const r = []; for (let i = 0; i < n; i++) r.push(el('span', 'me ' + (cls || ''), e)); return r; };
+    if (c.k === 'warm') {
+      const m = String(c.prompt).match(/(\d+)\s*([+−-])\s*(\d+)/);
+      if (m && c.tenFrame && (+m[1] + (m[2] === '+' ? +m[3] : 0)) <= 20) box.appendChild(tenFrames(+m[1], +m[3], m[2] === '+' ? '+' : '-'));
+      else box.appendChild(el('div', 'mv-big', c.prompt));
+      hint = (lv) => { if (lv >= 1) box.classList.add('lit'); };
+    } else if (c.k === 'evenodd' || c.k === 'doubles') {
+      const g = el('div', 'mv-pairs'); const items = emo(c.emoji, c.n, 'tap'); items.forEach((x) => g.appendChild(x)); box.appendChild(g);
+      let sel = null, pairs = 0;
+      const pairUp = (x, y) => { pairs++; x.classList.add('paired', 'p' + (pairs % 4)); y.classList.add('paired', 'p' + (pairs % 4)); g.appendChild(x); g.appendChild(y); sound('tap'); };
+      if (c.k === 'evenodd') items.forEach((x) => x.addEventListener('click', () => { if (x.classList.contains('paired')) return; if (!sel) { sel = x; x.classList.add('sel'); return; } if (sel === x) { x.classList.remove('sel'); sel = null; return; } sel.classList.remove('sel'); const s0 = sel; sel = null; pairUp(s0, x); const free = items.filter((y) => !y.classList.contains('paired')); if (free.length === 1) free[0].classList.add('alone'); }));
+      hint = (lv) => {
+        if (c.k === 'doubles') { if (box.classList.contains('split')) return; box.classList.add('split'); g.replaceChildren(); const t1 = el('div', 'team'), t2 = el('div', 'team t2'); items.forEach((x, i) => (i % 2 ? t2 : t1).appendChild(x)); g.append(t1, t2); if (lv >= 2) { t1.appendChild(el('b', 'team-n', String(t1.children.length))); t2.appendChild(el('b', 'team-n', String(t2.children.length))); } return; }
+        const free = items.filter((y) => !y.classList.contains('paired')); if (sel) { sel.classList.remove('sel'); sel = null; }
+        for (let i = 0; i + 1 < free.length; i += 2) pairUp(free[i], free[i + 1]);
+        const left = items.filter((y) => !y.classList.contains('paired')); left.forEach((y) => { y.classList.add('alone'); g.appendChild(y); });
+      };
+    } else if (c.k === 'skip') {
+      const row = el('div', 'mv-skip');
+      c.seq.forEach((v, i) => { const t = el('div', 'sk' + (v == null ? ' gap' : '')); if (c.by <= 5) { const gg = el('span', 'sk-g'); emo(c.emoji, c.by).forEach((x) => gg.appendChild(x)); t.appendChild(gg); } else t.appendChild(el('span', 'sk-g', c.emoji + '×' + c.by)); t.appendChild(el('b', 'sk-n', v == null ? '?' : numTxt(v))); row.appendChild(t); if (i < c.seq.length - 1) row.appendChild(el('span', 'sk-ar', '+' + c.by)); });
+      box.appendChild(row); hint = (lv) => { box.classList.add('lit'); if (lv >= 2) { const g = row.querySelector('.gap .sk-n'); if (g) g.textContent = numTxt(c.a); } };
+    } else if (c.k === 'array') {
+      const grid = el('div', 'mv-array'); grid.style.setProperty('--cols', c.cols); const sum = el('p', 'mv-sum', 'Tap a row to count it');
+      let n = 0; const done = new Set();
+      for (let r = 0; r < c.rows; r++) { const row = el('div', 'arr-row'); emo(c.emoji, c.cols).forEach((x) => row.appendChild(x)); row.addEventListener('click', () => { if (done.has(r)) return; done.add(r); n += c.cols; row.classList.add('on'); row.appendChild(el('b', 'arr-n', String(n))); sum.textContent = [...Array(done.size)].map(() => c.cols).join(' + ') + ' = ' + n; sound('tap'); }); grid.appendChild(row); }
+      box.append(grid, sum);
+      hint = (lv) => { [...grid.children].forEach((row, r) => { if (lv >= 2 || r === 0) setTimeout(() => row.click(), r * 180); }); if (lv >= 2 && c.eq) setTimeout(() => { sum.textContent = c.eq; }, c.rows * 180 + 50); };
+    } else if (c.k === 'groups') {
+      const gs = el('div', 'mv-groups'); for (let i = 0; i < c.groups; i++) { const g = el('div', 'grp'); g.appendChild(el('span', 'grp-a', c.emoji)); const it = el('span', 'grp-i'); emo(c.item, c.each).forEach((x) => it.appendChild(x)); g.appendChild(it); gs.appendChild(g); }
+      const sum = el('p', 'mv-sum', ''); box.append(gs, sum);
+      hint = (lv) => { const g = [...gs.children]; g.forEach((x, i) => { if (lv >= 2 || i === 0) { x.classList.add('on'); if (!x.querySelector('.grp-n')) x.appendChild(el('b', 'grp-n', String(c.each))); } }); if (lv >= 2 && c.eq) sum.textContent = c.eq; else sum.textContent = `Each ${c.emoji} gets ${c.each}.`; };
+    } else if (c.k === 'hundred') {
+      const cells = [c.start].concat(c.path); const lo = Math.floor((Math.min(...cells) - 1) / 10), hi = Math.floor((Math.max(...cells) - 1) / 10);
+      const ch = el('div', 'mv-hundred'); const at = {};
+      for (let r = lo; r <= hi; r++) for (let k = 1; k <= 10; k++) { const v = r * 10 + k; const cc = el('span', 'hc' + (v === c.start ? ' start' : ''), String(v)); at[v] = cc; ch.appendChild(cc); }
+      box.appendChild(ch);
+      hint = (lv) => { const path = lv >= 2 ? c.path : c.path.slice(0, Math.max(1, c.path.length - 1)); path.forEach((v, i) => setTimeout(() => { if (at[v]) at[v].classList.add(lv >= 2 && i === c.path.length - 1 ? 'end' : 'hop'); }, i * 260)); };
+    } else if (c.k === 'openline') {
+      const line = el('div', 'mv-line'); let v = c.start; const pts = [v]; c.jumps.forEach((j) => { v += c.dir * j; pts.push(v); });
+      const tot = c.jumps.reduce((a, b) => a + b, 0) || 1;
+      const lab = (x, cls) => el('span', 'nl-l ' + (cls || ''), x);
+      line.appendChild(lab(String(c.start), 'first'));
+      c.jumps.forEach((j, i) => { const seg = el('div', 'nl-seg'); seg.style.flex = String(Math.max(0.6, j / tot * 4)); seg.appendChild(el('span', 'nl-arc', (c.dir < 0 ? '−' : '+') + j)); line.appendChild(seg); line.appendChild(lab(i === c.jumps.length - 1 ? '?' : '·', i === c.jumps.length - 1 ? 'last' : 'mid')); });
+      if (c.dir < 0) line.classList.add('back');
+      box.appendChild(line);
+      hint = (lv) => { const ls = line.querySelectorAll('.nl-l'); pts.forEach((p, i) => { if (i > 0 && (i < pts.length - 1 || lv >= 2)) { ls[i].textContent = String(p); ls[i].classList.add('shown'); } }); };
+    } else if (c.k === 'partial' || c.k === 'breakapart' || c.k === 'comp') {
+      const blocks = (n) => { const b = el('div', 'b10'); const h = Math.floor(n / 100), t = Math.floor((n % 100) / 10), o = n % 10; for (let i = 0; i < h; i++) b.appendChild(el('i', 'b-h')); for (let i = 0; i < t; i++) b.appendChild(el('i', 'b-t')); const os = el('span', 'b-os'); for (let i = 0; i < o; i++) os.appendChild(el('i', 'b-o')); b.appendChild(os); b.appendChild(el('b', 'b-n', String(n))); return b; };
+      const row = el('div', 'mv-b10'); row.append(blocks(c.a1), el('span', 'b-plus', '+'), blocks(c.a2)); box.appendChild(row);
+      const steps = el('p', 'mv-sum', ''); box.appendChild(steps);
+      hint = (lv) => {
+        if (c.k === 'partial') steps.textContent = c.a1 >= 100 ? `${c.a1 - (c.a1 % 10)} + ${c.a2 - (c.a2 % 10)} = ${c.tens}.  ${c.a1 % 10} + ${c.a2 % 10} = ${c.ones}.` : `Tens: ${c.tens}.  Ones: ${c.ones}.` + (lv >= 2 ? `  ${c.tens} + ${c.ones} = ${c.a}` : '');
+        else if (c.k === 'breakapart') steps.textContent = `${c.a2} = ${c.split[0]} + ${c.split[1]}.  ` + (lv >= 2 ? c.steps.join('.  ') : c.steps[0]);
+        else steps.textContent = `${c.a1} + ${c.a2} = ${c.nice[0]} + ${c.nice[1]}` + (lv >= 2 ? ` = ${c.a}` : '');
+        box.classList.add('lit');
+      };
+    } else if (c.k === 'multi') {
+      const row = el('div', 'mv-multi'); c.nums.forEach((n) => row.appendChild(el('span', 'mm', String(n)))); box.appendChild(row);
+      const steps = el('p', 'mv-sum', ''); box.appendChild(steps);
+      const tens = c.nums.reduce((a, n) => a + n - (n % 10), 0), ones = c.nums.reduce((a, n) => a + (n % 10), 0);
+      hint = (lv) => { steps.textContent = `Tens: ${tens}.  Ones: ${ones}.` + (lv >= 2 ? `  ${tens} + ${ones} = ${c.a}` : ''); };
+    } else if (c.k === 'story') {
+      const st = el('div', 'mv-story'); st.appendChild(el('span', 'st-pic', c.emoji || '🦓'));
+      const tx = el('div', 'st-text'); (c.text || []).forEach((t) => tx.appendChild(el('p', null, t))); st.appendChild(tx); box.appendChild(st);
+      const eq = el('p', 'mv-sum', ''); box.appendChild(eq);
+      hint = (lv) => { if (!c.eq) return; eq.textContent = lv >= 2 ? c.eq : String(c.eq).replace(/(=\s*)[\d]+$|^(\d+)(?= is)/, (m, a, b) => (a ? a + '?' : '?')); };
+    }
+    return { el: box, hint };
+  }
+  function mathPad(body, ans, fb, onDone) {
+    const want = String(ans); let typed = '', miss = 0, over = false;
+    const box = el('div', 'mpad'); const disp = el('div', 'mpad-disp'); const keys = el('div', 'mpad-keys');
+    const show = () => { disp.textContent = typed || '·'.repeat(want.length); };
+    const press = (d) => {
+      if (over) return; sound('key');
+      if (d === '⌫') { typed = typed.slice(0, -1); return show(); }
+      typed += d; show();
+      if (typed.length < want.length) return;
+      if (typed === want) { over = true; disp.classList.add('ok'); onDone(true); }
+      else { miss++; disp.classList.remove('shake'); void disp.offsetWidth; disp.classList.add('shake'); typed = ''; setTimeout(show, 450);
+        if (miss >= 2) { over = true; setTimeout(() => { disp.textContent = want; disp.classList.add('ok'); onDone(false); }, 500); } else setFb(fb, `It has ${want.length} digit${want.length > 1 ? 's' : ''}. Look at your answer! 👀`, 'soft'); }
+    };
+    '1234567890'.split('').concat('⌫').forEach((d) => keys.appendChild(btn('mk' + (d === '⌫' ? ' del' : ''), d, () => press(d))));
+    box.append(el('p', 'mpad-t', `Bonus: type it for +1 ${pet().food}`), disp, keys); show();
+    body.appendChild(box);
+    box.touched = () => typed.length > 0 || miss > 0;
+    return box;
+  }
+  BUILD.math = (card, sec) => {
+    const c = card.spec.c; sec.classList.add('math-card');
+    const { vis, body } = frame(sec, { kicker: `🦓 Zoo Math · ${MATH_KICK[c.k] || ''}${c.boss ? ' · 👑 boss' : ''}` });
+    vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'), 'math-vis');
+    vis.appendChild(el('span', 'math-badge', c.k === 'story' ? (c.emoji || '🦓') : (c.emoji || '🦓')));
+    const isStory = c.k === 'story';
+    const pip = pipSay(vis, isStory ? c.q : c.say);
+    body.appendChild(el('h2', 'c-title math-q', mathQ(c)));
+    const V = mathViz(c); body.appendChild(V.el);
+    const tools = el('div', 'math-tools');
+    const hearAll = () => { speakingWrap = pip; sayList([{ text: c.say, word: false }]); };
+    const hb = btn('hear-btn wide', '🔊 Hear it', (e) => { e.stopPropagation(); P.res.hearTaps = (P.res.hearTaps || 0) + 1; hearAll(); }); tools.appendChild(hb);
+    body.appendChild(tools);
+    if (isStory) { card.noAutoSay = true; card.onShow = () => { if (!card._heard && !card.done) { card._heard = true; setTimeout(() => { if (P.cards[P.idx] === card) hearAll(); }, 250); } }; }
+    const fb = feedback(body);
+    const disp = (o) => (o === 'even' ? 'Even' : o === 'odd' ? 'Odd' : numTxt(o));
+    card.answer = disp(c.a);
+    const opts = c.opts.map(disp);
+    let misses = 0;
+    const rightLine = () => (c.feedback && c.feedback.right) || (c.eq ? `Yes! ${c.eq} 🎉` : (c.part === 'warm' || card.spec.part === 'warm') ? 'Quick win! 🎉' : praise('first'));
+    const row = choices(body, opts, c.id + P.key, (first, b, info) => {
+      V.hint(2);
+      const line = rightLine();
+      setFb(fb, line, 'good'); pip.say(MATH_SPEAK(line), undefined, false);
+      const fish = c.fish || 1;
+      if (first && c.input === 'pickThenType' && typeof c.a === 'number') {
+        complete(card, { first: true, type: 'math:' + c.k }, { fish, stay: true });
+        row.classList.add('done-row');
+        const pad = mathPad(body, c.a, fb, (ok) => {
+          if (ok) { P.fish += 1; fishPop(card.el, 1); setFb(fb, `You typed it! +1 ${pet().food}`, 'good'); P.res.typed = (P.res.typed || 0) + 1; }
+          clearTimeout(advanceTimer); advanceTimer = setTimeout(() => { if (P.cards[P.idx] === card) goNext(); }, 1100); saveProgress();
+        });
+        body.insertBefore(pad, fb);
+        // Never blocks: if she does not start typing, the feed moves on by itself.
+        clearTimeout(advanceTimer); advanceTimer = setTimeout(function wait() { if (P.cards[P.idx] !== card) return; if (pad.touched()) return; goNext(); }, 5000);
+        return;
+      }
+      complete(card, { first, type: 'math:' + c.k }, { fish, delay: info && info.shown ? 2400 : 1500 });
+    }, () => {
+      misses++;
+      V.hint(misses);
+      const h = misses === 1 ? ((c.feedback && c.feedback.wrong) || c.hint || 'Look at the picture. It can help!') : `The answer is ${card.answer}.`;
+      setFb(fb, h + (misses === 1 ? ' 💡' : ''), 'soft'); pip.say(misses === 1 ? h : `Here it is! ${card.answer}.`, 'oops');
+    }, typeof c.a === 'string' ? 'words two' : 'nums');
+    body.insertBefore(row, fb);
+    card.help = ((h) => () => { h && h(); V.hint(1); })(card.help);
+    onIdle(() => V.hint(1), 8000, { quiet: true });
+    // v2.8: even or odd = one tap. The buddy pairs make themselves (no "tap two at a time" step); a lone one stands out.
+    if (c.k === 'evenodd') { const before = card.onShow; card.onShow = () => { if (before) before(); if (!card._paired) { card._paired = true; setTimeout(() => { if (P.cards[P.idx] === card) V.hint(1); }, 900); } }; }
   };
 
   /* ---------------- end of session + level rules ----------------
@@ -2587,6 +2804,7 @@
     if (P.finished) return; P.finished = true;
     const sc = scoreSession(P.res);
     const wlog = { practiced: (P.res.practice || {}).words || [], help: (P.res.practice || {}).help || [], known: [], moved: [] };
+    if (P.mode === 'math') return finishMath(sc);
     if (P.mode) {  // Boss postcard / Italian bonus: bonus only, never changes the level
       if (P.mode === 'bonus') S.chick.fish += 0;
       if (P.mode === 'boss') { S.chick.fish += 5; S.bossDone = Object.assign({}, S.bossDone, { [P.key]: Date.now() }); }
@@ -2607,6 +2825,29 @@
     refreshThenNow();
     showEnd(sc, rule);
   }
+  /* Zoo Math level (separate from reading): 3 strong sessions (at most 1 main card missed on the first try) -> up;
+     2 tricky sessions in a row (3 or more missed) -> back. A grown-up can set or lock it. */
+  function finishMath(sc) {
+    const sp = P.specs.find((x) => x.k === 'math') || {};
+    const main = P.specs.map((x, i) => [x, P.res[i]]).filter(([x]) => x.k === 'math' && x.part === 'main');
+    const mf = main.filter(([, r]) => r && r.first).length, mt = main.length;
+    const good = mf >= mt - 1, rough = mf <= mt - 3; let change = null;
+    if (P.lv === S.mathLevel || (!S.mathLevel && P.lv === 'ground')) {
+      if (good) { S.mathGood = (S.mathGood || 0) + 1; S.mathRough = 0; } else if (rough) S.mathRough = (S.mathRough || 0) + 1; else S.mathRough = 0;
+      const i = LEVELS.indexOf(P.lv);
+      if (!S.mathLock) {
+        if (S.mathGood >= 3 && i < 2) change = { from: P.lv, to: LEVELS[i + 1], why: '3 strong math sessions' };
+        else if (S.mathRough >= 2 && i > 0) change = { from: P.lv, to: LEVELS[i - 1], why: '2 tricky math sessions in a row' };
+        if (change) { S.mathLevel = change.to; S.mathGood = 0; S.mathRough = 0; S.levelLog.push(Object.assign({ date: Date.now(), math: true }, change)); }
+      }
+    }
+    const MW = (window.PIP_MATH || {})[sp.mw]; const md = MW && MW.days[sp.md];
+    S.sessions.push({ id: 's' + Date.now(), track: 'math', week: P.week.id, mathWeek: sp.mw, mathDay: sp.md, day: 'math', dayName: `Zoo Math (${md ? md.name : ''})`, level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish,
+      bonus: 'math', mainFirst: mf, mainTotal: mt, warmFirst: P.specs.filter((x, i) => x.part === 'warm' && P.res[i] && P.res[i].first).length, byType: sc.byType, hearTaps: P.res.hearTaps || 0, typed: P.res.typed || 0,
+      helped: Object.values(P.res).filter((r) => r && r.helped).length, skipped: Object.values(P.res).filter((r) => r && r.skipped).length, wordFirst: 0, wordTotal: 0, good, rough });
+    S.progress = null; save();
+    showEnd(sc, { change: null }, change && LEVELS.indexOf(change.to) > LEVELS.indexOf(change.from) ? `🦓 Zoo Math done! Next time: ${LEVEL_INFO[change.to].icon} ${LEVEL_INFO[change.to].name} math!` : `🦓 Zoo Math done! ${mf} of ${mt} on the first try.`);
+  }
   function showEnd(sc, rule, extra) {
     const box = $('endBox'); box.replaceChildren();
     box.appendChild(chickEl(S.chick.fish, 'big'));
@@ -2614,7 +2855,7 @@
     box.appendChild(el('p', 'c-text', `${chickName()} ate ${P.fish} ${pet().foodName}. Pip is safe and ready for the next stop!`));
     if (extra) box.appendChild(el('p', 'end-up', extra));
     const tried = Object.values(P.res).filter((r) => r && r.type).length;
-    if (tried) box.appendChild(el('p', 'c-sub', `You worked through ${tried} challenges today. Every one makes your reading stronger! 💪`));
+    if (tried) box.appendChild(el('p', 'c-sub', `You worked through ${tried} challenges today. Every one makes your ${P.mode === 'math' ? 'math' : 'reading'} stronger! 💪`));
     if (rule.change && LEVELS.indexOf(rule.change.to) > LEVELS.indexOf(rule.change.from)) box.appendChild(el('p', 'end-up', `🚀 Pip can fly higher now! Next time: ${levelLabel(rule.change.to)}`));
     const bye = el('div', 'end-guide'); const bim = el('img', 'end-guide-img'); bim.src = poseSrc((POSE.screens || {}).end || 'sleep'); bim.alt = `${G().name} the ${G().species}`;
     bye.append(girlEl(P && P.mode === 'boss' ? 'bossWin' : 'end', 'girl-end'), bim, el('span', 'bubble end-bubble', 'See you tomorrow! 💤')); box.appendChild(bye);
@@ -2684,8 +2925,20 @@
     bot.appendChild(days);
     const resume = !!(S.progress && S.progress.v === PLAN_V && S.progress.week === week.id && week.days.some((d) => d.day === S.progress.day));
     const target = resume ? week.days.findIndex((d) => d.day === S.progress.day) : week.days.indexOf(firstOpen || week.days[0]);
-    const label = resume ? `Keep going: ${week.days[target].name} ▶` : (firstOpen ? `Start ${firstOpen.name} ▶` : 'Play again ▶');
+    const label = resume ? (S.progress.mode === 'math' ? 'Keep going: 🦓 Zoo Math ▶' : `Keep going: ${week.days[target].name} ▶`) : (firstOpen ? `Start ${firstOpen.name} ▶` : 'Play again ▶');
     bot.appendChild(btn('big-btn', label, () => begin(target, resume)));
+    { // Zoo Math: today's math day (weekend: pick any day of the week)
+      const MW = mathWeek();
+      if (MW) {
+        const mdone = mathDone(MW), today = mathDayIdx(MW);
+        const zm = el('div', 'zm-home');
+        zm.appendChild(btn('big-btn zm-btn', `🦓 Zoo Math: ${MW.days[today].name} ▶`, () => startMath(today)));
+        const chips = el('div', 'zm-days');
+        MW.days.forEach((d, i) => { const b = btn('zm-day' + (mdone[i] ? ' done' : '') + (i === today ? ' today' : ''), (mdone[i] ? '✅ ' : '') + d.name.slice(0, 3), () => startMath(i)); b.setAttribute('aria-label', `Zoo Math ${d.name}: ${d.focus}${mdone[i] ? ', done' : ''}`); b.title = d.focus; chips.appendChild(b); });
+        zm.append(chips, el('p', 'zm-sub', `${MW.days[today].focus} · ${LEVEL_INFO[LEVELS.includes(S.mathLevel) ? S.mathLevel : 'ground'].icon} ${LEVEL_INFO[LEVELS.includes(S.mathLevel) ? S.mathLevel : 'ground'].name} math`));
+        bot.appendChild(zm);
+      }
+    }
     // Optional extras: never required, skipping costs nothing.
     const extras = el('div', 'extras');
     const lastDone = [...week.days].reverse().find((d) => ds[d.day]);
@@ -2734,7 +2987,7 @@
   }
   function begin(di, resume) {
     const week = currentWeek();
-    const isResume = resume || !!(S.progress && S.progress.v === PLAN_V && S.progress.week === week.id && S.progress.day === week.days[di].day);
+    const isResume = resume || !!(S.progress && S.progress.v === PLAN_V && !S.progress.mode && S.progress.week === week.id && S.progress.day === week.days[di].day);
     startSession(di, isResume);
   }
   function goHome() {
@@ -3085,6 +3338,18 @@
     lv.appendChild(row);
     if (S.levelLog.length) { const ul = el('ul', 'pa-small'); S.levelLog.slice(-6).forEach((l) => ul.appendChild(el('li', null, `${fmtDate(l.date)}: ${LEVEL_INFO[l.from].name} → ${LEVEL_INFO[l.to].name} (${l.why})`))); lv.appendChild(ul); }
 
+    { const ml = sec('Zoo Math level (separate from reading)');
+      const cur = LEVELS.includes(S.mathLevel) ? S.mathLevel : 'ground';
+      ml.appendChild(el('p', null, `Current: ${LEVEL_INFO[cur].icon} ${LEVEL_INFO[cur].name}${S.mathLock ? ' (locked)' : ''}`));
+      ml.appendChild(el('p', 'pa-small', 'Ground = the class topic this week (Topic 2 equal groups, then Topics 3–4 adding within 100). Sky = the next topic. Space = 3rd-grade stretch (× facts, 3-digit adding). Every session starts with 3 easy Topic 1 facts. Moves up after 3 strong sessions (at most 1 of 6 missed on the first try); back after 2 tricky sessions in a row. No timers. Topic dates are estimates.'));
+      const mS = S.sessions.filter((x) => x.track === 'math');
+      ml.appendChild(el('p', 'pa-small', mS.length ? `Math sessions: ${mS.length}. Last: ${mS[mS.length - 1].dayName} · ${mS[mS.length - 1].mainFirst}/${mS[mS.length - 1].mainTotal} first try · 🔊 Hear-it taps ${mS[mS.length - 1].hearTaps || 0} · typed ${mS[mS.length - 1].typed || 0}.` : 'No math sessions yet.'));
+      const r2 = el('div', 'pa-row'); const sm = el('select'); sm.setAttribute('aria-label', 'Set math level');
+      LEVELS.forEach((l) => { const o = el('option', null, levelLabel(l)); o.value = l; if (l === cur) o.selected = true; sm.appendChild(o); });
+      const lk = el('label', 'pa-check'); const cb2 = el('input'); cb2.type = 'checkbox'; cb2.checked = !!S.mathLock; lk.append(cb2, ' Lock');
+      r2.append(sm, lk, btn('pa-btn', 'Save math level', () => { if (sm.value !== cur) { S.levelLog.push({ date: Date.now(), from: cur, to: sm.value, why: 'grown-up override (math)', math: true }); S.mathLevel = sm.value; S.mathGood = 0; S.mathRough = 0; } S.mathLock = cb2.checked; save(); toast('Math level saved ✓'); openParent(); }));
+      ml.appendChild(r2);
+    }
     const wk = sec(`This week: ${week.title}`);
     wk.appendChild(el('p', 'pa-small', `Spelling: ${week.school.spelling.join(', ')}`));
     wk.appendChild(el('p', 'pa-small', `Heart (high-frequency) words: ${week.school.hf.join(', ')}`));
@@ -3205,8 +3470,9 @@
     if ((S.family || []).length) st.appendChild(el('p', 'pa-note', 'In the zoo (safe forever): ' + S.family.map((f) => `${PETS[f.kind] ? PETS[f.kind].icon : ''} ${f.name}`).join(', ')));
     if (weekList().length > 1) {
       const wrow = el('div', 'pa-row'); const ws = el('select');
-      weekList().forEach((id) => { const o = el('option', null, window.PIP_WEEKS[id].title); o.value = id; if (id === week.id) o.selected = true; ws.appendChild(o); });
-      wrow.append(ws, btn('pa-btn', 'Use this week', () => { S.weekId = ws.value; S.progress = null; save(); toast('Week changed ✓'); openParent(); }));
+      { const o = el('option', null, '📅 Auto (follows the school calendar)'); o.value = ''; if (!S.weekId) o.selected = true; ws.appendChild(o); }
+      weekList().forEach((id) => { const W0 = window.PIP_WEEKS[id]; const o = el('option', null, `${W0.title}${W0.dates ? ' · from ' + W0.dates.start.slice(5).replace('-', '/') : ''}`); o.value = id; if (S.weekId && id === week.id) o.selected = true; ws.appendChild(o); });
+      wrow.append(ws, btn('pa-btn', 'Use this week', () => { S.weekId = ws.value || null; S.progress = null; save(); toast(S.weekId ? 'Week changed ✓' : 'Week follows the calendar ✓'); openParent(); }));
       st.appendChild(wrow);
     }
     st.appendChild(el('p', 'pa-small', 'To let her pick a new mail carrier herself (picture cards), use Start over below.'));
@@ -3314,17 +3580,24 @@
     if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7.3') return;
-      const list = [...new Set(Object.values(AUD))];
+      const wid = (() => { try { return ':' + currentWeek().id; } catch (_) { return ''; } })();
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8' + wid) return;
+      // v2.8: five weeks of clips (~21 MB) would be a lot to fetch at once, so warm this week's words (+ names and other
+      // words no week uses); another week's clips are fetched when it starts (and cached as they play).
+      let list;
+      try {
+        const txt = (w) => JSON.stringify(w || {}).toLowerCase(), cur = txt(currentWeek()), all = Object.values(window.PIP_WEEKS || {}).map(txt);
+        list = [...new Set(Object.keys(AUD).filter((k) => { const b = k.replace(/^slow:/, ''); return cur.includes(b) || !all.some((t) => t.includes(b)); }).map((k) => AUD[k]))];
+      } catch (_) { list = [...new Set(Object.values(AUD))]; }
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.7.3'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.8' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   // Small hook for automated tests (no effect on the child's experience).
   /* test hook (tests/audiofix_webkit.py): show one card spec in the running session, e.g. { k: 'sortone', n: 1 } */
   function testCard(spec) { clearTimeout(advanceTimer); stopVoice(); P.specs = [spec, { k: 'feed' }]; P.cards = []; P.res = {}; $('feed').replaceChildren(); renderDots(); appendCard(0, false); P.idx = -1; scrollToIndex(0, false); }
-  window.PipApp = { testCard, sayItems: (items) => sayList(items), sayAfter, voiceBusy, voicePath, stopVoice, skipCard: () => skipCard(P.cards[P.idx]), goNext, helpNow, pauseOpen, goBack, startSession, get words() { return S.words; }, soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; }, get posLog() { return POS_LOG; },
+  window.PipApp = { currentWeek, startMath, mathWeek, testCard, sayItems: (items) => sayList(items), sayAfter, voiceBusy, voicePath, stopVoice, skipCard: () => skipCard(P.cards[P.idx]), goNext, helpNow, pauseOpen, goBack, startSession, get words() { return S.words; }, soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; }, get posLog() { return POS_LOG; },
     /* test hooks: build a card off-screen (answer-position test) */
     _stop: (id) => stopSpecs(id), _plan: (first, left) => planAfterMap(first, left),
     _specs: () => { const V = W_().vocab || {}, w = Object.keys(V)[0]; return [].concat(stopSpecs('words'), stopSpecs('postcard'), stopSpecs('fly'), bonusSpecs(P.week, P.day, P.L), QUICK_GAMES.map((k, n) => ({ k, n })), [0, 1, 2].map((n) => ({ k: 'type', n })), W_().italia ? [{ k: 'italia' }] : [], w ? [{ k: 'decode', v: Object.assign({ w }, V[w]) }, { k: 'confirm', w }] : []).filter((x) => BUILD[x.k]); },
