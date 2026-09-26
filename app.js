@@ -212,7 +212,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.6';
+  const SFX_VER = '2.7';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -481,7 +481,7 @@
      a mini map (Word lab, Postcard, Fly on). Never more than 2 reading cards in a row: quick game cards sit between.
      The curriculum is spread across the week (each weekday rotates different word games), not crammed into one day.
      Extra practice lives in an optional Bonus round. To change the pacing, edit the tables below. */
-  const READING_K = ['chunk', 'question', 'advisor', 'broadcast', 'radio'];
+  const READING_K = ['chunk', 'question', 'broadcast', 'radio']; // the advisor is a short one-tap choice, not a reading card
   const STOPS = { words: ['🔤', 'Word lab'], postcard: ['📬', 'Postcard'], fly: ['🗺️', 'Fly on'] };
   // Word lab games by weekday (Mon..Fri; the 6th/bonus day uses Monday's). Every game shows up during the week.
   const WORD_GAMES = [['model', 'type'], ['hear', 'type'], ['rebel', 'type'], ['teach', 'type'], ['sneaky', 'type']];
@@ -518,22 +518,29 @@
     return { k, n };
   }
   /* Postcard stop: parts with quick games so there are never more than 2 reading cards in a row. */
-  function postcardStop(day, L, boss) {
-    const out = []; let run = 0, g = 0;
-    const known = Object.entries(S.words || {}).filter(([w, m]) => m.st === 'known' && !m.ok && m.week === (P.week && P.week.id)).map(([w]) => w);
-    const push = (spec) => {
-      if (READING_K.includes(spec.k)) { if (run >= 2) { out.push(quickGame(g, day, L)); g++; run = 0; } run++; }
-      else run = 0;
-      out.push(spec);
+  function postcardStop(day, L, boss, budget) {
+    const advDay = !boss && L.advisor && (ADVISOR_DAYS.includes(dayIdx(day)) || day.day === 6);
+    const two = advDay && ['odd', 'feel', 'predict', 'rather'].includes(L.advisor.type);
+    const hasPre = !boss && L.question && L.question.pre;
+    const make = (pre, adv) => {
+      const out = []; let run = 0, g = 0;
+      const push = (spec) => {
+        if (READING_K.includes(spec.k)) { if (run >= 2) { out.push(quickGame(g, day, L)); g++; run = 0; } run++; }
+        else run = 0;
+        out.push(spec);
+      };
+      L.chunks.forEach((c, i) => push({ k: 'chunk', i })); // every part is its own short card (they fit one screen)
+      if (pre) push({ k: 'qpre' });
+      push({ k: 'question' });
+      if (adv >= 1) push({ k: 'advisor', step: 1 });
+      if (adv >= 2) push({ k: 'advisor', step: 2 });
+      return out;
     };
-    L.chunks.forEach((c, i) => push({ k: 'chunk', i }));
-    if (!boss && L.question && L.question.pre) push({ k: 'qpre' });
-    push({ k: 'question' });
-    if (!boss && L.advisor && (ADVISOR_DAYS.includes(dayIdx(day)) || day.day === 6)) {
-      const two = ['odd', 'feel', 'predict', 'rather'].includes(L.advisor.type);
-      push({ k: 'advisor', step: 1 }); if (two) push({ k: 'advisor', step: 2 });
-    }
-    return out;
+    // Optional extras fill the card budget so a session stays ~12-15 cards: the advisor (Tue/Thu/bonus day) first,
+    // then the pre-question, then the advisor's second step.
+    const tries = [[hasPre, two ? 2 : advDay ? 1 : 0], [hasPre, advDay ? 1 : 0], [false, advDay ? 1 : 0], [false, 0]];
+    for (const [pre, adv] of tries) { const o = make(pre, adv); if (budget == null || o.length <= budget) return o; }
+    return make(false, 0);
   }
   function wordStop(week, day, L) {
     const out = [];
@@ -542,7 +549,8 @@
     if (words.new.length) out.push({ k: 'wpractice', words: words.new, back: words.back }); // Watch me -> Your turn, one tap per word
     else out.push({ k: 'phrase', n: 0 });
     const pv = L.preview || [];
-    WORD_GAMES[dayIdx(day)].forEach((k, j) => {
+    // Long postcards (5-6 parts) leave room for one word game only (the weekday's skill game), to keep ~12-15 cards.
+    WORD_GAMES[dayIdx(day)].slice(0, L.chunks.length >= 5 ? 1 : 2).forEach((k, j) => {
       if ((k === 'teach' || k === 'sneaky') && !pv.length) k = 'hear';
       if (k === 'teach') out.push({ k, v: pv[S.sessionsDone % pv.length] });
       else if (k === 'type') out.push({ k, n: dayIdx(day) % 3 });
@@ -556,10 +564,26 @@
     if (k === 'rcatch' && S.rOn === false) k = 'fill';
     const pv = L.preview || [];
     const first = k === 'says' ? (pv.length ? { k, v: pv[(S.sessionsDone + 1) % pv.length] } : { k: 'fill' }) : { k };
-    return [first, { k: 'route' }];
+    const advDay = L.advisor && (ADVISOR_DAYS.includes(dayIdx(day)) || day.day === 6);
+    return L.chunks.length >= 5 || advDay ? [first] : [first, { k: 'route' }]; // long-postcard and advisor days skip the route card
   }
+  /* The whole session aims for 12-15 cards (mail + map + feed included). The postcard stop gets what is left. */
+  const SESSION_MAX = 15;
+  function postcardBudget() { return Math.max(4, SESSION_MAX - 3 - wordStop(P.week, P.day, P.L).length - flyStop(P.day, P.L).length); }
   function stopSpecs(id) {
-    const l = id === 'words' ? wordStop(P.week, P.day, P.L) : id === 'postcard' ? postcardStop(P.day, P.L, false) : flyStop(P.day, P.L);
+    const stops = (P.res && P.res.stops) || [];
+    // Friday's radio show reads the whole postcard, so it always comes after the postcard stop: if she flies on first,
+    // the Fly-on stop gets a one-tap game and the radio show moves to the end of the postcard stop.
+    const radio = (x) => x.k === 'radio' || x.k === 'broadcast';
+    const fly = flyStop(P.day, P.L), radioFirst = fly.some(radio) && !stops.includes('postcard');
+    let l;
+    if (id === 'words') l = wordStop(P.week, P.day, P.L);
+    else if (id === 'fly') { l = radioFirst ? fly.filter((x) => !radio(x)) : fly; if (!l.length) l = [{ k: 'fill' }]; }
+    else {
+      const later = fly.some(radio) && stops.includes('fly');
+      l = postcardStop(P.day, P.L, false, postcardBudget() - (later ? 1 : 0));
+      if (later) { let run = 0; for (let q = l.length - 1; q >= 0 && READING_K.includes(l[q].k); q--) run++; if (run >= 2) l.push(quickGame(4, P.day, P.L)); l = l.concat(fly.filter(radio)); }
+    }
     return l.map((x) => Object.assign(x, { stop: id }));
   }
   /* Before she picks, the plan shows the default order (words, postcard, fly on); the map card rebuilds the rest. */
@@ -567,7 +591,14 @@
     const rest = left.filter((x) => x !== first);
     const out = stopSpecs(first);
     if (rest.length >= 2) out.push({ k: 'map', left: rest });
-    else if (rest.length === 1) out.push(...stopSpecs(rest[0]));
+    else if (rest.length === 1) {
+      // where two stops meet (e.g. Friday's radio show right before the postcard), keep "never 3 reading cards in a row"
+      const nxt = stopSpecs(rest[0]); const tail = out.slice(-2).filter((x) => READING_K.includes(x.k)).length;
+      const lastR = out.length && READING_K.includes(out[out.length - 1].k);
+      let lead = 0; while (lead < nxt.length && READING_K.includes(nxt[lead].k)) lead++;
+      if (lastR && (tail >= 2 ? lead >= 1 : lead >= 2)) out.push(Object.assign(quickGame(5, P.day, P.L), { stop: rest[0] }));
+      out.push(...nxt);
+    }
     out.push({ k: 'feed' });
     return out;
   }
@@ -727,6 +758,7 @@
     const fillEl = $('dots').querySelector('.pbar-fill'), petEl = $('dots').querySelector('.pbar-pet');
     if (fillEl) fillEl.style.width = pct + '%'; if (petEl) petEl.style.left = `calc(${pct}% - ${pct * 0.22}px)`;
     $('dots').setAttribute('aria-label', `Card ${P.idx + 1} of ${dots.length}`);
+    { const c = P.cards[P.idx]; $('btnHelp').classList.toggle('hide-here', !!(c && c.spec && c.spec.k === 'wpractice')); }
     $('topTitle').textContent = P.mode === 'italia' ? '🇮🇹 Italia' : P.mode === 'boss' ? `👑 ${P.day ? P.day.name : ''}` : P.mode === 'bonus' ? '⭐ Bonus round' : `${P.day ? P.day.name : ''}`;
     $('btnPrev').disabled = P.idx <= 0;
     const cur = P.cards[P.idx];
@@ -1011,6 +1043,7 @@
   };
   /* The picture area of a word card: today's scene (the postcard art) with the word's picture as a postage stamp on it,
      instead of an emoji floating in the sky. stage.setPic(emoji) changes the stamp. */
+  const GENERIC_PICS = new Set(['🔁', '🕵️', '💧', '🗺️', '🔤', '👀', '❓', '⚡', '🧺', '👂', '🎯', '🧑‍🏫', '⌨️', '⭐', '🌱', '📝', '✉️', '📖', '🗣️']);
   function picHero(pic, o) {
     o = o || {};
     const stage = el('div', 'pic-stage' + (o.cls ? ' ' + o.cls : ''));
@@ -1019,7 +1052,8 @@
     const st = el('div', 'stamp'); const inner = el('span', 'stamp-pic', pic || '✉️'); st.appendChild(inner);
     if (o.cap) st.appendChild(el('span', 'stamp-cap', o.cap));
     stage.appendChild(st);
-    stage.setPic = (e) => { setPicText(inner, e); st.classList.remove('stamp-in'); void st.offsetWidth; st.classList.add('stamp-in'); };
+    stage.setPic = (e) => { const off = !e || GENERIC_PICS.has(e); st.classList.toggle('stamp-off', off); if (off) return; setPicText(inner, e); st.classList.remove('stamp-in'); void st.offsetWidth; st.classList.add('stamp-in'); };
+    if (!pic || GENERIC_PICS.has(pic)) st.classList.add('stamp-off');
     stage.stamp = st;
     return stage;
   }
@@ -1183,31 +1217,44 @@
     body.append(list, btn('big-btn', 'Open the postcard ✉️', () => complete(card, null, { fish: 0, delay: 300 })));
   };
   BUILD.chunk = (card, sec) => {
-    const L = P.L, i = card.spec.i, c = L.chunks[i], last = i === L.chunks.length - 1;
-    const { vis, body } = frame(sec, { kicker: `✉️ ${fillName(L.title)} · part ${i + 1} of ${L.chunks.length}` });
-    vis.appendChild(sceneImg(P.day.scene, c.focus, '160%'));
-    { const st = el('div', 'stamp'); st.appendChild(el('span', 'stamp-pic', c.pic)); vis.appendChild(st); }
-    pipSay(vis, ''); // the guide (quiet here) + the girl: the guide is the stop's progress meter // the part's picture as a stamp on the scene (no floating emoji)
-    const pc = postcardEl({ cls: 'pc-chunk' + (i === 0 ? ' first' : '') }); const txt = pc.text;
+    const L = P.L, i = card.spec.i, j = card.spec.j, parts = j != null ? [i, j] : [i];
+    const n = L.chunks.length, last = parts[parts.length - 1] === n - 1;
+    const q = L.chunks[parts[parts.length - 1]].check ? L.chunks[parts[parts.length - 1]] : L.chunks[i]; // the part the picture check is about
+    const { vis, body } = frame(sec, { kicker: `✉️ ${fillName(L.title)} · part ${j != null ? `${i + 1}–${j + 1}` : i + 1} of ${n}` });
+    const long = j != null || parts.reduce((a, pi) => a + L.chunks[pi].s.join(' ').length, 0) > 185; // long text: a shorter picture, slightly smaller type
+    if (long) sec.classList.add('long');
+    vis.appendChild(sceneImg(P.day.scene, q.focus, '160%'));
+    vis.appendChild(greetings());
+    pipSay(vis, ''); // the guide (quiet here) is the stop's progress meter
+    const pc = postcardEl({ cls: 'pc-chunk' + (i === 0 ? ' first' : '') + (long ? ' two' : '') }); const txt = pc.text;
     if (i === 0) txt.appendChild(el('p', 'pc-greet', 'Dear Mission Control,'));
-    c.s.forEach((s0) => txt.appendChild(el('p', null, fillName(s0))));
+    parts.forEach((pi) => L.chunks[pi].s.forEach((s0) => txt.appendChild(el('p', null, fillName(s0)))));
     if (last) txt.appendChild(el('p', 'pc-sign', `Your pal, ${G().name} ${G().icon || ''}`));
     body.appendChild(pc);
     // The reading has a job: read it, then tap the picture of what just happened (one tap; it moves on by itself).
-    const q = el('p', 'c-q', '🤫 Read it, then tap: which picture shows it?');
-    body.appendChild(q);
+    body.appendChild(el('p', 'c-q', j != null ? '🤫 Read it, then tap: which picture shows the end?' : '🤫 Read it, then tap: which picture shows it?'));
     const fb = feedback(body);
-    const row = choices(body, c.check, L.title + i, (first) => {
+    card.answer = q.check[0];
+    const row = choices(body, q.check, L.title + parts.join('-'), (first) => {
       setFb(fb, first ? 'Yes! You pictured it! 🖼️' : 'Yes! That is it!', 'good');
       complete(card, { first, type: 'check' });
     }, () => { setFb(fb, 'Peek at the words again. 👀', 'soft'); showHear(); }, 'pics');
     body.insertBefore(row, fb);
     // Her own reading comes first: the "hear it" button shows up after a few seconds (or after a miss).
-    const hear = btn('hear-btn hear-read', `🔊 Hear ${G().name} read it`, () => sayList(c.s.map((x) => ({ text: fillName(x), word: false, pause: 150 }))));
+    const hear = btn('hear-btn hear-read', `🔊 Hear ${G().name} read it`, () => sayList(parts.flatMap((pi) => L.chunks[pi].s).map((x) => ({ text: fillName(x), word: false, pause: 150 }))));
     hear.hidden = true; body.insertBefore(hear, fb);
     const showHear = () => { hear.hidden = false; };
-    card.onShow = () => { setTimeout(showHear, 6000); };
+    card.onShow = () => { setTimeout(showHear, j != null ? 9000 : 6000); };
   };
+  /* "Greetings from ___" lettering on the day's scene: the picture side of the postcard (instead of a floating emoji). */
+  function greetings() {
+    const g = el('div', 'pc-greetings');
+    let place = ((P.day && P.day.place) || '').split(',')[0].trim();
+    const m = place.match(/^(?:an?|the|my)\b.*?\bin (.+)$/i); if (m) place = m[1]; // "A barn in New Jersey" -> "New Jersey"
+    const big = el('span', 'pg-big', place); if (place.length > 14) big.classList.add('pg-long');
+    g.append(el('span', 'pg-small', 'Greetings from'), big);
+    return g;
+  }
   function compareVisual(vis) {
     const other = P.week.days.find((d) => d.day === P.day.compareWith);
     const w = el('div', 'compare');
@@ -1592,8 +1639,10 @@
     const row = el('div', 'stops');
     const all = ['words', 'postcard', 'fly'];
     const count = (id) => stopSpecs(id).length;
+    // Friday's radio show reads the whole postcard, so Fly on opens after the postcard stop.
+    const radioLock = (id) => id === 'fly' && left.includes('postcard') && flyStop(P.day, P.L).some((x) => x.k === 'radio' || x.k === 'broadcast');
     all.forEach((id) => {
-      const open = left.includes(id);
+      const locked = radioLock(id), open = left.includes(id) && !locked;
       const b = btn('stop-btn' + (open ? '' : ' done'), null, () => {
         if (card.done || !open) return;
         row.querySelectorAll('.stop-btn').forEach((x) => { x.disabled = true; }); b.classList.add('right'); sound('ok');
@@ -1602,7 +1651,8 @@
         complete(card, null, { fish: 0, delay: 250 });
       });
       b.disabled = !open;
-      b.append(el('span', 'stop-ic', open ? STOPS[id][0] : '✅'), el('span', 'stop-lbl', STOPS[id][1]), el('span', 'stop-n', open ? `${count(id)} cards` : 'done!'));
+      if (locked) b.classList.add('locked');
+      b.append(el('span', 'stop-ic', locked ? '📻' : open ? STOPS[id][0] : '✅'), el('span', 'stop-lbl', STOPS[id][1]), el('span', 'stop-n', locked ? 'after 📬' : open ? `${count(id)} card${count(id) === 1 ? '' : 's'}` : 'done!'));
       row.appendChild(b);
     });
     body.appendChild(row);
@@ -2954,10 +3004,10 @@
     if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.6') return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7') return;
       const list = [...new Set(Object.values(AUD))];
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.6'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.7'); } catch (_) {}
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

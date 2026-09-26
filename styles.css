@@ -746,9 +746,9 @@ html.theme-dark { --green-d: #86dc8d; }
 .mini-pc .mini-h { font-family: var(--read); font-style: italic; color: #6a5a45; font-size: 1.05rem; margin: 0; background: none; }
 .mini-pc .mini-s { font-size: 1.55rem; }
 .mini-pc .mini-w { background: #fff1a8; border-radius: 6px; padding: 0 4px; }
-.pc-chunk .pc-right { padding-right: 70px; }
-.pc-chunk:not(.first) .pc-postmark { display: none; }
-.pc-chunk:not(.first) .pc-right { padding-right: 62px; }
+.pc-chunk .pc-right { padding-right: 0; }
+.pc-chunk .pc-right::before { content: ""; float: right; width: 118px; height: 66px; } /* room for the postmark + stamp; only the first lines wrap around it */
+
 .pc-full.postcard { font-size: 1rem; }
 .pc-full .pc-right p { font-size: 1.25rem; }
 /* the proof sentences sit on a postcard too */
@@ -868,11 +868,11 @@ html.theme-dark { --green-d: #86dc8d; }
   .card.card-chunk, .card.card-wcheck, .card.card-model, .card.card-type.is-done { grid-template-rows: 25% 1fr; }
   .pc-chunk .pc-right p { font-size: 1.28rem; line-height: 1.5; background-size: 100% 1.5em; }
   .pc-chunk .pc-right { padding-right: 0; }
-  .pc-chunk .pc-greet { padding-right: 118px; }
+  .pc-chunk .pc-greet { padding-right: 0; }
   .pc-chunk .pc-stamp { width: 44px; height: 50px; top: 8px; right: 10px; }
   .pc-chunk .pc-postmark { width: 54px; height: 54px; right: 46px; top: 6px; font-size: .5rem; }
   .pc-chunk .pc-postmark::after { display: none; }
-  .pc-chunk:not(.first) .pc-right > p:first-child { padding-right: 56px; }
+  .pc-chunk .pc-right::before { width: 100px; height: 52px; }
   .pc-chunk.postcard { padding: 12px 12px 8px; }
   .card-chunk .c-q { font-size: 1.1rem; margin: 8px 0 6px; }
   .card-chunk .opts.pics .opt { min-height: 70px; }
@@ -896,3 +896,36 @@ html.theme-dark { --green-d: #86dc8d; }
 .theme-dark .wp-word { background: #2a3244; border-color: #465270; }
 .theme-dark .wp-help { margin-top: 10px !important; background: #242b3a; border-color: #7a6424; }
 .theme-dark .wp-helpme { background: #3d3314; color: #ffe39a; border-color: #7a6424; }
+
+/* ---- v2.7 ---- */
+/* the picture side of the postcard: "Greetings from ___" lettering on the day's scene (no floating emoji) */
+.pc-greetings { position: absolute; left: 12px; top: 10px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; transform: rotate(-4deg); pointer-events: none; animation: pgIn .3s ease-out both; }
+.pc-greetings .pg-small { font-family: var(--read); font-style: italic; font-size: .85rem; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); padding-left: 4px; }
+.pc-greetings .pg-big { font-family: var(--ui, inherit); font-weight: 800; font-size: 1.55rem; line-height: 1; letter-spacing: .02em; text-transform: uppercase; color: #ffd84a;
+  -webkit-text-stroke: 1.5px #7a2e12; paint-order: stroke fill; text-shadow: 3px 3px 0 #c8452c, 4px 5px 6px rgba(0,0,0,.35); max-width: 62vw; }
+@keyframes pgIn { from { opacity: 0; transform: rotate(-4deg) translateY(-6px); } to { opacity: 1; transform: rotate(-4deg); } }
+@media (orientation: landscape) and (min-width: 700px) { .pc-greetings { left: 18px; top: 16px; } .pc-greetings .pg-big { font-size: 2.2rem; max-width: 38vw; } .pc-greetings .pg-small { font-size: 1rem; } }
+/* the stamp only shows a real picture (never a generic icon) */
+.stamp.stamp-off { display: none; }
+/* word practice has its own "Help me" button */
+.help-btn.hide-here { display: none; }
+/* Help sits under the text column on wide screens (not on top of the girl in the picture) */
+@media (orientation: landscape) and (min-width: 700px) { .help-btn { left: calc(44% + 16px); } }
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) { .help-btn { left: calc(38% + 12px); } }
+/* long postcards: 2 parts on one card, a shorter picture on phones */
+.card.long { grid-template-rows: 25% 1fr; }
+.pc-chunk.two .pc-right p { font-size: 1.22rem; line-height: 1.55; background-size: 100% 1.55em; }
+@media (orientation: landscape) and (min-width: 700px) { .card.long { grid-template-rows: 1fr; } .pc-chunk.two .pc-right p { font-size: 1.15rem; } }
+.theme-dark .pc-greetings .pg-big { color: #ffd84a; }
+.stop-btn.locked { opacity: .55; background: #f4efe4; border-style: dashed; }
+.pc-greetings .pg-big.pg-long { font-size: 1.2rem; }
+@media (orientation: landscape) and (min-width: 700px) { .pc-greetings .pg-big.pg-long { font-size: 1.7rem; } }
+@media (orientation: portrait), (max-width: 699px) {
+  .card.long .opts.pics .opt { font-size: 1.55rem; min-height: 58px; padding: 4px; letter-spacing: -.08em; }
+  .card.long .c-body { gap: 8px; padding-top: 10px; }
+  .card.long .c-q { font-size: 1rem; }
+}
+@media (orientation: portrait), (max-width: 699px) {
+  .evi-3 .evi-s { line-height: 1.5; font-size: .95em; }
+  .evi.evi-3 { gap: 6px; }
+}

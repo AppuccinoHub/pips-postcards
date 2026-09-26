@@ -7,11 +7,11 @@ A reading and spelling game for a 2nd grader. Her guide (she picks one on the fi
 * iPad landscape / TV over AirPlay: picture on the left, words and buttons on the right, bigger text. Swipe up/down or left/right, or use the arrow keys.
 * Works offline after the first visit (service worker `sw.js`). "Add to Home Screen" works on iPad/iPhone.
 
-## How a session feels (v2.6: snappy, one tap, never stuck)
+## How a session feels (v2.7: short, snappy, one tap, never stuck)
 
 Full design notes are kept with the project in `ux-audit.md` (outside this repo).
 
-* **Mini map:** she picks the order of 3 stops: 🔤 Word lab, 📬 Postcard, 🗺️ Fly on. Then she feeds her baby. That is about 12–16 short cards, 8–10 minutes.
+* **Mini map:** she picks the order of 3 stops: 🔤 Word lab, 📬 Postcard, 🗺️ Fly on. Then she feeds her baby. That is 15 short cards (16 on 6-part space postcards), about 8–10 minutes. Every postcard part is kept, and the optional extras fill the budget. On Friday, Fly on (the radio show) opens after the postcard.
 * **One tap per answer.** A right answer sparkles and the feed moves on by itself in about 1.1 s. There are no Check buttons. She can swipe up (or tap ↓) at any time to move on, and every card has **Skip ⏭**.
 * **Never stuck.**
   * 1st miss: a wrong option fades and the right one glows. 2nd miss: the guide shows the answer and moves on (no penalty, no red, no buzzer).
@@ -21,7 +21,7 @@ Full design notes are kept with the project in `ux-audit.md` (outside this repo)
 * **Never more than 2 reading cards in a row.** Quick games sit in between: tap the picture, drag the word, feed the baby, silly word, sort one, R or W.
 * **Every read has a one-tap job:** which picture shows it, tap the proof sentence (3 shuffled sentences), what does the bright word mean.
 * **The guide is the progress meter:** in each stop she starts on the far side and hops closer to the girl with every answer, and reaches her at the end of the stop. A miss gets a silly wobble; she never moves backward.
-* **Postcards look like postcards:** cream card, stamp, postmark, divider, picture left and text right.
+* **Postcards look like postcards:** cream card with a slight tilt, stamp and postmark on every part, and the picture side of the card is the day's scene with "Greetings from ___" lettering. Emoji never float on the scene, and a stamp never gives away an answer.
 * **Rewards and jingles:** the baby hops, a heart pops, the progress bar fills to the ⭐; jingles play for the start, the baby growing, the day finished and a level up.
 * **Optional extras:** a Bonus round (challenge word, which sound?, R/W pairs), a Boss postcard, and Italia on Fridays.
 * She is the teacher: the guide misreads a word and she corrects her. Praise is for effort and strategy, never "smart". Levels are never announced as going down.
