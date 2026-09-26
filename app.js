@@ -1799,6 +1799,7 @@
     S.sessions.filter((s) => s.week === week.id).forEach((s) => { st[s.day] = s; });
     return st;
   }
+  let grownBtn = null;
   function renderHome() {
     const week = currentWeek();
     const box = $('homeBox'); box.replaceChildren();
@@ -1850,6 +1851,7 @@
     }
     bot.appendChild(zooEl());
     bot.appendChild(el('p', 'home-soft', firstOpen ? `${shownDay(firstOpen).flag} Today Pip is in: ${shownDay(firstOpen).place}` : 'You finished this week! 🎉 Replay any day.'));
+    grownBtn = grownBtn || $('btnGrown'); if (grownBtn) bot.appendChild(grownBtn); // at the end of the scrolling list, so it never covers the zoo
     box.appendChild(bot);
   }
   /* Her little zoo: the girl, every grown-up baby (and the one she is raising), and the stickers she has earned
@@ -1869,8 +1871,8 @@
     z.appendChild(pals);
     const got = Math.min(STICKERS.length, (S.sessions || []).length);
     const shelf = el('div', 'stickers'); shelf.setAttribute('aria-label', `${got} stickers`);
-    STICKERS.forEach((nm, i) => { if (i < got) { const im = el('img', 'sticker'); im.src = `img/stickers/${nm}.webp`; im.alt = ''; shelf.appendChild(im); } });
-    if (got < STICKERS.length) shelf.appendChild(el('span', 'sticker next', got ? '＋' : '⭐'));
+    STICKERS.forEach((nm, i) => { if (i < got) { const im = el('img', 'zoo-sticker'); im.src = `img/stickers/${nm}.webp`; im.alt = ''; shelf.appendChild(im); } });
+    if (got < STICKERS.length) shelf.appendChild(el('span', 'zoo-sticker next', got ? '＋' : '⭐'));
     z.appendChild(el('p', 'zoo-sub small', got ? `Stickers: ${got}. Finish a postcard day to earn the next one!` : 'Finish a postcard day to earn your first sticker!'));
     z.appendChild(shelf);
     if (n) z.appendChild(girlEl('zooEnd', 'girl-zoo-end'));

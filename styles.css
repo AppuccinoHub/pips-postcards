@@ -275,7 +275,7 @@ input, select { font: inherit; }
 .pa-note { margin: 6px 0; font-size: 14px; color: var(--ink2); }
 .chick.at-home { bottom: 6%; width: calc(42% * var(--s, 1)); max-width: calc(260px * var(--s, 1)); }
 .home-chick { position: absolute; left: 50%; transform: translateX(-50%); bottom: 6px; margin: 0; max-width: 94%; width: max-content; padding: 2px 12px; border-radius: 999px; background: rgba(255, 255, 255, .78); text-align: center; font-size: .95rem; font-weight: 600; color: var(--ink2); }
-.home-bottom { padding: 12px 18px calc(70px + var(--safe-b)); display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.home-bottom { padding: 12px 18px calc(16px + var(--safe-b)); display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
 .home-h { margin: 0; font-size: 2rem; font-weight: 700; color: var(--teal); text-shadow: 0 2px 0 #fff; }
 .home-sub, .home-soft { margin: 0; color: var(--ink2); font-size: 1rem; font-weight: 500; }
 .days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
@@ -284,6 +284,7 @@ input, select { font: inherit; }
 .day.next { border-color: var(--orange); background: #fff4e5; }
 .day.done { border-color: #bfe0c0; background: #f0faf0; }
 .grown { position: absolute; left: 10px; bottom: calc(10px + var(--safe-b)); min-height: 44px; padding: 6px 14px; border-radius: 999px; background: rgba(255, 255, 255, .9); border: 2px solid #e2d4b5; font-size: .9rem; font-weight: 600; color: var(--muted); overflow: hidden; }
+.home-bottom .grown { position: relative; left: auto; bottom: auto; align-self: flex-start; flex: none; }
 .grown .hold-ring { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: var(--teal); }
 .grown.holding .hold-ring { width: 100%; transition: width 3s linear; }
 .center-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: stretch; justify-content: safe center; gap: 14px; padding: 20px 22px calc(24px + var(--safe-b)); text-align: center; position: relative; }
@@ -363,7 +364,7 @@ input, select { font: inherit; }
   .compare { right: 8px; bottom: 42%; }
   .home { grid-template-rows: 1fr; grid-template-columns: 50% 50%; }
   .home-top { background: linear-gradient(180deg, #bfe3ff 0%, #e4f3ff 60%, #ffffff 61%, #eef7ff 100%); }
-  .home-bottom { justify-content: center; padding: 3vh 5vw; }
+  .home-bottom { justify-content: safe center; padding: 3vh 5vw; }
   .center-box { max-width: 900px; margin: 0 auto; }
   .opts.words { grid-template-columns: 1fr 1fr 1fr; }
   .nests { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
@@ -537,8 +538,8 @@ input, select { font: inherit; }
 .zoo-pal.now { border: 2px dashed #f0b35a; }
 .zoo-name { text-align: center; line-height: 1.15; overflow-wrap: anywhere; }
 .stickers { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.sticker { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,.12)); }
-.sticker.next { width: 44px; height: 44px; display: grid; place-items: center; border: 2px dashed #d8c28a; border-radius: 12px; color: #b89a50; font-weight: 700; }
+.zoo-sticker { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,.12)); }
+.zoo-sticker.next { width: 44px; height: 44px; display: grid; place-items: center; border: 2px dashed #d8c28a; border-radius: 12px; color: #b89a50; font-weight: 700; }
 .girl-zoo-end { width: 90px; max-height: 110px; align-self: flex-end; margin-top: -40px; }
 @media (orientation: landscape) and (min-width: 700px) {
   .girl-home { width: 96px; max-height: 130px; }
