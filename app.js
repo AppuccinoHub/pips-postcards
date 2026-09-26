@@ -219,7 +219,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.7.1';
+  const SFX_VER = '2.7.2';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -1057,7 +1057,7 @@
       w.classList.toggle('no-anim', !anim);
       w.style.setProperty('--gx', Math.round(-f * travel) + 'px');
       if (anim) w.act(f >= 1 ? 'spin' : 'hop');
-      setTimeout(w.fit, anim ? 380 : 0);
+      w.fit(); if (anim) setTimeout(w.fit, 380);   // v2.7.1: fit for the target spot at once (the bubble never crosses the girl mid-move)
     };
     w.act = (kind) => { img.classList.remove('hop', 'flap', 'spin', 'wobble'); void img.offsetWidth; img.classList.add(kind); setTimeout(() => img.classList.remove(kind), 420); };
     requestAnimationFrame(w.fit);
@@ -3195,10 +3195,10 @@
     if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7.1') return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7.2') return;
       const list = [...new Set(Object.values(AUD))];
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.7.1'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.7.2'); } catch (_) {}
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

@@ -2,9 +2,9 @@
    When you publish changes, bump VERSION and the ?v= numbers in index.html.
    CORE is the offline starter set; every other picture (guide poses, baby stages, the girl, stickers) is cached the
    first time it loads, and the app pre-loads the chosen guide's poses, the baby's stages and the girl art. */
-const VERSION = 'pips-v2.7.1';
+const VERSION = 'pips-v2.7.2';
 const CORE = [
-  './', 'index.html', 'styles.css?v=2.7.1', 'app.js?v=2.7.1', 'guide.js?v=2.7.1', 'audio/index.js?v=2.7.1', 'audio/lines.js?v=2.7.1', 'weeks/index.js?v=2.7.1', 'weeks/u1w2.js?v=2.7.1', 'manifest.webmanifest', 'favicon.png',
+  './', 'index.html', 'styles.css?v=2.7.2', 'app.js?v=2.7.2', 'guide.js?v=2.7.2', 'audio/index.js?v=2.7.2', 'audio/lines.js?v=2.7.2', 'weeks/index.js?v=2.7.2', 'weeks/u1w2.js?v=2.7.2', 'manifest.webmanifest', 'favicon.png',
   'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'fonts/andika-regular.woff2', 'fonts/andika-bold.woff2', 'fonts/fredoka.woff2', 'img/bonus_koala.webp', 'img/fri_barn.webp',
   'img/fri_radio.webp', 'img/item_aurora.webp', 'img/item_hill.webp', 'img/item_igloo.webp', 'img/item_pond.webp', 'img/item_sled.webp', 'img/item_slide.webp', 'img/item_snowman.webp',
   'img/koala.webp', 'img/mon_antarctica.webp', 'img/pip_happy.webp', 'img/thu_rainforest.webp', 'img/tue_batcave.webp', 'img/wed_desert.webp', 'guides/fox/main.webp', 'guides/otter/main.webp',
@@ -12,7 +12,7 @@ const CORE = [
   'babies/penguin/newborn.webp', 'babies/turtle/scene.webp', 'babies/turtle/reveal.webp', 'babies/turtle/newborn.webp', 'babies/fox/reveal.webp', 'babies/fox/newborn.webp',
   'babies/otter/reveal.webp', 'babies/otter/newborn.webp', 'babies/puffin/scene.webp', 'babies/puffin/reveal.webp', 'babies/puffin/newborn.webp', 'babies/pigeon/scene.webp',
   'babies/pigeon/reveal.webp', 'babies/pigeon/newborn.webp', 'babies/bat/newborn.webp', 'img/girl/hello.webp', 'img/girl/zoo_explorer_map.webp', 'img/girl/fox_walk.webp',
-  'sfx/tap.mp3?v=2.7.1', 'sfx/key.mp3?v=2.7.1', 'sfx/swoosh.mp3?v=2.7.1', 'sfx/right.mp3?v=2.7.1', 'sfx/notyet.mp3?v=2.7.1', 'sfx/food.mp3?v=2.7.1', 'sfx/crack1.mp3?v=2.7.1', 'sfx/crack2.mp3?v=2.7.1', 'sfx/crack3.mp3?v=2.7.1', 'sfx/hatch.mp3?v=2.7.1', 'sfx/rustle.mp3?v=2.7.1', 'sfx/snuggle.mp3?v=2.7.1', 'sfx/grow.mp3?v=2.7.1', 'sfx/fanfare.mp3?v=2.7.1', 'sfx/plink.mp3?v=2.7.1', 'sfx/j_day.mp3?v=2.7.1', 'sfx/j_grow.mp3?v=2.7.1', 'sfx/j_level.mp3?v=2.7.1', 'sfx/j_start.mp3?v=2.7.1', 'img/pics/cage.svg', 'img/pics/chest.svg', 'img/pics/napkin.svg', 'img/pics/rake.svg', 'img/pics/stream.svg', 'img/pip_oops.webp'
+  'sfx/tap.mp3?v=2.7.2', 'sfx/key.mp3?v=2.7.2', 'sfx/swoosh.mp3?v=2.7.2', 'sfx/right.mp3?v=2.7.2', 'sfx/notyet.mp3?v=2.7.2', 'sfx/food.mp3?v=2.7.2', 'sfx/crack1.mp3?v=2.7.2', 'sfx/crack2.mp3?v=2.7.2', 'sfx/crack3.mp3?v=2.7.2', 'sfx/hatch.mp3?v=2.7.2', 'sfx/rustle.mp3?v=2.7.2', 'sfx/snuggle.mp3?v=2.7.2', 'sfx/grow.mp3?v=2.7.2', 'sfx/fanfare.mp3?v=2.7.2', 'sfx/plink.mp3?v=2.7.2', 'sfx/j_day.mp3?v=2.7.2', 'sfx/j_grow.mp3?v=2.7.2', 'sfx/j_level.mp3?v=2.7.2', 'sfx/j_start.mp3?v=2.7.2', 'img/pics/cage.svg', 'img/pics/chest.svg', 'img/pics/napkin.svg', 'img/pics/rake.svg', 'img/pics/stream.svg', 'img/pip_oops.webp'
 ];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
