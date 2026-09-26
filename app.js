@@ -44,49 +44,78 @@
   const TYPE_NAMES = { type: 'Type the word you hear', hear: 'Hear & tap (which word says it)', says: 'Which word says ___? (new words)', rebel: 'Find the sneaky word', fill: 'Fill the blank (word tiles)', sort: 'Sort', build: 'Build a word', pick: 'Pick the spelling', spell: 'Spell it',
     question: "Guide's question (evidence)", advisor: 'Advisor card', check: 'Picture checks', echo: 'Echo (review) words', warm: 'Warm-up (easy wins)',
     decode: 'Read new words (she self-checks)', teach: 'Teach the guide (she self-checks)', rpair: 'R or W? (listening)', rcatch: 'Catch the guide (R, listening)', sound: 'Which sound? (optional)', challenge: 'Challenge word (optional)' };
-  /* The baby animal she raises. She picks one of 4 nests on first launch. Growth thresholds are shared. */
-  const STAGE_AT = [0, 15, 32, 50, 70];
+  /* The baby animal she raises (all art is Sue's: babies/<kind>/<stage>.webp). She picks one on first launch.
+     Egg animals hatch (egg -> cracked -> peeking -> almost out, played in the reveal); the bat, fox and otter are
+     born (snuggled up -> waking up). Then 5 growth stages. "Little baby" comes at the very first feed, so she always
+     sees her baby change in session 1. Growth thresholds (food eaten) are shared. */
+  const STAGE_KEYS = ['newborn', 'baby', 'growing', 'juvenile', 'adult'];
+  const STAGE_NAMES = { newborn: 'Brand new', baby: 'Little baby', growing: 'Growing', juvenile: 'Big kid', adult: 'All grown up' };
+  const PRE_NAMES = { egg: 'Egg', cracked: 'Crack!', peeking: 'Peek-a-boo', halfout: 'Almost out', snug: 'Snuggled up', waking: 'Waking up' };
+  const STAGE_AT = [0, 1, 20, 42, 70];
+  const STAGE_SCALE = [0.6, 0.7, 0.8, 0.9, 1];
   const ITEM_AT = [12, 26, 40, 55, 70, 88, 105];
+  const EGG = ['egg', 'cracked', 'peeking', 'halfout'], BORN = ['snug', 'waking'];
   const PETS = {
-    penguin: { kind: 'Penguin chick', nest: 'Penguin egg', icon: '🐧', food: '🐟', foodName: 'fish', nestImg: 'img/nest_penguin.webp', baby: 'img/chick_gray.webp',
-      found: 'A penguin chick hatched! Pip found this baby emperor penguin on the ice.', sugs: ['Waddles', 'Snowy', 'Pebble', 'Flip'],
-      stages: [['Hatchling', 'img/chick_gray.webp', 0.52, true], ['Fluffball', 'img/chick_gray.webp', 0.64], ['Waddler', 'img/chick_gray.webp', 0.78], ['Explorer', 'img/chick_mixed.webp', 0.9], ['Junior Emperor', 'img/chick_navy.webp', 1]],
+    penguin: { kind: 'Penguin chick', nest: 'Snowy ice', icon: '🐧', food: '🐟', foodName: 'fish', how: 'egg', pre: EGG, scene: true, reveal: true,
+      found: 'Pip found this baby emperor penguin on the ice.', sugs: ['Waddles', 'Snowy', 'Pebble', 'Flip'],
       items: [['Igloo', 'img/item_igloo.webp', [4, 38, 30]], ['Snow hill', 'img/item_hill.webp', [70, 44, 28]], ['Ice slide', 'img/item_slide.webp', [66, 12, 26]], ['Fish pond', 'img/item_pond.webp', [34, 2, 30]],
         ['Snowman', 'img/item_snowman.webp', [8, 6, 22]], ['Sled', 'img/item_sled.webp', [40, 50, 22]], ['Northern lights', 'img/item_aurora.webp', [4, 62, 26]]] },
-    bat: { kind: 'Bat pup', nest: 'Bat roost', icon: '🦇', food: '🍑', foodName: 'fruit', nestImg: 'img/nest_bat.webp', baby: 'img/pet_bat_baby.webp',
-      found: 'A bat pup! Pip found this baby bat snuggled on a rocky ledge in a cave.', sugs: ['Luna', 'Echo', 'Nibbles', 'Midnight'],
-      stages: [['Newborn Pup', 'img/pet_bat_baby.webp', 0.5], ['Fuzzy Pup', 'img/pet_bat_baby.webp', 0.62], ['First Flapper', 'img/pet_bat_grown.webp', 0.76], ['Night Flyer', 'img/pet_bat_grown.webp', 0.9], ['Cave Captain', 'img/pet_bat_grown.webp', 1]],
-      items: [['Moon', '🌙', [74, 70, 14]], ['Cozy rock', '🪨', [6, 8, 18]], ['Saguaro cactus', '🌵', [72, 14, 20]], ['Fruit snack', '🍑', [30, 4, 12]], ['Fireflies', '✨', [12, 56, 14]], ['Bat house', '🏡', [4, 30, 20]], ['Starry sky', '🌌', [40, 64, 16]]] },
-    fox: { kind: 'Fennec fox kit', nest: 'Fox den', icon: '🦊', food: '🫐', foodName: 'berries', nestImg: 'img/nest_fox.webp', baby: 'img/pet_fox_baby.webp',
-      found: 'A fennec fox kit! Pip found this baby fox peeking out of a sandy den in the desert.', sugs: ['Sandy', 'Ziggy', 'Dune', 'Pip Jr.'],
-      stages: [['Newborn Kit', 'img/pet_fox_baby.webp', 0.5], ['Big-Ear Kit', 'img/pet_fox_baby.webp', 0.62], ['Pouncer', 'img/pet_fox_grown.webp', 0.76], ['Dune Explorer', 'img/pet_fox_grown.webp', 0.9], ['Desert Fox', 'img/pet_fox_grown.webp', 1]],
+    turtle: { kind: 'Sea turtle hatchling', nest: 'Sandy beach nest', icon: '🐢', food: '🦐', foodName: 'shrimp', how: 'egg', pre: ['egg', 'peeking', 'halfout'], scene: true, reveal: true,
+      found: 'Pip watched this baby turtle dig out of its sandy nest on the beach.', sugs: ['Shelly', 'Coral', 'Splash', 'Kai'],
+      items: [['Seashell', '🐚', [8, 6, 12]], ['Crab friend', '🦀', [74, 6, 12]], ['Sandcastle', '🏰', [4, 26, 20]], ['Coral', '🪸', [74, 40, 16]], ['Fish friends', '🐠', [10, 56, 14]], ['Sea grass', '🌿', [56, 44, 12]], ['Whale', '🐋', [36, 66, 18]]] },
+    fox: { kind: 'Fennec fox kit', nest: 'Cozy desert den', icon: '🦊', food: '🫐', foodName: 'berries', how: 'born', pre: BORN, reveal: true,
+      found: 'Pip found this baby fox snuggled in a cozy den in the desert.', sugs: ['Sandy', 'Ziggy', 'Dune', 'Pip Jr.'],
       items: [['Cactus', '🌵', [6, 10, 20]], ['Sun rock', '🪨', [72, 8, 16]], ['Date palm', '🌴', [74, 30, 22]], ['Beetle friend', '🪲', [34, 4, 10]], ['Oasis', '💧', [8, 42, 12]], ['Desert moon', '🌙', [72, 70, 14]], ['Tall dune', '🏜️', [30, 52, 20]]] },
-    turtle: { kind: 'Sea turtle hatchling', nest: 'Turtle nest', icon: '🐢', food: '🦐', foodName: 'shrimp', nestImg: 'img/nest_turtle.webp', baby: 'img/pet_turtle_baby.webp',
-      found: 'A sea turtle hatchling! Pip watched this baby turtle dig out of its sandy nest on the beach.', sugs: ['Shelly', 'Coral', 'Splash', 'Kai'],
-      stages: [['Hatchling', 'img/pet_turtle_baby.webp', 0.5], ['Beach Dasher', 'img/pet_turtle_baby.webp', 0.62], ['Wave Paddler', 'img/pet_turtle_baby.webp', 0.76], ['Reef Explorer', 'img/pet_turtle_grown.webp', 0.9], ['Ocean Voyager', 'img/pet_turtle_grown.webp', 1]],
-      items: [['Seashell', '🐚', [8, 6, 12]], ['Crab friend', '🦀', [74, 6, 12]], ['Sandcastle', '🏰', [4, 26, 20]], ['Coral', '🪸', [74, 40, 16]], ['Fish friends', '🐠', [10, 56, 14]], ['Sea grass', '🌿', [56, 44, 12]], ['Whale', '🐋', [36, 66, 18]]] }
+    otter: { kind: 'Sea otter pup', nest: 'Kelp bed', icon: '🦦', food: '🦪', foodName: 'clams', how: 'born', pre: BORN, reveal: true,
+      found: 'Pip found this baby otter floating safe and snug in the kelp.', sugs: ['Kelpie', 'Otto', 'Pebbles', 'Bubbles'],
+      items: [['Kelp', '🌿', [6, 8, 16]], ['Smooth rock', '🪨', [72, 6, 16]], ['Clam snack', '🦪', [34, 4, 12]], ['Sea star', '⭐', [80, 30, 12]], ['Big wave', '🌊', [8, 42, 18]], ['Crab friend', '🦀', [60, 50, 12]], ['Sunset', '🌅', [30, 64, 20]]] },
+    puffin: { kind: 'Puffin chick (puffling)', nest: 'Sea-cliff burrow', icon: '🐦', food: '🐟', foodName: 'fish', how: 'egg', pre: EGG, scene: true, reveal: true,
+      found: 'Pip found this baby puffin in a cozy burrow on a sea cliff.', sugs: ['Puff', 'Nugget', 'Pebble', 'Clover'],
+      items: [['Sea cliff', '⛰️', [4, 30, 22]], ['Flowers', '🌸', [74, 6, 12]], ['Fish snack', '🐟', [34, 4, 12]], ['Waves', '🌊', [70, 30, 18]], ['Little boat', '⛵', [12, 58, 14]], ['Lighthouse', '🗼', [78, 50, 16]], ['Rainbow', '🌈', [34, 62, 20]]] },
+    pigeon: { kind: 'Pigeon chick (squab)', nest: 'Twig nest', icon: '🕊️', food: '🌾', foodName: 'seeds', how: 'egg', pre: EGG, scene: true, reveal: true,
+      found: 'Pip found this baby pigeon in a twig nest on a sunny rooftop.', sugs: ['Coco', 'Dusty', 'Poppy', 'Skye'],
+      items: [['Rooftop', '🏠', [4, 30, 22]], ['Flowers', '🌼', [74, 6, 12]], ['Seed snack', '🌾', [34, 4, 12]], ['Fountain', '⛲', [70, 30, 18]], ['Park bench', '🪑', [10, 6, 14]], ['Balloon', '🎈', [78, 56, 12]], ['Clock tower', '🕰️', [34, 60, 16]]] },
+    bat: { kind: 'Bat pup', nest: 'Cozy cave', icon: '🦇', food: '🍑', foodName: 'fruit', how: 'born', pre: BORN,
+      found: 'Pip found this baby bat snuggled on a rocky ledge in a cave.', sugs: ['Luna', 'Echo', 'Nibbles', 'Midnight'],
+      items: [['Moon', '🌙', [74, 70, 14]], ['Cozy rock', '🪨', [6, 8, 18]], ['Saguaro cactus', '🌵', [72, 14, 20]], ['Fruit snack', '🍑', [30, 4, 12]], ['Fireflies', '✨', [12, 56, 14]], ['Bat house', '🏡', [4, 30, 20]], ['Starry sky', '🌌', [40, 64, 16]]] }
   };
-  // Parrots: always optional (one choice among others), never on the very first pick, and a grown-up can hide them.
-  PETS.grey = { kind: 'African grey chick', nest: 'Tree-hole nest', icon: '🦜', food: '🌰', foodName: 'palm nuts', nestImg: 'img/nest_grey.webp', baby: 'img/pet_grey_baby.webp', parrot: true,
-    found: 'An African grey chick! Pip found this fluffy baby parrot safe in a tree-hole nest in the rainforest.', sugs: ['Sky', 'Pepper', 'Echo', 'Cloud'],
-    stages: [['Hatchling', 'img/pet_grey_baby.webp', 0.5], ['Fluffy Chick', 'img/pet_grey_baby.webp', 0.62], ['Feather Sprout', 'img/pet_grey_baby.webp', 0.76], ['Chatterbox', 'img/pet_grey_grown.webp', 0.9], ['Rainforest Talker', 'img/pet_grey_grown.webp', 1]],
-    items: [['Perch branch', '🪵', [6, 30, 18]], ['Flowers', '🌺', [74, 8, 12]], ['Palm tree', '🌴', [72, 30, 22]], ['Butterfly friend', '🦋', [12, 58, 12]], ['Banana snack', '🍌', [34, 4, 12]], ['Rain cloud', '🌦️', [70, 66, 16]], ['Rainbow', '🌈', [34, 60, 20]]] };
-  PETS.senegal = { kind: 'Senegal parrot chick', nest: 'Tree-hole nest', icon: '🦜', food: '🌻', foodName: 'seeds', nestImg: 'img/nest_senegal.webp', baby: 'img/pet_senegal_baby.webp', parrot: true,
-    found: 'A Senegal parrot chick! Pip found this fluffy baby parrot safe in a tree-hole nest on the savanna.', sugs: ['Mango', 'Sunny', 'Kiwi', 'Nala'],
-    stages: [['Hatchling', 'img/pet_senegal_baby.webp', 0.5], ['Fluffy Chick', 'img/pet_senegal_baby.webp', 0.62], ['Feather Sprout', 'img/pet_senegal_baby.webp', 0.76], ['Savanna Explorer', 'img/pet_senegal_grown.webp', 0.9], ['Sunny Senegal', 'img/pet_senegal_grown.webp', 1]],
-    items: [['Big tree', '🌳', [70, 20, 24]], ['Tall grass', '🌾', [6, 6, 14]], ['Mango snack', '🥭', [34, 4, 11]], ['Sunflower', '🌻', [80, 4, 12]], ['Cozy nest box', '🪺', [8, 36, 14]], ['Sunshine', '☀️', [74, 68, 14]], ['Rainbow', '🌈', [30, 60, 20]]] };
-  const PET_KINDS = ['penguin', 'bat', 'fox', 'turtle', 'grey', 'senegal'];
-  const BASE_KINDS = PET_KINDS.filter((k) => !PETS[k].parrot);
-  const showParrots = () => S.showParrots !== false;
+  const PET_KINDS = ['penguin', 'turtle', 'fox', 'otter', 'puffin', 'pigeon', 'bat'];
+  PET_KINDS.forEach((k) => { PETS[k].id = k; });
+  const babyImg = (k, stage) => `babies/${k}/${stage}.webp`;
+  const sceneOf = (pp) => (pp.scene ? babyImg(pp.id, 'scene') : '');
+  const revealOf = (pp) => (pp.reveal ? babyImg(pp.id, 'reveal') : babyImg(pp.id, 'newborn'));
+  /* The girl (Sue's art, img/girl/): where each picture shows. Several in one list take turns. Only full-body
+     drawings are used bare; hello, hurray, question, dream, ciao and group_hug are drawn to the waist, so they come
+     pre-framed as portraits (see art/sue2/export2.py). */
+  const GIRL = {
+    hello: ['hello'], home: ['fox_walk', 'penguin_binoculars', 'backpack'], picker: ['zoo_explorer_map', 'otter_point'],
+    found: { penguin: 'penguin_find', puffin: 'puffin_hug', pigeon: 'pigeon_hug', turtle: 'turtle_find', bat: 'bat_find', fox: 'fox_find', otter: 'otter_find' },
+    zoo: { penguin: 'penguin_hug', puffin: 'puffin_post', pigeon: 'pigeon_hug', turtle: 'turtle_pet', bat: 'bat_hold', fox: 'fox_hug', otter: 'otter_hug' },
+    zooTop: ['group_hug'], zooEnd: ['walk_away'], grow: ['hurray', 'peace', 'roller'], grown: ['graduation'],
+    boss: ['pirate_spyglass', 'pirate_map', 'pirate_flag'], bossWin: ['pirate_chest', 'pirate_cheer'], italia: ['ciao', 'italia_hat', 'pizza'],
+    think: ['question', 'dream', 'writing_plan'], read: ['books'], spell: ['writing_books'], mail: ['special_message', 'puffin_post'],
+    end: ['pillow_pj', 'pajamas_dog'], parent: ['bigger_dreams']
+  };
+  const STICKERS = ['heart', 'star', 'paw', 'book', 'globe', 'camera', 'compass', 'map', 'backpack', 'leaf', 'zoo_explorer', 'kindness', 'small_steps', 'heart_globe', 'postcard', 'backpack2', 'my_zoo'];
+  const girlTurn = {};
+  function girlSrc(slot, fixed) {
+    const l = [].concat(GIRL[slot] || slot); const n = fixed ? 0 : (girlTurn[slot] = ((girlTurn[slot] == null ? -1 : girlTurn[slot]) + 1));
+    return 'img/girl/' + l[n % l.length] + '.webp';
+  }
+  function girlEl(slot, cls, fixed) { const im = el('img', 'girl ' + (cls || '')); im.src = /\//.test(slot) ? slot : girlSrc(slot, fixed); im.alt = ''; im.setAttribute('aria-hidden', 'true'); im.decoding = 'async'; return im; }
+  const kidName = () => (S.kid || '').trim();
+  const oneName = (pp) => pp.one || pp.kind.replace(/ \(.*\)$/, '').toLowerCase();
+  const bornWord = (pp) => (pp.how === 'born' ? 'was born' : 'hatched');
+  const BASE_KINDS = PET_KINDS.slice();
   const pet = () => PETS[(S.chick && S.chick.kind) || 'penguin'] || PETS.penguin;
-  const stagesOf = (pp) => pp.stages.map(([name, img, scale, shell], i) => ({ at: STAGE_AT[i], name, img, scale, shell: !!shell }));
+  const stagesOf = (pp) => STAGE_KEYS.map((key, i) => ({ at: STAGE_AT[i], key, name: STAGE_NAMES[key], img: babyImg(pp.id, key), scale: STAGE_SCALE[i] }));
   const itemsOf = (pp) => pp.items.map(([name, art, pos], i) => ({ at: ITEM_AT[i], name, pos, img: /\.webp$/.test(art) ? art : '', emoji: /\.webp$/.test(art) ? '' : art }));
   const AUTO_MS = 1300;
   const KEY = 'pipsPostcards.v1';
 
   /* ---------------- state ---------------- */
   const fresh = () => ({
-    guide: null, tryAgain: {}, soundLog: [], rOn: true, rWords: null, italiaOn: true, italiaDone: {}, bossDone: {}, vol: 1,
+    guide: null, kid: '', tryAgain: {}, soundLog: [], rOn: true, rWords: null, italiaOn: true, italiaDone: {}, bossDone: {}, vol: 1,
     chick: { name: '', kind: '', fish: 0 }, family: [], level: 'ground', levelLock: false, good: 0, roughStreak: 0,
     sessions: [], sessionsDone: 0, review: [], levelLog: [], routeEcho: null, progress: null,
     muted: false, hinted: false, weekId: null
@@ -96,12 +125,16 @@
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} }
   load();
   if (S.chick && S.chick.name && !S.chick.kind) S.chick.kind = 'penguin'; // saves from before the baby choice existed
+  // Parrots were removed (v2.2): a saved parrot baby becomes a pigeon chick, same name and growth.
+  const PARROTS = { grey: 1, senegal: 1 };
+  if (S.chick && PARROTS[S.chick.kind]) S.chick.kind = 'pigeon';
+  (S.family || []).forEach((f) => { if (PARROTS[f.kind]) f.kind = 'pigeon'; });
+  delete S.showParrots;
 
   const weekList = () => (window.PIP_WEEK_LIST || Object.keys(window.PIP_WEEKS || {})).filter((id) => window.PIP_WEEKS && window.PIP_WEEKS[id]);
   const currentWeek = () => { const l = weekList(); const id = (S.weekId && l.includes(S.weekId)) ? S.weekId : l[l.length - 1]; return window.PIP_WEEKS[id]; };
   const chickName = () => S.chick.name || 'Baby';
-  // Parrot postcards are swapped for their alternative (koalas) when a grown-up hides parrots.
-  const shownDay = (d) => (d && d.parrot && d.alt && !showParrots()) ? d.alt : d;
+  const shownDay = (d) => d;
   const fillName = (t) => gtext(String(t).replace(/\{chick\}/g, chickName()));
 
   /* ---------------- helpers ---------------- */
@@ -151,8 +184,11 @@
       });
     } catch (_) {}
   }
-  /* Voice. Guide lines: the device's best natural female en-US voice (same for every guide), slightly high
-     pitch, rate ~0.85. Words, chunks and suggested names: pre-made audio files (audio/index.js) when available. */
+  /* Voice. Words, chunks and suggested names: pre-made audio (audio/index.js). Guide lines, praise, hints and card
+     instructions: pre-made audio too (audio/lines.js, same Kokoro af_heart voice), matched on the exact text. A line
+     with a typed name (guide, baby, child) or a number is split: the fixed parts play their pre-made pieces and only
+     the name is said by the device voice (or its pre-made file if it is a suggested name). Anything not pre-made
+     falls back to the device's best natural female en-US voice at a natural pitch. Captions are always shown. */
   let voice = null;
   function pickVoice() {
     if (!('speechSynthesis' in window)) return;
@@ -165,31 +201,89 @@
   const canSpeak = () => 'speechSynthesis' in window;
   const vol = () => (S.muted ? 0 : (S.vol == null ? 1 : S.vol));
   const AUD = window.PIP_AUDIO || {};
+  const LINES = window.PIP_LINES || {};
+  const lineKey = (s) => String(s).toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/'(?![a-z])|(^|\s)'/g, ' ').replace(/\s+/g, ' ').trim();
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  /* Plan a line as pre-made pieces. Whole-line file first; otherwise split at names and numbers. A typed name is never
+     given to the device voice when it can be avoided: a suggested name plays its word file; a name used like "Great job,
+     Mia!" / "I'm your guide, Zuzu!" is left out of the spoken line (it stays in the caption); a name used as a subject
+     or object is said as "the puffin" (guide), "your baby" or "friend". null = not pre-made (device voice). */
+  function linePlan(t, inner) {
+    const whole = LINES[lineKey(t)] || (inner && AUD[lineKey(t)]); if (whole) return [{ src: whole }]; // (a lone word: its word file)
+    if (!inner) { // a line built from fixed lines ("mishap joke + hint"): plan it sentence by sentence
+      const ss = (t.match(/[^.!?\u2026]+[.!?\u2026]*["\u201d\u2019)]*\s*/g) || []).filter((x) => lineKey(x));
+      if (ss.length > 1) { const ps = ss.map((x) => linePlan(x, true)); if (ps.every(Boolean)) return [].concat(...ps); }
+    }
+    const p = namePlan(t); if (p) return p;
+    // a word in quotes inside a fixed line ("It is not “ex-plor-ee”!", "What does “gatto” mean?"): its word file
+    const qs = t.split(/([\u201c"][^\u201d"]{1,40}[\u201d"])/);
+    if (qs.length < 2) return null;
+    const plan = [];
+    for (let i = 0; i < qs.length; i++) {
+      const x = qs[i]; if (!lineKey(x)) continue;
+      if (i % 2) { const q = x.slice(1, -1).trim().toLowerCase(), f = AUD[q] || AUD['it:' + q] || LINES[lineKey(q)]; if (!f) return null; plan.push({ src: f }); continue; }
+      const sub = LINES[lineKey(x)] ? [{ src: LINES[lineKey(x)] }] : namePlan(x); if (!sub) return null; plan.push(...sub);
+    }
+    return plan.length ? plan : null;
+  }
+  function namePlan(t) {
+    const g = G(), role = {};
+    const add = (n, r) => { if (n && n.trim() && !role[n.toLowerCase()]) role[n.toLowerCase()] = r; };
+    add(g.name, 'g'); add(S.chick && S.chick.name, 'b'); add(S.kid, 'k'); (S.family || []).forEach((f) => add(f.name, 'b'));
+    const names = Object.keys(role).sort((a, b) => b.length - a.length);
+    const re = new RegExp('(' + names.map((n) => '\\b' + reEsc(n) + "(?:['\u2019]s)?\\b").concat(['\\b\\d+\\b']).join('|') + ')', 'i');
+    const parts = t.split(re).filter((p) => p != null && p !== '');
+    if (parts.length < 2) return null;
+    const sub = { g: 'the ' + (g.species || 'bird'), b: 'your baby', k: 'friend' };
+    const plan = [];
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i], k = lineKey(p); if (!k) continue;
+      if (/^\d+$/.test(k)) { plan.push(LINES['num:' + k] ? { src: LINES['num:' + k] } : { speak: k }); continue; }
+      const poss = /'s$/.test(k), base = poss ? k.slice(0, -2) : k;
+      if (role[base]) {
+        if (AUD[k]) { plan.push({ src: AUD[k] }); continue; }
+        const prev = (parts[i - 1] || '').trim(), next = (parts[i + 1] || '').trim();
+        if (!poss && (/,$/.test(prev) || (!prev && /^,/.test(next)))) continue; // "Great job, Mia!" -> "Great job!"
+        const s = LINES[lineKey(sub[role[base]] + (poss ? "'s" : ''))];
+        plan.push(s ? { src: s } : { speak: p.trim() }); continue;
+      }
+      const f = LINES[k] || AUD[k]; if (!f) return null;
+      plan.push({ src: f });
+    }
+    return plan.length ? plan : null;
+  }
   let curAudio = null, sayToken = 0;
   function stopVoice() { sayToken++; try { speechSynthesis.cancel(); } catch (_) {} if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; } }
   /* Speak one thing. opts: {rate, slow, lang, word} ; returns a Promise that resolves when done (or after a safety timeout). */
   function say1(text, opts) {
     opts = opts || {};
     const t = plain(gtext(String(text || ''))).trim();
+    if (window.__sayLog && t && !opts.piece) window.__sayLog.push(opts.lang ? opts.lang + ':' + t : t); // test hook
+    if (!opts.piece && opts.lang !== 'it' && t && vol() > 0 && !(opts.word !== false && AUD[t.toLowerCase()])) {
+      const plan = linePlan(t);
+      if (plan) return (async () => { const my = sayToken; for (const pc of plan) { if (my !== sayToken) return; await say1(pc.src ? pc.src : pc.speak, pc.src ? { file: pc.src, piece: true } : { piece: true, word: false, rate: opts.rate }); } })();
+    }
     return new Promise((res) => {
       if (!t || vol() === 0) return setTimeout(res, opts.word ? 350 : 60);
       let done = false; const fin = () => { if (!done) { done = true; res(); } };
-      const guard = setTimeout(fin, 900 + t.length * (opts.slow ? 130 : 95));
-      const src = AUD[(opts.lang ? opts.lang + ':' : '') + t.toLowerCase()];
-      if (src && opts.word !== false) {
+      let guard = setTimeout(fin, opts.file ? 20000 : 900 + t.length * (opts.slow ? 130 : 95));
+      const src = opts.file || AUD[(opts.lang ? opts.lang + ':' : '') + t.toLowerCase()];
+      if (src && (opts.file || opts.word !== false)) {
         try {
           const a = new Audio(src); a.volume = vol(); a.playbackRate = opts.slow ? 0.8 : 1; curAudio = a;
           a.onended = () => { clearTimeout(guard); fin(); }; a.onerror = () => { clearTimeout(guard); fin(); };
+          a.onloadedmetadata = () => { if (isFinite(a.duration) && a.duration > 0) { clearTimeout(guard); guard = setTimeout(fin, a.duration * 1000 / a.playbackRate + 1500); } };
           const pr = a.play(); if (pr && pr.catch) pr.catch(() => { clearTimeout(guard); fin(); });
           return;
         } catch (_) {}
       }
       if (!canSpeak()) { clearTimeout(guard); return fin(); }
       try {
+        if (window.__voiceMiss) window.__voiceMiss.push(t); // test hook: every time the device voice is used
         const u = new SpeechSynthesisUtterance(t);
         u.lang = opts.lang === 'it' ? 'it-IT' : 'en-US';
         const V = GUIDES.voice || {};
-        u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.85)); u.pitch = V.pitch || 1.15; u.volume = vol();
+        u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.95)); u.pitch = V.pitch || 1.0; u.volume = vol();
         if (voice && opts.lang !== 'it') u.voice = voice;
         u.onend = () => { clearTimeout(guard); fin(); }; u.onerror = () => { clearTimeout(guard); fin(); };
         speechSynthesis.speak(u);
@@ -392,6 +486,7 @@
     card.done = true;
     card.el.classList.add('is-done');
     if (result) P.res[card.i] = Object.assign({ k: card.spec.k }, result);
+    if (card.pip && !(opts && opts.pose === false)) card.pip.pose((opts && opts.pose) || (result ? winPose() : card.pip.dataset.pose));
     const fish = opts && opts.fish != null ? opts.fish : 1;
     if (fish) { P.fish += fish; fishPop(card.el, fish); }
     appendCard(card.i + 1, false);
@@ -486,21 +581,57 @@
     return d;
   }
   /* The guide + a speech bubble. The bubble is always the caption of what she says out loud; 🔁 replays it. */
-  function guideImg(mood) { const g = G(); return mood === 'oops' && g.oops ? g.oops : (g.img || 'img/pip_happy.webp'); }
+  /* Guide poses (Sue's art). Config: PIP_GUIDES.poses in guide.js. A slot with several files takes turns. */
+  const POSE = GUIDES.poses || { art: {}, fallback: {}, byCard: {}, screens: {} };
+  const poseTurn = {};
+  function poseFiles(kind, slot) {
+    const art = (POSE.art || {})[kind] || {};
+    const tried = [slot].concat((POSE.fallback || {})[slot] || []);
+    for (const s of tried) if (art[s] && art[s].length) return art[s];
+    return [];
+  }
+  function poseSrc(slot, kind, fixed) {
+    const k = kind || G().kind, list = poseFiles(k, slot || 'talk');
+    if (!list.length) return (GUIDES.kinds[k] || G()).img || 'img/pip_happy.webp';
+    const key = k + ':' + slot; const n = fixed ? 0 : (poseTurn[key] = ((poseTurn[key] == null ? -1 : poseTurn[key]) + 1));
+    const f = list[n % list.length];
+    return 'guides/' + k + '/' + (f.indexOf('.') >= 0 ? f : f + '.webp');
+  }
+  function allPoseSrcs(kind) { const k = kind || G().kind, out = new Set([(GUIDES.kinds[k] || {}).img]); Object.values((POSE.art || {})[k] || {}).forEach((l) => l.forEach((f) => out.add('guides/' + k + '/' + (f.indexOf('.') >= 0 ? f : f + '.webp')))); return [...out].filter(Boolean); }
+  function allGirlSrcs() { const out = new Set(); Object.values(GIRL).forEach((v) => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : Object.values(v)).forEach((n) => out.add('img/girl/' + n + '.webp'))); STICKERS.forEach((n) => out.add('img/stickers/' + n + '.webp')); return [...out]; }
+  function warmPoses() { if (navigator.onLine === false) return; const pp = S.chick && S.chick.kind ? pet() : null; allPoseSrcs().concat(pp ? stagesOf(pp).map((x) => x.img).concat(pp.pre.map((st) => babyImg(pp.id, st))) : [], allGirlSrcs()).forEach((u) => { const i = new Image(); i.src = u; }); }
+  function guideImg(mood) { return poseSrc(mood || 'talk'); }
+  let winTurn = 0;
+  function winPose() { return (winTurn++ % 3 === 2) ? 'love' : 'cheer'; }
+  /* The girl joins some cards (small, bottom-left of the picture): pirate on boss postcards, Italy on the Italian
+     bonus, thinking on "your turn to think" cards, writing on spell/type cards, a postcard on the arrival card. */
+  function sidekick(vis, card, base) {
+    if (!vis || !vis.classList || !vis.classList.contains('c-visual') || vis.querySelector('.girl-side')) return;
+    if (vis.parentElement && vis.parentElement.classList.contains('tall')) return;
+    const k = card && card.spec && card.spec.k;
+    const slot = P && P.mode === 'boss' ? (k === 'feed' ? 'bossWin' : 'boss') : k === 'italia' ? 'italia' : (k === 'spell' || k === 'type') ? 'spell' : base === 'think' ? 'think' : k === 'mail' ? 'mail' : '';
+    if (slot) vis.appendChild(girlEl(slot, 'girl-side'));
+  }
   function pipSay(vis, text, mood) {
     const card = BUILDING;
+    const base = (card && card.spec && (POSE.byCard || {})[card.spec.k]) || 'talk';
     const w = el('div', 'pip-wrap guide-' + G().kind + (mood === 'oops' ? ' oops' : ''));
-    const img = el('img', 'pip'); img.src = guideImg(mood); img.alt = `${G().name} the ${G().species}`;
+    const img = el('img', 'pip'); img.src = guideImg(mood || base); img.alt = `${G().name} the ${G().species}`;
+    img.onerror = () => { const m = G().img; if (m && !img.src.endsWith(m)) img.src = m; };
+    w.base = base;
+    w.pose = (slot) => { const nx = guideImg(slot || w.base); if (!img.src.endsWith(nx)) img.src = nx; w.classList.toggle('oops', slot === 'oops'); w.dataset.pose = slot || w.base; };
+    w.dataset.pose = mood || base;
     const b = el('div', 'bubble');
     const cap = el('span', 'cap', fillName(text || ''));
     const rp = btn('replay', '🔁', (e) => { e.stopPropagation(); w.speakNow(); }); rp.setAttribute('aria-label', 'Hear it again');
     b.append(cap, rp);
     if (!text) b.hidden = true;
     w.append(b, img); vis.appendChild(w);
+    sidekick(vis, card, base);
     w.text = text || '';
     w.speakNow = () => { if (w.text) sayList([{ text: fillName(w.text), word: false }]); };
     w.say = (t, m) => {
-      w.text = t || ''; b.hidden = !t; cap.textContent = fillName(t || ''); img.src = guideImg(m); w.classList.toggle('oops', m === 'oops'); w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop');
+      w.text = t || ''; b.hidden = !t; cap.textContent = fillName(t || ''); w.pose(m || w.base); w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop');
       if (t && card && P.cards[P.idx] === card) w.speakNow();
     };
     if (card) card.pip = w;
@@ -1045,7 +1176,6 @@
     w.style.setProperty('--s', st.scale);
     const img = el('img', 'chick-img'); img.src = st.img; img.alt = kind ? pp.kind : chickName() + ', your ' + pp.kind.toLowerCase();
     w.appendChild(img);
-    if (st.shell) { const sh = el('img', 'shell'); sh.src = 'img/eggshell.webp'; sh.alt = ''; w.appendChild(sh); }
     return w;
   }
   BUILD.feed = (card, sec) => {
@@ -1070,8 +1200,9 @@
         S.chick.fish = after; save();
         const nc = chickEl(after, 'big grow'); ch.replaceWith(nc); ch = nc;
         const newItems = itemsOf(pp).filter((it) => it.at > before && it.at <= after);
-        let msg = sa > sb ? `${chickName()} grew! Now a ${stagesOf(pp)[sa].name}! 🎉` : `Yum! ${chickName()} is getting bigger! 😋`;
+        let msg = sa > sb ? (sa === STAGE_KEYS.length - 1 ? `${chickName()} is all grown up! 🎓🎉` : `${chickName()} grew! Now: ${stagesOf(pp)[sa].name}! 🎉`) : `Yum! ${chickName()} is getting bigger! 😋`;
         sound(sa > sb ? 'grow' : 'ok');
+        if (sa > sb) { const cheer = girlEl(sa === STAGE_KEYS.length - 1 ? 'grown' : 'grow', 'girl-cheer'); vis.appendChild(cheer); }
         if (newItems.length) {
           msg += ` New for the habitat: ${newItems.map((i) => i.name).join(', ')}!`;
           const u = el('div', 'unlock'); newItems.forEach((it) => { if (it.img) { const im = el('img'); im.src = it.img; im.alt = it.name; u.appendChild(im); } else { const e = el('span', 'unlock-emoji', it.emoji); e.setAttribute('aria-label', it.name); u.appendChild(e); } }); body.insertBefore(u, fb);
@@ -1153,7 +1284,7 @@
     const land = btn('big-btn', g.landBtn[0], () => {
       const line = g.landing[Math.min(n, 2)];
       n++;
-      pip.say(line, n < 3 ? 'oops' : null);
+      pip.say(line, n < 3 ? 'oops' : 'carry');
       pip.classList.remove('bump'); void pip.offsetWidth; pip.classList.add(n < 3 ? 'bump' : 'landed');
       if (n < 3) land.textContent = g.landBtn[n];
       else { land.remove(); body.appendChild(el('p', 'c-sub', `${g.name} kept trying, and she made it! 🎉`)); complete(card, null, { fish: 0, delay: 1800 }); }
@@ -1213,12 +1344,12 @@
     const youDo = () => {
       stepLbl.textContent = '3 · All by yourself';
       const whole = el('div', 'dec-word'); whole.appendChild(el('span', 'w w-big plain-word', v.w)); wbox.replaceWith(whole); wbox = whole; note.hidden = true;
-      pip.say('Now the whole word, no chunks! Read it out loud, then check.');
+      pip.say('Now the whole word, no chunks! Read it out loud, then check.', 'think');
       let tries = 0;
       const check = () => { row.replaceChildren(); sayList([{ text: v.w, word: true }]).then(() => selfMark(row, () => finish(), () => {
         tries++; youFirst = false; markTry(v, false);
         if (tries >= 2) { pip.say('That is OK! We will practice this one again soon. You worked hard! 💪'); return finish(); }
-        pip.say('Let me show the chunks again. Then you try!');
+        pip.say('Let me show the chunks again. Then you try!', 'talk');
         const ch = chunkWord(v); wbox.replaceWith(ch); wbox = ch;
         sayList(chunkItems(v, ch)).then(() => { const w2 = el('div', 'dec-word'); w2.appendChild(el('span', 'w w-big plain-word', v.w)); ch.replaceWith(w2); wbox = w2; row.replaceChildren(btn('big-btn', '🗣️ I read it · check 🔊', check), wordRec(v)); });
       })); };
@@ -1226,7 +1357,7 @@
     };
     const weDo = () => {
       stepLbl.textContent = '2 · Together';
-      pip.say('Your turn! Read it out loud first. Then tap Check to hear me.');
+      pip.say('Your turn! Read it out loud first. Then tap Check to hear me.', 'think');
       let tries = 0;
       const check = () => { row.replaceChildren(); sayList(chunkItems(v, wbox)).then(() => selfMark(row, () => { setFb(fb, praise('chunks'), 'good'); setTimeout(() => { fb.className = 'fb'; youDo(); }, 900); }, () => {
         tries++; weFirst = false; markTry(v, false);
@@ -1641,6 +1772,8 @@
     const tried = Object.values(P.res).filter((r) => r && r.type).length;
     if (tried) box.appendChild(el('p', 'c-sub', `You worked through ${tried} challenges today. Every one makes your reading stronger! 💪`));
     if (rule.change && LEVELS.indexOf(rule.change.to) > LEVELS.indexOf(rule.change.from)) box.appendChild(el('p', 'end-up', `🚀 Pip can fly higher now! Next time: ${levelLabel(rule.change.to)}`));
+    const bye = el('div', 'end-guide'); const bim = el('img', 'end-guide-img'); bim.src = poseSrc((POSE.screens || {}).end || 'sleep'); bim.alt = `${G().name} the ${G().species}`;
+    bye.append(girlEl(P && P.mode === 'boss' ? 'bossWin' : 'end', 'girl-end'), bim, el('span', 'bubble end-bubble', 'See you tomorrow! 💤')); box.appendChild(bye);
     box.appendChild(btn('big-btn', `Back to ${chickName()} ${pet().icon}`, () => goHome()));
     showScreen('screenEnd');
     sound('grow');
@@ -1679,8 +1812,11 @@
     top.appendChild(info);
     box.appendChild(top);
     const bot = el('div', 'home-bottom');
-    bot.appendChild(el('h1', 'home-h', `${G().name}'s Postcards`));
-    bot.appendChild(el('p', 'home-sub', `${week.title}`));
+    const hh = el('div', 'home-head'); hh.appendChild(girlEl('home', 'girl-home'));
+    const htx = el('div', 'home-htx');
+    htx.appendChild(el('h1', 'home-h', `${G().name}'s Postcards`));
+    htx.appendChild(el('p', 'home-sub', (kidName() ? `Hi, ${kidName()}! ` : '') + `${week.title}`));
+    hh.appendChild(htx); bot.appendChild(hh);
     const days = el('div', 'days' + (week.days.length > 5 ? ' six' : ''));
     const ds = dayStatus(week);
     const firstOpen = week.days.find((d) => !ds[d.day]);
@@ -1710,15 +1846,35 @@
     if (extras.children.length) bot.appendChild(extras);
     if (S.chick.fish >= ITEM_AT[ITEM_AT.length - 1]) {
       bot.appendChild(el('p', 'home-soft', `🎉 ${chickName()} is all grown up and will live safely in your zoo forever!`));
-      bot.appendChild(btn('big-btn soft', '🥚 A new nest appeared! Pick your next baby', () => { S.choosing = true; save(); renderName(); showScreen('screenName'); }));
+      bot.appendChild(btn('big-btn soft', '🪺 A new nest appeared! Pick your next baby', () => { S.choosing = true; save(); renderName(); showScreen('screenName'); }));
     }
-    if ((S.family || []).length) {
-      const z = el('div', 'zoo'); z.appendChild(el('span', 'zoo-h', '🏡 My zoo:'));
-      S.family.forEach((f) => { const c = el('span', 'zoo-pal'); const im = el('img'); im.src = stagesOf(PETS[f.kind] || PETS.penguin)[4].img; im.alt = ''; c.append(im, el('span', null, f.name)); z.appendChild(c); });
-      bot.appendChild(z);
-    }
+    bot.appendChild(zooEl());
     bot.appendChild(el('p', 'home-soft', firstOpen ? `${shownDay(firstOpen).flag} Today Pip is in: ${shownDay(firstOpen).place}` : 'You finished this week! 🎉 Replay any day.'));
     box.appendChild(bot);
+  }
+  /* Her little zoo: the girl, every grown-up baby (and the one she is raising), and the stickers she has earned
+     (one per finished postcard day). The sign uses her name if a grown-up or she typed one. */
+  function zooEl() {
+    const z = el('section', 'zoo');
+    const head = el('div', 'zoo-head');
+    head.appendChild(girlEl((S.family || []).length ? 'zooTop' : 'img/girl/' + GIRL.zoo[pet().id] + '.webp', 'girl-zoo'));
+    const sign = el('div', 'zoo-sign');
+    sign.appendChild(el('h2', 'zoo-h', kidName() ? `${kidName()}'s Little Zoo` : 'My Little Zoo'));
+    const n = (S.family || []).length;
+    sign.appendChild(el('p', 'zoo-sub', n ? `${n} grown-up friend${n > 1 ? 's' : ''} live here safe and sound 💛` : `When ${chickName()} is all grown up, ${S.chick.name ? 'they' : 'your baby'} will live here forever 💛`));
+    head.appendChild(sign); z.appendChild(head);
+    const pals = el('div', 'zoo-pals');
+    (S.family || []).forEach((f) => { const pp = PETS[f.kind] || PETS.penguin; const c = el('span', 'zoo-pal'); const im = el('img'); im.src = babyImg(pp.id, 'adult'); im.alt = ''; c.append(im, el('span', 'zoo-name', f.name)); c.setAttribute('aria-label', `${f.name} the ${oneName(pp)}`); pals.appendChild(c); });
+    if (S.chick.kind) { const pp = pet(); const st = stagesOf(pp)[stageFor(S.chick.fish)]; const c = el('span', 'zoo-pal now'); const im = el('img'); im.src = st.img; im.alt = ''; c.append(im, el('span', 'zoo-name', `${chickName()} (${st.name.toLowerCase()})`)); pals.appendChild(c); }
+    z.appendChild(pals);
+    const got = Math.min(STICKERS.length, (S.sessions || []).length);
+    const shelf = el('div', 'stickers'); shelf.setAttribute('aria-label', `${got} stickers`);
+    STICKERS.forEach((nm, i) => { if (i < got) { const im = el('img', 'sticker'); im.src = `img/stickers/${nm}.webp`; im.alt = ''; shelf.appendChild(im); } });
+    if (got < STICKERS.length) shelf.appendChild(el('span', 'sticker next', got ? '＋' : '⭐'));
+    z.appendChild(el('p', 'zoo-sub small', got ? `Stickers: ${got}. Finish a postcard day to earn the next one!` : 'Finish a postcard day to earn your first sticker!'));
+    z.appendChild(shelf);
+    if (n) z.appendChild(girlEl('zooEnd', 'girl-zoo-end'));
+    return z;
   }
   function begin(di, resume) {
     const week = currentWeek();
@@ -1740,6 +1896,24 @@
   }
 
   /* ---------------- first launch: pick a baby from 4 nests, then name it ---------------- */
+  /* Very first screen: "What's your name?" (first name only, optional, stays on this device). */
+  function renderKid(box) {
+    box.classList.add('kid-step');
+    const hd = el('div', 'kid-head'); hd.appendChild(girlEl('hello', 'girl-hello', true)); box.appendChild(hd);
+    box.appendChild(el('h1', 'home-h', `Hi! What's your name?`));
+    box.appendChild(el('p', 'c-text', 'Type your first name. Your zoo will have your name on it!'));
+    const f = el('form', 'name-form kid-name');
+    const inp = el('input', 'spell-in name-big'); inp.maxLength = 16; inp.placeholder = 'Your first name'; inp.setAttribute('aria-label', 'Your first name'); inp.autocomplete = 'off'; inp.setAttribute('autocapitalize', 'words'); inp.spellcheck = false;
+    const go = btn('big-btn', "That's me! ✨"); go.type = 'submit';
+    f.append(inp, go);
+    const finish = (v) => { S.kid = v; S.kidAsked = true; save(); box.classList.remove('kid-step'); box.replaceChildren(); renderName(); };
+    f.addEventListener('submit', (e) => { e.preventDefault(); const v = inp.value.trim().replace(/\s+/g, ' ').slice(0, 16); if (!v) { inp.focus(); return; } finish(v.charAt(0).toUpperCase() + v.slice(1)); });
+    box.appendChild(f);
+    box.appendChild(btn('link-btn', 'Skip for now', () => finish('')));
+    setTimeout(() => { try { inp.focus(); } catch (_) {} }, 100);
+    sayList([{ text: "Hi! What's your name? Type your first name.", word: false }]);
+    showScreen('screenName');
+  }
   /* First screen: she picks her guide (6 big picture cards, each said out loud) and types its name. */
   function renderGuide(box) {
     box.classList.add('choosing');
@@ -1787,10 +1961,10 @@
       return;
     }
     // Intro: "Hi, I'm <name>!"
-    S.guide = { kind: st.kind, name: st.name }; save();
+    S.guide = { kind: st.kind, name: st.name }; save(); warmPoses();
     const vis = el('div', 'guide-intro');
-    const im = el('img', 'guide-hero'); im.src = g.img; im.alt = g.label;
-    const line = `Hi, I'm ${st.name}! I'm a ${g.species}, and I ${g.travel}. Let's find a baby animal for you to take care of!`;
+    const im = el('img', 'guide-hero'); im.src = poseSrc((POSE.screens || {}).intro || 'hello', st.kind, true); im.alt = g.label;
+    const line = `Hi! I'm your guide, ${st.name}! I'm a ${g.species}. I ${g.me || g.travel}. Let's find a baby animal for you to take care of!`; // her typed name is dropped from the spoken line (caption only)
     const bub = el('div', 'bubble intro-bubble'); const cap = el('span', 'cap', line); const rp = btn('replay', '🔁', () => sayList([{ text: line, word: false }]));
     bub.append(cap, rp); vis.append(bub, im); box.appendChild(vis);
     sayList([{ text: line, word: false }]);
@@ -1800,15 +1974,23 @@
   function renderName() {
     const box = $('nameBox'); box.replaceChildren();
     box.classList.remove('choosing');
+    if (!S.kidAsked) return renderKid(box);
     if (!S.guide) return renderGuide(box);
     const choosing = !S.chick.kind || S.choosing;
     box.classList.toggle('choosing', choosing);
     if (choosing) return renderChooser(box);
     const pp = pet();
-    const hero = chickEl(0, 'big hatch'); box.appendChild(hero);
-    box.appendChild(el('h1', 'home-h', `Hello, little ${pp.parrot ? pp.kind : pp.kind.toLowerCase()}!`));
-    box.appendChild(el('p', 'c-text', pp.found + ' Will you take care of it? Give it a name!'));
+    const h1 = el('h1', 'home-h', `Your baby is here!`);
+    const intro = el('p', 'c-text', `Your ${oneName(pp)} ${bornWord(pp)}! ${pp.found} Will you take care of it? Give it a name!`);
     const f = el('form', 'name-form');
+    const after = [h1, intro, f];
+    after.forEach((x) => { x.hidden = true; });
+    const rv = revealEl(pp, () => {
+      after.forEach((x) => { x.hidden = false; });
+      sayList([{ text: `Your baby is here! Your ${oneName(pp)} ${bornWord(pp)}!`, word: false }]);
+      setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (_) {} }, 150);
+    });
+    box.append(rv, h1, intro);
     const inp = el('input', 'spell-in'); inp.maxLength = 16; inp.placeholder = 'Name'; inp.setAttribute('aria-label', 'Baby animal name'); inp.autocomplete = 'off';
     const sug = el('div', 'sugs');
     pp.sugs.forEach((n) => sug.appendChild(btn('sug', n, () => { inp.value = n; })));
@@ -1816,28 +1998,62 @@
     f.append(inp, sug, go);
     f.addEventListener('submit', (e) => { e.preventDefault(); const v = inp.value.trim().slice(0, 16); if (!v) { inp.focus(); return; } S.chick.name = v; save(); goHome(); });
     box.appendChild(f);
-    box.appendChild(btn('link-btn', '← Pick a different baby', () => { S.chick.kind = ''; save(); renderName(); }));
+    const back = btn('link-btn', '← Pick a different baby', () => { S.chick.kind = ''; save(); renderName(); }); back.hidden = true; after.push(back); box.appendChild(back);
   }
-  /* Which babies she can pick right now. Always several choices; parrots are only ever extra choices. */
+  /* The hatch / birth reveal: her drawings of the hidden stages play in order (egg, crack, peek, almost out;
+     or snuggled up, waking up), then the "Hatched!" / "Born!" card pops in with the girl meeting the baby. Tap = skip. */
+  function revealEl(pp, onDone) {
+    const born = pp.how === 'born';
+    const wrap = el('div', 'reveal ' + (born ? 'born' : 'egg'));
+    const hid = el('div', 'reveal-hidden');
+    const pic = el('img', 'reveal-img'); pic.src = babyImg(pp.id, pp.pre[0]); pic.alt = ''; hid.appendChild(pic);
+    const cap = el('p', 'reveal-cap', born ? 'Shh... someone small is waking up! 💤' : 'Something is wiggling... 🥚');
+    wrap.append(hid, cap);
+    let done = false; const timers = [];
+    const open = () => {
+      if (done) return; done = true; timers.forEach(clearTimeout);
+      hid.classList.add('out'); cap.classList.add('out'); sound('grow');
+      setTimeout(() => {
+        hid.remove(); cap.remove();
+        const card = el('div', 'scene-card');
+        const im = el('img', 'scene-img'); im.src = revealOf(pp); im.alt = `Your ${oneName(pp)}`; card.appendChild(im);
+        card.appendChild(el('span', 'reveal-badge', born ? 'Born! 💛' : 'Hatched! 🐣'));
+        ['✨', '💛', '✨'].forEach((t, i) => { const sp = el('span', 'reveal-spark s' + i, t); card.appendChild(sp); });
+        wrap.appendChild(card);
+        wrap.appendChild(girlEl('img/girl/' + GIRL.found[pp.id] + '.webp', 'girl-found'));
+        wrap.classList.add('open');
+        onDone && onDone();
+      }, 420);
+    };
+    pp.pre.slice(1).forEach((st, i) => timers.push(setTimeout(() => { pic.src = babyImg(pp.id, st); cap.textContent = PRE_NAMES[st] + (born ? ' 💤' : ' 🥚'); pic.classList.remove('bump'); void pic.offsetWidth; pic.classList.add('bump'); sound('ok'); }, 900 * (i + 1))));
+    timers.push(setTimeout(open, 900 * pp.pre.length + 300));
+    pp.pre.forEach((st) => { const i = new Image(); i.src = babyImg(pp.id, st); });
+    const pre2 = new Image(); pre2.src = revealOf(pp);
+    wrap.addEventListener('click', open);
+    return wrap;
+  }
+  /* Which babies she can pick right now. Always several choices (repeats allowed once she has raised them all). */
   function nestOptions() {
     const zoo = (S.family || []).concat(S.choosing && S.chick.kind ? [{ kind: S.chick.kind }] : []);
-    if (!zoo.length) return { open: BASE_KINDS.slice(), soon: showParrots() ? PET_KINDS.filter((k) => PETS[k].parrot) : [] };
+    if (!zoo.length) return { open: BASE_KINDS.slice(), soon: [] };
     const raised = new Set(zoo.map((f) => f.kind));
     let base = BASE_KINDS.filter((k) => !raised.has(k));
     if (base.length < 3) base = base.concat(BASE_KINDS.filter((k) => !base.includes(k))).slice(0, 3); // repeats are fine: a second penguin!
-    const parrots = showParrots() ? PET_KINDS.filter((k) => PETS[k].parrot && !raised.has(k)) : [];
-    return { open: base.slice(0, 3).concat(parrots), soon: [] };
+    return { open: base, soon: [] };
   }
   function renderChooser(box) {
     const again = (S.family || []).length > 0 || !!S.choosing;
     const { open, soon } = nestOptions();
-    box.appendChild(el('h1', 'home-h', again ? 'A new nest! Pick your next baby' : `Pip found ${open.length} nests!`));
-    box.appendChild(el('p', 'c-text', 'Which baby animal will you take care of? Tap one!'));
+    const hd = el('div', 'pick-head'); hd.appendChild(girlEl(again ? 'img/girl/otter_point.webp' : 'img/girl/zoo_explorer_map.webp', 'girl-pick'));
+    const ht = el('div', 'pick-txt');
+    ht.appendChild(el('h1', 'home-h', again ? 'A new nest! Pick your next baby' : `Pip found ${open.length} baby animals!`));
+    ht.appendChild(el('p', 'c-text', (kidName() ? kidName() + ', which' : 'Which') + ' baby animal will you take care of? Tap one!'));
+    hd.appendChild(ht); box.appendChild(hd);
     const grid = el('div', 'nests');
     const card = (k, locked) => {
       const pp = PETS[k];
       const b = btn('nest-btn' + (locked ? ' locked' : ''), null, () => {
-        if (locked) { toast('This nest opens when your first baby is all grown up 🥚'); return; }
+        if (locked) { toast('This one opens when your first baby is all grown up 🌟'); return; }
         if (grid.classList.contains('picked')) return;
         grid.classList.add('picked'); b.classList.add('chosen'); sound('grow');
         if (S.choosing && S.chick.kind && S.chick.name) S.family = (S.family || []).concat([{ name: S.chick.name, kind: S.chick.kind, fish: S.chick.fish, date: Date.now() }]);
@@ -1846,9 +2062,8 @@
         setTimeout(() => renderName(), 900);
       });
       const art = el('span', 'nest-art');
-      const n = el('img', 'nest-img'); n.src = pp.nestImg; n.alt = '';
-      const baby = el('img', 'nest-baby'); baby.src = pp.baby; baby.alt = '';
-      art.append(baby, n);
+      const sc = el('img', 'nest-scene' + (pp.scene ? '' : ' cut')); sc.src = sceneOf(pp) || (pp.reveal ? revealOf(pp) : babyImg(k, 'newborn')); sc.alt = ''; art.appendChild(sc);
+      b.dataset.kind = k;
       b.append(art, el('span', 'nest-lbl', pp.kind), el('span', 'nest-sub', locked ? '🔒 Coming later' : pp.nest));
       b.setAttribute('aria-label', pp.kind + (locked ? ', coming later' : ''));
       grid.appendChild(b);
@@ -1988,7 +2203,9 @@
     const grow = el('div', 'pa-row'); const gsel = el('select'); gsel.setAttribute('aria-label', 'Guide animal');
     GUIDES.order.forEach((k) => { const o = el('option', null, GUIDES.kinds[k].label); o.value = k; if (S.guide && S.guide.kind === k) o.selected = true; gsel.appendChild(o); });
     const gname = el('input'); gname.value = (S.guide && S.guide.name) || ''; gname.maxLength = 16; gname.setAttribute('aria-label', 'Guide name');
-    grow.append(el('span', 'pa-small', 'Guide (she/her):'), gsel, gname, btn('pa-btn', 'Save guide', () => { const n = gname.value.trim(); if (!n) return; S.guide = { kind: gsel.value, name: n }; save(); toast('Guide saved ✓'); openParent(); }));
+    const gth = el('img', 'pa-guide-thumb'); gth.src = (GUIDES.kinds[(S.guide && S.guide.kind) || 'pigeon'] || {}).img || ''; gth.alt = '';
+    gsel.addEventListener('change', () => { gth.src = (GUIDES.kinds[gsel.value] || {}).img || ''; });
+    grow.append(gth, el('span', 'pa-small', 'Guide (she/her):'), gsel, gname, btn('pa-btn', 'Save guide', () => { const n = gname.value.trim(); if (!n) return; S.guide = { kind: gsel.value, name: n }; save(); toast('Guide saved ✓'); openParent(); }));
     st.appendChild(grow);
     const irow = el('label', 'pa-row pa-check'); const ic = el('input'); ic.type = 'checkbox'; ic.checked = S.italiaOn !== false;
     ic.addEventListener('change', () => { S.italiaOn = ic.checked; save(); toast(ic.checked ? 'Italian bonus on ✓' : 'Italian bonus off ✓'); });
@@ -1996,12 +2213,11 @@
     const nrow = el('div', 'pa-row'); const nin = el('input'); nin.value = S.chick.name; nin.maxLength = 16; nin.setAttribute('aria-label', 'Baby animal name');
     nrow.append(nin, btn('pa-btn', 'Rename', () => { if (nin.value.trim()) { S.chick.name = nin.value.trim(); save(); toast('Saved ✓'); } }));
     st.appendChild(nrow);
-    const prow = el('label', 'pa-row pa-check'); const pc = el('input'); pc.type = 'checkbox'; pc.checked = showParrots();
-    pc.addEventListener('change', () => { S.showParrots = pc.checked; save(); toast(pc.checked ? 'Parrots are shown ✓' : 'Parrot babies and parrot postcards are hidden ✓'); });
-    prow.append(pc, document.createTextNode(' Show parrots (parrot babies and the bonus parrot postcard; when off, a koala postcard is used instead)'));
-    st.appendChild(prow);
+    const kprow = el('div', 'pa-row'); const kin = el('input'); kin.value = S.kid || ''; kin.maxLength = 16; kin.setAttribute('aria-label', "Child's first name"); kin.placeholder = 'First name (optional)';
+    kprow.append(el('span', 'pa-small', 'Her name (zoo sign):'), kin, btn('pa-btn', 'Save', () => { S.kid = kin.value.trim().slice(0, 16); save(); toast('Saved ✓'); }));
+    st.appendChild(kprow);
     const krow = el('div', 'pa-row'); const ks = el('select'); ks.setAttribute('aria-label', 'Baby animal');
-    PET_KINDS.filter((k) => showParrots() || !PETS[k].parrot || k === S.chick.kind).forEach((k) => { const o = el('option', null, PETS[k].icon + ' ' + PETS[k].kind); o.value = k; if (k === (S.chick.kind || 'penguin')) o.selected = true; ks.appendChild(o); });
+    PET_KINDS.forEach((k) => { const o = el('option', null, PETS[k].icon + ' ' + PETS[k].kind); o.value = k; if (k === (S.chick.kind || 'penguin')) o.selected = true; ks.appendChild(o); });
     krow.append(ks, btn('pa-btn', 'Switch animal (keeps growth)', () => { S.chick.kind = ks.value; save(); toast('Switched ✓'); }));
     st.appendChild(krow);
     if ((S.family || []).length) st.appendChild(el('p', 'pa-note', 'In the zoo (safe forever): ' + S.family.map((f) => `${PETS[f.kind] ? PETS[f.kind].icon : ''} ${f.name}`).join(', ')));
@@ -2056,16 +2272,17 @@
     setupGate();
     if (!S.guide || !S.chick.name) { renderName(); showScreen('screenName'); } else goHome();
     refreshThenNow();
+    if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.1') return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.3') return;
       const list = [...new Set(Object.values(AUD))];
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.1'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.3'); } catch (_) {}
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   // Small hook for automated tests (no effect on the child's experience).
-  window.PipApp = { soundAlike, get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; } };
+  window.PipApp = { soundAlike, linePlan, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

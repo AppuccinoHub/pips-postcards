@@ -258,7 +258,7 @@
       q: 'Tomorrow I fly to a rainy rainforest. How should I find it?',
       opts: [
         { pic: '🌈', label: 'Chase a rainbow', echo: 'I chased a rainbow, like you said. It led me to the rain! 🌈' },
-        { pic: '🦜', label: 'Follow a parrot', echo: 'I followed a parrot, like you said. She talked the whole way! 🦜' }
+        { pic: '🦋', label: 'Follow a butterfly', echo: 'I followed a butterfly, like you said. She fluttered the whole way! 🦋' }
       ]
     },
     ps: 'P.S. Which desert animal would you want to be? Why?',
@@ -615,10 +615,8 @@
   ]
 };
 
-/* ======================= BONUS: parrots (optional) =======================
-   A bonus day. Its word work reuses Monday's (spaced review). Parrot postcards can always be skipped
-   ("Skip this postcard" swaps in the koala postcard at the same level, no penalty), and a grown-up can
-   hide parrots entirely in the parent area. Both postcards only show happy, safe animals at home in their habitats. */
+/* ======================= BONUS: koalas (optional) =======================
+   A bonus day. Its word work reuses Monday's (spaced review). (The parrot postcard was removed in v2.2.) */
 (function () {
   const W = window.PIP_WEEKS['u1w2'];
   const mon = W.days[0].levels;
@@ -683,70 +681,7 @@
       })
     }
   };
-  const parrots = {
-    day: 6, name: 'Bonus', short: 'Bonus', parrot: true, alt: koala,
-    place: 'Central & West Africa', flag: '🦜', scene: 'img/bonus_parrots.webp',
-    qtype: 'Key details', atype: 'Advisor', arrive: 'Pip landed in a rainforest in central Africa!',
-    wiggle: { emoji: '🦜', text: 'Bob your head like a happy parrot 10 times!', sub: 'Then whistle a tiny tune!' },
-    route: koala.route,
-    ps: 'P.S. Which parrot would you like to meet, the gray one or the green one? Tell me why!',
-    levels: {
-      ground: Object.assign(words('ground'), {
-        title: 'Hello from Parrot Land!',
-        targets: ['is', 'have', 'one', 'what', 'squawk', 'three', 'the'],
-        preview: [{ w: 'rainforest', pic: '🌳🌧️', means: 'a thick forest where it rains a lot' }, { w: 'flock', pic: '🐦🐦🐦', means: 'a group of birds' }, { w: 'savanna', pic: '🌾🌳', means: 'a big grassy land with a few trees' }],
-        chunks: [
-          { s: ['I landed in a hot, wet rainforest in the middle of Africa.', 'It is so green, and the rain goes drip, drip, drip!'], pic: '🌧️', focus: '20% 40%', check: ['🐦🌳🌧️', '🐦❄️🐧', '🐦🏜️🌵'] },
-          { s: ['Up in a tall tree, I met a flock of African grey parrots.', 'They have gray feathers and a bright red tail.'], pic: '🌳', focus: '25% 45%', check: ['🌳🦜🦜🦜', '🏖️⛱️', '🚗🛣️'] },
-          { s: ['African greys are very smart, and they squawk, chatter, and whistle to the flock.', 'One parrot copied my voice.', 'Then three more said it too!'], pic: '🎵', focus: '30% 45%', check: ['🦜💬🐦', '🦜😴🛏️', '🦜🍦'] },
-          { s: ['Next I went to a grassy savanna in West Africa.', 'There I met a Senegal parrot with a gray head, a green back, and a sunny yellow belly.', 'What a colorful bird!'], pic: '🌾', focus: '80% 30%', check: ['🦜🌾☀️', '🦜❄️', '🦜🌊'] }
-        ],
-        question: { q: 'What color is an African grey\'s tail? Tap the sentence that tells me.', a: 'bright red tail', mishap: 'Oops! I said the tail was purple, and a parrot copied me: purple, purple! 🙈 Try again!' },
-        advisor: { type: 'rather', q: 'Would you rather visit the rainforest or the savanna?', choices: [
-          { label: '🌳 The rainforest', q: 'Pick a reason from the postcard:', reasons: ['I want to hear the parrots squawk and whistle.', 'I want to see penguins on the ice.'] },
-          { label: '🌾 The savanna', q: 'Pick a reason from the postcard:', reasons: ['I want to see a parrot with a sunny yellow belly.', 'I want to build a snowman.'] }
-        ], mishap: 'That is fun, but the postcard does not say it! Pick a reason from the postcard.' },
-        fill: { kind: 'word', sent: 'They have gray feathers and a bright red ___.', opts: ['tail', 'tall', 'tell'] },
-        spell: { w: 'what', sent: '___ a colorful bird!', split: 'what', pic: '🦜' }
-      }),
-      sky: Object.assign(words('sky'), {
-        title: 'Two Parrots, Two Habitats',
-        targets: ['today', 'came', 'day', 'make', 'gray', 'tail', 'great', 'stay', 'grain', 'play', 'game', 'chase'],
-        preview: [{ w: 'central', pic: '🎯', means: 'in the middle' }, { w: 'savanna', pic: '🌾🌳', means: 'a big grassy land with a few trees' }, { w: 'grain', pic: '🌾', means: 'seeds of plants like corn and rice' }],
-        chunks: [
-          { s: ['Today I came to a rainforest in central Africa, where it rains almost every day.', 'The trees are so tall that they make a green roof over my head.'], pic: '🌧️', focus: '20% 40%', check: ['🐦🌳🌧️', '🐦❄️🐧', '🐦🏜️🌵'] },
-          { s: ['High in the branches, I met a flock of African grey parrots.', 'Their feathers are soft gray, and their tail is a great, bright red.'], pic: '🌳', focus: '25% 45%', check: ['🌳🦜🦜🦜', '🏖️⛱️', '🚗🛣️'] },
-          { s: ['African greys are famous for being smart and for copying sounds.', 'In the forest, they chatter and whistle so the flock can stay together.'], pic: '🎵', focus: '30% 45%', check: ['🦜💬🦜', '🦜😴', '🦜🍦'] },
-          { s: ['Next I went to a sunny savanna in West Africa, with tall grass and only a few trees.', 'There I met a pair of Senegal parrots with gray heads, green backs, and yellow and orange bellies.'], pic: '🌾', focus: '80% 30%', check: ['🦜🦜🌾☀️', '🦜❄️', '🦜🌊'] },
-          { s: ['They like to eat seeds, fruit, and even grain from the fields.', 'I tried to share my snack, but they wanted to play a game of chase in the tree instead!'], pic: '🌰', focus: '75% 30%', check: ['🦜🦜🌳😄', '🦜📺', '🦜🚗'] }
-        ],
-        question: { pre: { q: 'What is this postcard MOSTLY about?', opts: ['🦜 Two kinds of parrots and where they live', '🎮 Playing chase', '🌧️ Rainy days'], mishap: 'That is just one small part. What is MOST of the postcard about?' },
-          q: 'Key detail: Where do Senegal parrots live? Tap the sentence that tells me.', a: 'sunny savanna in West Africa', mishap: 'Oops! I looked for Senegal parrots on an iceberg. Brrr, wrong place! 🧊 Try again!' },
-        advisor: { type: 'odd', q: 'Which one does NOT describe an African grey?', opts: ['🟡 A sunny yellow belly', '☁️ Soft gray feathers', '🔴 A bright red tail', '🧠 Very smart'],
-          whyQ: 'Why not? Pick the reason from the postcard.', whys: ['The yellow belly belongs to the Senegal parrot.', 'African greys are yellow all over.'], mishap: 'Look back at the postcard. Which parrot has which colors?' },
-        fill: { kind: 'word', sent: 'In the forest, they chatter and whistle so the flock can ___ together.', opts: ['stay', 'stew', 'stop'] },
-        spell: { w: 'today', sent: '___ I came to a rainforest in central Africa.', split: 'to|d[ay]', pic: '📅' }
-      }),
-      space: Object.assign(words('space'), {
-        title: 'Remarkable Parrots of Africa',
-        targets: ['endless', 'remarkable', 'recognizable', 'discovered', 'powerful', 'unusual', 'location', 'colorful', 'careful', 'thankful'],
-        preview: [{ w: 'humid', pic: '💧🌡️', means: 'warm and damp' }, { w: 'intelligence', pic: '🧠', means: 'the ability to learn and think' }, { w: 'mineral', pic: '🪨', means: 'something in rocks and soil that bodies need' }],
-        chunks: [
-          { s: ['Greetings from the rainforest of central Africa, where the humid air feels like a warm, wet blanket.', 'Endless rain keeps the forest so green that the trees seem to glow.'], pic: '🌧️', focus: '20% 40%', check: ['🐦🌳🌧️', '🐦❄️🐧', '🐦🏜️🌵'] },
-          { s: ['High in the treetops, I observed a flock of African grey parrots, which are remarkable for their intelligence.', 'Their silvery feathers and brilliant red tails make them easily recognizable.'], pic: '🔴', focus: '25% 45%', check: ['🌳🦜🦜🦜', '🏖️⛱️', '🚗🛣️'] },
-          { s: ['African greys are famous for copying sounds, and scientists have discovered that they can learn the meanings of many words.', 'In the wild, they use whistles and calls to keep in contact with the flock, so everyone stays together.'], pic: '🎵', focus: '30% 45%', check: ['🦜💬🦜', '🦜😴', '🦜🍦'] },
-          { s: ['They crack open tough palm nuts with their powerful, hooked beaks.', 'Each morning, many of them gather at a forest clearing to nibble mineral-rich clay, an unusual but healthy snack.'], pic: '🌰', focus: '30% 60%', check: ['🦜🌰💪', '🦜🍕', '🦜🍭'] },
-          { s: ['My next location was the West African savanna, a sunny land of tall grass and scattered trees.', 'There I spotted Senegal parrots, whose colorful feathers look like a sunset: a charcoal-gray head, a green back, and a golden-orange belly.'], pic: '🌅', focus: '80% 30%', check: ['🦜🌾🌅', '🦜❄️', '🦜🌊'] },
-          { s: ['I was careful to stay quiet, because Senegal parrots can be shy.', 'When a pair finally hopped closer, I felt thankful, and I stayed to finish my report.'], pic: '🤫', focus: '75% 30%', check: ['🐦🤫😊', '🐦📣', '🐦🎺'] }
-        ],
-        question: { q: 'Cause and effect: WHY do African greys use whistles and calls in the wild? Tap the sentence that tells the reason.', a: 'keep in contact with the flock', mishap: 'Oops! I whistled back and a parrot answered with a silly car-horn sound! 🚗 Look for the word "to"!' },
-        advisor: { type: 'feel', q: 'How did Pip feel when the Senegal parrots hopped closer?', opts: ['😊 Thankful and happy', '😠 Angry', '😴 Sleepy'], evQ: 'Tap the sentence that proves it.', a: ['felt thankful'], mishap: 'Look for a feeling word in the postcard!' },
-        fill: { kind: 'word', sent: 'They crack open tough palm nuts with their ___, hooked beaks.', opts: ['powerful', 'powerless', 'careless'] },
-        spell: { w: 'careful', sent: 'I was ___ to stay quiet.', split: 'care|[ful]', pic: '🤫' }
-      })
-    }
-  };
-  W.days.push(parrots);
+  W.days.push(koala);
 })();
 
 /* ======================= VOCABULARY WORDS (focus: READING them) =======================
@@ -896,7 +831,7 @@
     3: { ground: ['season', 'grassland', 'flat'], sky: ['palms', 'valley', 'savannas'], space: ['shelter', 'adapt', 'averages'] },
     4: { ground: ['forest', 'shallow', 'beneath'], sky: ['tropical', 'coral reef', 'cage'], space: ['swayed', 'habitat', 'shelter'] },
     5: { ground: ['season', 'world', 'explore'], sky: ['escaped', 'traveled', 'valley'], space: ['domestic', 'advantage', 'presence'] },
-    6: { ground: ['forest', 'grassland', 'kinds'], sky: ['tropical', 'savannas', 'unique'], space: ['opportunity', 'habitat', 'swayed'] },
+    6: { ground: ['forest', 'explore', 'nature'], sky: ['tropical', 'unique', 'palms'], space: ['habitat', 'adapt', 'shelter'] }, // koala bonus day
     koala: { ground: ['forest', 'explore', 'nature'], sky: ['tropical', 'unique', 'palms'], space: ['habitat', 'adapt', 'shelter'] }
   };
   // Apply the plan: each level's "preview" becomes the 3 vocab words for that day.

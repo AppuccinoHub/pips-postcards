@@ -231,7 +231,6 @@ input, select { font: inherit; }
 /* chick + habitat */
 .chick { position: absolute; left: 50%; bottom: 8%; width: calc(46% * var(--s, 1)); max-width: calc(260px * var(--s, 1)); transform: translateX(-50%); transition: width .8s cubic-bezier(.3, 1.6, .5, 1); }
 .chick-img { width: 100%; height: auto; display: block; filter: drop-shadow(0 6px 6px rgba(20, 40, 80, .18)); }
-.chick .shell { position: absolute; left: -8%; width: 116%; bottom: -6%; }
 .chick.big { width: calc(40% * var(--s, 1)); }
 .chick.grow { animation: grow 1s ease; }
 @keyframes grow { 30% { transform: translateX(-50%) scale(1.25); } }
@@ -258,17 +257,13 @@ input, select { font: inherit; }
 .nest-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 8px 12px; border-radius: 22px; background: #fff; border: 3px solid #eadfca; box-shadow: 0 4px 0 #e2d3b3; transition: transform .2s; }
 .nest-btn:active { transform: scale(.97); }
 .nest-art { position: relative; width: 100%; aspect-ratio: 4 / 3; display: block; }
-.nest-img { position: absolute; left: 6%; bottom: 0; width: 88%; height: 100%; object-fit: contain; object-position: center bottom; }
-.nest-baby { position: absolute; left: 50%; bottom: 22%; width: 46%; transform: translateX(-50%); transition: transform .6s cubic-bezier(.3, 1.6, .5, 1); }
 .nest-lbl { font-weight: 700; font-size: 1.1rem; color: var(--ink); text-align: center; line-height: 1.15; }
 .nest-sub { font-size: .85rem; color: var(--muted); }
 .nests.picked .nest-btn:not(.chosen) { opacity: .35; }
 .nest-btn.chosen { border-color: var(--orange); transform: scale(1.05); }
-.nest-btn.chosen .nest-baby { transform: translateX(-50%) translateY(-18%) scale(1.25); }
 .chick.hatch { animation: grow 1s ease; }
 .skip-btn { align-self: flex-start; font-size: .85rem; font-weight: 600; color: var(--ink2); background: #fff; border: 2px solid #eadfca; border-radius: 999px; padding: 6px 14px; }
 .nest-btn.locked { background: #f6f1e6; border-style: dashed; box-shadow: none; }
-.nest-btn.locked .nest-baby { filter: grayscale(.2) opacity(.55); }
 .zoo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .95rem; font-weight: 600; color: var(--ink2); }
 .zoo-pal { display: inline-flex; align-items: center; gap: 4px; background: #fff; border-radius: 999px; padding: 2px 10px 2px 4px; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
 .zoo-pal img { width: 30px; height: 30px; object-fit: contain; }
@@ -276,8 +271,6 @@ input, select { font: inherit; }
 .days.six .day-n { font-size: .8rem; }
 .pa-check { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.35; }
 .pa-check input { width: 22px; height: 22px; flex: none; }
-.hab-bg.pet-grey { background: linear-gradient(180deg, #a7dcb4 0%, #cdebd3 55%, #4f8f4a 56%, #3f7a3c 100%); }
-.hab-bg.pet-senegal { background: linear-gradient(180deg, #9fd6ff 0%, #fff0c2 55%, #e3be5c 56%, #c99a35 100%); }
 .link-btn { color: var(--teal-d); font-weight: 600; text-decoration: underline; padding: 8px; }
 .pa-note { margin: 6px 0; font-size: 14px; color: var(--ink2); }
 .chick.at-home { bottom: 6%; width: calc(42% * var(--s, 1)); max-width: calc(260px * var(--s, 1)); }
@@ -473,3 +466,89 @@ input, select { font: inherit; }
   .dec-word .w-big { font-size: clamp(2.6rem, 5vw, 4.2rem); }
 }
 .card.italia .c-body { border-top: 8px solid transparent; border-image: linear-gradient(90deg, #009246 0 33%, #ffffff 33% 66%, #ce2b37 66%) 1; }
+
+/* v2.2 Sue's guide art: every pose sits in the same square spot (bottom-aligned), so a wide pose never pushes the layout */
+.pip { aspect-ratio: 1 / 1; object-fit: contain; object-position: center bottom; }
+.end-guide { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin: 4px 0 10px; }
+.end-guide-img { width: min(150px, 34vw); aspect-ratio: 1 / 1; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 4px 6px rgba(0,0,0,.15)); }
+.end-bubble { position: relative; margin-bottom: 30px; }
+.end-bubble::after { right: auto; left: -8px; bottom: 12px; border: 8px solid transparent; border-right-color: #fff; border-left: 0; }
+.pa-guide-thumb { width: 44px; height: 44px; object-fit: contain; }
+
+/* v2.2 Sue's baby art: scene cards in the nest picker, and the hatch / birth reveal */
+.nest-scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0,0,0,.12)); }
+.nest-btn.chosen .nest-scene { animation: nestpop .8s ease; }
+@keyframes nestpop { 40% { transform: scale(1.12); } }
+.reveal { position: relative; display: grid; place-items: center; min-height: min(300px, 40vh); width: 100%; cursor: pointer; }
+.reveal-hidden { display: grid; place-items: center; animation: wiggle 0.9s ease-in-out infinite; transform-origin: 50% 90%; }
+.reveal-hidden.out { animation: none; transform: scale(1.25); opacity: 0; transition: transform .4s ease, opacity .4s ease; }
+.reveal-img { width: min(220px, 50vw); max-height: 30vh; object-fit: contain; }
+.reveal-cap { margin: 8px 0 0; font-weight: 700; color: var(--ink, #2a3b4c); }
+.reveal-cap.out { opacity: 0; transition: opacity .3s; }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-9deg); } 30% { transform: rotate(8deg); } 45% { transform: rotate(-6deg); } 60% { transform: rotate(4deg); } 75% { transform: rotate(0) translateY(-4px); } }
+.scene-card { position: relative; animation: pop-in .6s cubic-bezier(.3, 1.6, .5, 1) both; }
+.scene-img { display: block; width: min(300px, 66vw); max-height: 36vh; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0,0,0,.18)); }
+@keyframes pop-in { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.reveal-spark { position: absolute; font-size: 1.6rem; animation: spark-up 1.4s ease-out both; }
+.reveal-spark.s0 { left: -6%; top: 18%; } .reveal-spark.s1 { right: -6%; top: 6%; animation-delay: .15s; } .reveal-spark.s2 { right: 4%; bottom: 8%; animation-delay: .3s; }
+@keyframes spark-up { from { transform: translateY(10px) scale(.5); opacity: 0; } 40% { opacity: 1; } to { transform: translateY(-18px) scale(1.1); opacity: 0; } }
+.hab-bg.pet-otter { background: linear-gradient(180deg, #a9e1f5 0%, #d6f2fb 45%, #4fb3cf 46%, #2f8fb0 100%); }
+.hab-bg.pet-puffin { background: linear-gradient(180deg, #b9dcf2 0%, #e2f1fb 50%, #7fa36b 51%, #5f8a55 70%, #3f86b0 71%, #2d6f99 100%); }
+.hab-bg.pet-pigeon { background: linear-gradient(180deg, #ffd9c0 0%, #fff0e2 55%, #c9b8a8 56%, #b3a293 100%); }
+@media (orientation: landscape) and (min-width: 700px) {
+  .center-box.choosing .nests:not(.guides) { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .scene-img { max-height: 30vh; }
+  .reveal { min-height: 30vh; }
+}
+
+/* v2.2 the girl (Sue's art, img/girl/) + the baby growth art */
+.girl { display: block; height: auto; object-fit: contain; object-position: center bottom; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.14)); }
+.reveal-img.bump { animation: bumpy .5s ease; }
+@keyframes bumpy { 30% { transform: scale(1.12) rotate(-4deg); } 60% { transform: scale(.96) rotate(3deg); } }
+.reveal.open { grid-template-columns: auto; }
+.reveal-badge { position: absolute; left: 50%; top: -6px; transform: translateX(-50%) rotate(-3deg); background: var(--orange, #f39a2b); color: #fff; font-weight: 700; font-size: 1.3rem; padding: 4px 16px; border-radius: 999px; box-shadow: 0 3px 8px rgba(0,0,0,.18); white-space: nowrap; animation: pop-in .6s .2s cubic-bezier(.3, 1.6, .5, 1) both; }
+.girl-found { position: absolute; left: max(0px, calc(50% - min(300px, 66vw) / 2 - 18vw)); bottom: 0; width: min(150px, 30vw); max-height: 26vh; animation: pop-in .6s .35s cubic-bezier(.3, 1.6, .5, 1) both; z-index: 2; }
+.nest-scene.cut { padding: 4%; background: radial-gradient(ellipse at 50% 60%, #fff7e8, #f3ead8 70%); border-radius: 16px; }
+.pick-head, .home-head, .kid-head { display: flex; align-items: center; gap: 12px; text-align: left; }
+.pick-head { justify-content: center; }
+.pick-txt { min-width: 0; }
+.girl-pick { width: min(120px, 26vw); max-height: 22vh; flex: none; }
+.home-head { gap: 10px; }
+.girl-home { width: 76px; max-height: 108px; flex: none; margin: -6px 0 -4px; }
+.home-htx { min-width: 0; }
+.kid-head { justify-content: center; }
+.girl-hello { width: min(200px, 44vw); max-height: 30vh; }
+.kid-name { align-items: center; }
+.girl-side { position: absolute; left: 6px; bottom: 4px; width: 27%; max-width: 132px; max-height: 58%; z-index: 2; animation: pop-in .5s .2s cubic-bezier(.3, 1.6, .5, 1) both; }
+.card.tall .girl-side { display: none; }
+.girl-cheer { position: absolute; left: 4%; bottom: 4%; width: 30%; max-width: 150px; max-height: 70%; z-index: 3; animation: pop-in .6s cubic-bezier(.3, 1.6, .5, 1) both; }
+.girl-end { width: min(120px, 28vw); max-height: 170px; }
+/* her little zoo */
+.zoo { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 12px; border-radius: 20px; background: linear-gradient(180deg, #fffaf0, #f4f9ee); border: 3px solid #e7dcc2; }
+.zoo-head { display: flex; align-items: center; gap: 10px; }
+.girl-zoo { width: min(120px, 28vw); max-height: 140px; flex: none; }
+.zoo-sign { min-width: 0; }
+.zoo-h { margin: 0; font-size: 1.35rem; color: #6a4a1c; line-height: 1.15; }
+.zoo-sub { margin: 2px 0 0; font-size: .95rem; color: var(--ink2); font-weight: 500; }
+.zoo-sub.small { font-size: .85rem; }
+.zoo-pals { display: flex; flex-wrap: wrap; gap: 8px; }
+.zoo-pal { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; background: #fff; border-radius: 16px; padding: 6px 8px 4px; box-shadow: 0 2px 6px rgba(0,0,0,.08); font-size: .85rem; font-weight: 600; color: var(--ink2); max-width: 132px; }
+.zoo-pal img { width: 64px; height: 64px; object-fit: contain; }
+.zoo-pal.now { border: 2px dashed #f0b35a; }
+.zoo-name { text-align: center; line-height: 1.15; overflow-wrap: anywhere; }
+.stickers { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sticker { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,.12)); }
+.sticker.next { width: 44px; height: 44px; display: grid; place-items: center; border: 2px dashed #d8c28a; border-radius: 12px; color: #b89a50; font-weight: 700; }
+.girl-zoo-end { width: 90px; max-height: 110px; align-self: flex-end; margin-top: -40px; }
+@media (orientation: landscape) and (min-width: 700px) {
+  .girl-home { width: 96px; max-height: 130px; }
+  .girl-side { max-width: 170px; width: 24%; max-height: 50%; }
+  .girl-found { width: min(170px, 18vw); max-height: 34vh; left: max(0px, calc(50% - 300px / 2 - 200px)); }
+  .zoo-pal img { width: 76px; height: 76px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .girl-found { display: none; }
+  .girl-pick { max-height: 30vh; }
+}
+.kid-name { width: 100%; align-self: stretch; }
+.kid-name .name-big { width: min(520px, 100%); }

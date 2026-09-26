@@ -26,18 +26,41 @@ A reading and spelling game for a 2nd grader. Her guide (she picks one on the fi
 
 ## Voice
 
-The guide speaks every line out loud (device voice: best natural female en-US voice, e.g. Samantha on iPad, pitch ~1.2, rate ~0.85), always with the words shown in her speech bubble, with a 🔁 replay button on every line. Words, syllable chunks, the guide's misreadings and the suggested names use pre-made audio (`audio/`, free offline Kokoro TTS voice af_heart, made by `art/make_audio.py`; Italian words use if_sara). The guide never reads a postcard aloud until she has read it herself. 🔊 in the top bar cycles loud → soft → off.
+The guide speaks every line out loud, always with the words shown in her speech bubble (captions are always on) and a 🔁 replay button on every line. All of it is pre-made audio in one voice, free offline Kokoro TTS voice **af_heart** at normal speed:
+* words, syllable chunks, the guide's misreadings and the suggested names: `audio/w/` + `audio/index.js` (`art/make_audio.py`; Italian words use if_sara);
+* every fixed guide line, praise, hint, clue, card instruction and postcard sentence: `audio/l/` + `audio/lines.js` (`art/make_lines.py`), matched on the exact text.
+
+Names she types are never read by the robot voice when it can be avoided: a suggested name plays its pre-made file; a name used like "Great job, Mia!" or "I'm your guide, Zuzu!" stays in the caption only; a name in the middle of a sentence is said as "the puffin" (guide), "your baby" or "friend". Numbers play pre-made files (0–100). Only a line that has no pre-made audio falls back to the device's best natural female en-US voice (pitch 1.0, rate 0.95). The voice is ONE setting, `GUIDE_VOICE` (and `GUIDE_SPEED`) at the top of `art/make_audio.py`; after changing it or any text, run `art/make_lines.py plan tests-capture.json…`, `gen 0 1`, `index` (see the script header), then `tests/voice_cover.py` to list any line that would still use the device voice. The guide never reads a postcard aloud until she has read it herself. 🔊 in the top bar cycles loud → soft → off.
 
 ## The guide
 
 Everything about the guides (names, art, species words, travel style, mishap jokes, landing jokes, voice preferences) is in `guide.js`. "Pip" in any text becomes her guide's name. Change or rename the guide in the grown-up area.
+
+### Guide art and poses (Sue's artwork)
+
+The art is Sue's own drawings, only cropped and cut out from the white background (`art/sue/cut.py`, then `art/sue/export.py`, in the project folder next to `site/`, not published; the original sheets are there too). Files:
+
+* `guides/<kind>/main.webp`: the picker / naming portrait (kinds: pigeon, puffin, penguin, otter, fox, turtle).
+* `guides/<kind>/<slot>-<n>.webp`: poses, e.g. `guides/puffin/cheer-1.webp`, `guides/puffin/oops-2.webp`.
+
+Pose slots: **hello** (waving), **talk** (default, explaining / holding a letter), **cheer** (a win), **oops** (her mishap), **think** (listening while the child reads), **stretch** (movement break; uses cheer for now), **love** (praise), **carry** (delivering the postcard), **sleep** (end of session, "See you tomorrow!"), **ride** (travel moments).
+
+The mapping lives in one spot: `poses` at the bottom of `guide.js`:
+
+* `art`: which files fill each slot for each guide. Several files in a slot take turns.
+* `fallback`: what a slot uses when a guide has no art for it (e.g. stretch → cheer, sleep → think → talk). The last resort is `main.webp`.
+* `byCard`: the pose each card starts in (e.g. wiggle = stretch, reading cards = think, the arrival card = ride). While a card is on screen, a miss switches to oops, a win to cheer or love (they take turns), "your turn to read" to think, and the landing to carry.
+
+**To add a new pose drawing:** save it as `site/guides/<kind>/<slot>-<n>.png` (or `.webp`), for example `guides/fox/oops-1.png`. PNG with a transparent background, about 400 px tall is plenty. Then add its name to that guide's list in `guide.js` → `poses.art` (for example `fox: { ..., oops: ['oops-1.png'] }`; ".webp" is assumed when there is no extension). Then bump the version (see Hosting). If you're starting from a drawing on a white background, `python3 art/sue/cut.py drawing.png outdir` cuts it out.
+
+Art still missing (these use their fallback for now): pigeon oops, think, love · puffin think, sleep, ride · penguin love · otter oops · fox hello, oops · turtle hello, oops.
 
 ## Hosting
 
 GitHub Pages from the `main` branch, root folder. Publishing a change:
 
 1. Bump `VERSION` in `sw.js` (for example `pips-v2.1`) and the `?v=` numbers in `index.html` and `CORE`.
-   If you add words, run `art/make_audio.py` to make their audio.
+   If you add words or lines, run `art/make_audio.py` and `art/make_lines.py` (plan, gen, index) to make their audio.
 2. `git add -A && git commit -m "..." && git push`
 3. Pages redeploys in about a minute.
 
@@ -53,8 +76,22 @@ GitHub Pages from the `main` branch, root folder. Publishing a change:
 
 Ground = this week's words, Sky = next week's words, Space = 3rd grade stretch. She moves up after 3 strong sessions (Pip's question right on the first try AND at least 6 of 7 word cards right on the first try) and quietly moves back after 2 rough sessions in a row. A grown-up can set or lock the level in the parent area (press and hold "Grown-ups" for 3 seconds, then answer a times-table question).
 
-## Babies and the zoo
+## First launch, babies and the zoo
 
-On the first launch she picks one of 4 babies: penguin chick, bat pup, fennec fox kit, or sea turtle hatchling. She names it herself. When a baby is fully grown it lives safely in her zoo forever, and a new nest offers several new babies to choose from. The African grey and Senegal parrot chicks are optional extra choices (never the only option, and never on the first pick). The bonus parrot postcard always has "Skip this postcard", which swaps in a koala postcard at the same level with no penalty. "Show parrots" in the parent area (on by default) hides parrot babies and parrot postcards completely.
+**Her name.** The very first screen asks "What's your name?" (first name only, optional, "Skip for now"). It is stored on this device only (`kid` in localStorage) and shows on the home screen and the zoo sign ("Mia's Little Zoo"). A grown-up can change it in the parent area.
 
-Art: original SVG drawings plus cut-outs from the mockups. Passages are original and not copied from the school curriculum.
+**Babies.** She picks one of 7 babies: penguin chick, sea turtle hatchling, fennec fox kit, sea otter pup, puffin chick (puffling), pigeon chick (squab), or bat pup. There are no parrots anywhere (removed in v2.3: an old saved parrot baby becomes a pigeon chick with the same name and growth; the parrot bonus postcard is now the koala postcard). She names her baby herself. When a baby is fully grown it lives safely in her zoo forever, and a new nest offers new babies.
+
+**Hatching and birth.** Egg animals (penguin, turtle, puffin, pigeon) *hatch*; the otter, fox and bat are *born* (no egg words). Right after she picks, Sue's drawings of the hidden stages play in order (Egg, Crack!, Peek-a-boo, Almost out; or Snuggled up, Waking up for born babies; the turtle has no cracked-egg drawing so it skips that step), then the "Hatched!" / "Born!" card pops in with the girl meeting the baby, and she names it. Tapping speeds it up.
+
+**Growth.** Five stages, by food eaten: Brand new (0), Little baby (1: the very first feed, so she always sees a change in session 1), Growing (20), Big kid (42), All grown up (70). Files: `babies/<kind>/<stage>.webp` with stages `egg cracked peeking halfout` (egg animals) or `snug waking` (born animals), then `newborn baby growing juvenile adult`, plus `scene.webp` (painted nest-picker card: penguin, puffin, pigeon, turtle) and `reveal.webp` (the "Hatched!/Born!" card; the bat uses its newborn). When she grows, the girl pops up cheering (graduation cap when all grown up).
+
+**The girl (Sue's art, `img/girl/`).** Mapping lives in `GIRL` in `app.js`: name step (hello), home (explorer poses, take turns), nest picker (map), each baby's reveal (girl with that baby), zoo (girl hugging each kind, group hug header, walking-away footer), level-up (peace / roller / hurray), boss postcards (pirate), Italian bonus (ciao / Italia hat / pizza), think cards (question / dream / planning), spell and type cards (writing with books), the arrival card (postcard), end of session (pajamas), parent area (bigger dreams). Only full-body drawings are shown bare; the few drawn only to the waist (hello, hurray, question, dream, ciao, group hug) are exported inside a rounded portrait frame so she never looks legless.
+
+**Zoo.** On the home screen: the girl, every grown-up baby, the baby she is raising (with its stage), and a sticker shelf (one of Sue's stickers per finished postcard day, 17 in all).
+
+**Guides.** Poses per guide in `guides/<kind>/<slot>-<n>.webp`, mapped in `guide.js` (`poses.art`), with the naming pattern documented there.
+
+**Re-cutting the art.** Scripts are in `../art/sue2/`: `cut2.py` (sheets where figures don't touch), `segcut.py` + `cfg/*.json` (seeded watershed for touching/overlapping figures), `manifest.py` (every crop, where it goes, and what was left out and why), `export2.py` (WebP export into `site/`), `sheet.py` (labeled contact sheets).
+
+Art: guides, babies, the girl and the stickers are Sue's artwork (see above); the remaining pictures are original SVG drawings plus cut-outs from the mockups. Passages are original and not copied from the school curriculum.
