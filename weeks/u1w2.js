@@ -52,7 +52,7 @@
           ex: [{ w: 'den', tag: 'closed 🔒' }, { w: 'go', tag: 'open 🚪' }, { w: 'she', tag: 'open 🚪' }, { w: 'nap|kin', tag: 'closed + closed' }]
         },
         sort: { a: 'Closed 🔒', b: 'Open 🚪', items: [['den', 'a'], ['we', 'b'], ['no', 'b'], ['jump', 'a']], hint: 'Is there a consonant AFTER the vowel? Then the door is closed.' },
-        build: { w: 'nap|kin', tiles: ['nap', 'kin', 'pen'], pic: '🧻', clue: 'You wipe your mouth with it.' },
+        build: { w: 'nap|kin', tiles: ['nap', 'kin', 'pen'], pic: 'img:napkin', clue: 'You wipe your mouth with it.' },
         pick: { w: 'dentist', opts: ['dentist', 'dentest', 'dintist'], pic: '🦷', clue: 'This helper keeps your teeth healthy.', split: 'den|tist' },
         hear: { w: 'open', opts: ['open', 'opin', 'oppen'], pic: '📖', clue: 'The opposite of shut.', split: 'o|pen' },
         rebel: { words: ['one', 'go', 'no', 'we'], why: '"one" breaks the rule! It sounds like "wun." Go, no and we all end with a vowel that says its name.' },
@@ -112,9 +112,9 @@
           ex: [{ w: 'care|[ful]', tag: 'full of care' }, { w: 'fear|[less]', tag: 'without fear' }, { w: 'end|[less]', tag: 'without an end' }, { w: 'help|[ful]', tag: 'full of help' }]
         },
         sort: { a: '-ful = full of 🫙', b: '-less = without 🚫', items: [['careful', 'a'], ['endless', 'b'], ['helpful', 'a'], ['motionless', 'b']], hint: 'Cover the base word. Is the ending -ful or -less?' },
-        build: { w: 'mo|tion|less', tiles: ['mo', 'tion', 'less', 'shun'], pic: '🗿', clue: 'Not moving at all.' },
+        build: { w: 'mo|tion|less', tiles: ['mo', 'tion', 'less', 'shun'], pic: '🛑', clue: 'Not moving at all.' },
         pick: { w: 'fearless', opts: ['fearless', 'fearles', 'feerless'], pic: '🦁', clue: 'Without any fear.', split: 'fear|[less]' },
-        hear: { w: 'carefully', opts: ['carefully', 'carefuly', 'carefoolly'], pic: '👂', clue: 'In a way that is full of care.', split: 'care|[ful]|ly' },
+        hear: { w: 'carefully', opts: ['carefully', 'carefuly', 'carefoolly'], pic: '🤲🥚', clue: 'In a way that is full of care.', split: 'care|[ful]|ly' },
         rebel: { words: ['bless', 'fearless', 'endless', 'helpless'], why: '"bless" is not "without b"! There is no base word, so -less is not a suffix here.' },
         preview: [
           { w: 'continent', pic: '🌍', means: 'one of the seven huge pieces of land on Earth' },
@@ -161,7 +161,7 @@
         },
         sort: { a: 'Short vowel 🔒', b: 'Long vowel 🚪', items: [['prob', 'a'], ['she', 'b'], ['den', 'a'], ['no', 'b']], hint: 'Door closed by a consonant = short vowel. Open door = the vowel says its name.' },
         build: { w: 'den|tist', tiles: ['den', 'tist', 'dan'], pic: '🦷', clue: 'This helper cleans your teeth.' },
-        pick: { w: 'problem', opts: ['problem', 'probelm', 'prablem'], pic: '🤔', clue: 'Something that goes wrong.', split: 'prob|lem' },
+        pick: { w: 'problem', opts: ['problem', 'probelm', 'prablem'], pic: '🧩', clue: 'Something that goes wrong.', split: 'prob|lem' },
         hear: { w: 'squeak', opts: ['squeak', 'sqeak', 'sweak'], pic: '🐭', clue: 'A tiny, high sound.', split: '[squ]eak' },
         rebel: { words: ['want', 'napkin', 'dentist', 'problem'], why: '"want" breaks the rule! The a sounds like /o/, not /a/ like in "nap." Heart word ❤️.' },
         preview: [
@@ -193,7 +193,7 @@
         sort: { a: 'ai (middle) 🟡', b: 'ay (end) 🔵', items: [['trail', 'a'], ['day', 'b'], ['paint', 'a'], ['gray', 'b']], hint: 'Say it slowly. Is /ā/ at the very end? Then it is ay.' },
         build: { w: 'to|d[ay]', tiles: ['to', 'day', 'dai'], pic: '📅', clue: 'This day, right now.' },
         pick: { w: 'stay', opts: ['stay', 'stai', 'staye'], pic: '🏠', clue: 'Remain in one place.', split: 'st[ay]' },
-        hear: { w: 'spray', opts: ['spray', 'sprai', 'spay'], pic: '💦', clue: 'Tiny drops of water flying out.', split: '[spr][ay]' },
+        hear: { w: 'spray', opts: ['spray', 'sprai', 'spay'], pic: '🚿', clue: 'Tiny drops of water flying out.', split: '[spr][ay]' },
         rebel: { words: ['says', 'play', 'stay', 'day'], why: '"says" has ay, but it sounds like "sez"! Heart word ❤️.' },
         preview: [
           { w: 'mammal', pic: '🐻', means: 'an animal with fur or hair that feeds its babies milk' },
@@ -224,7 +224,7 @@
         sort: { a: 'un- = not 🚫', b: 're- = again/back 🔁', items: [['unusual', 'a'], ['return', 'b'], ['unable', 'a'], ['retell', 'b']], hint: 'Look at the first two letters.' },
         build: { w: '[re]|ap|pear', tiles: ['re', 'ap', 'pear', 'rep'], pic: '🎩🐇', clue: 'Show up again.' },
         pick: { w: 'unusual', opts: ['unusual', 'unusal', 'unusuall'], pic: '🦄', clue: 'Not usual; strange.', split: '[un]|u|su|al' },
-        hear: { w: 'return', opts: ['return', 'retern', 'ritern'], pic: '🔁', clue: 'Come back.', split: '[re]|turn' },
+        hear: { w: 'return', opts: ['return', 'retern', 'ritern'], pic: '↩️', clue: 'Come back.', split: '[re]|turn' },
         rebel: { words: ['read', 'redo', 'reread', 'retell'], why: 'In "read," re is NOT a prefix. Take it off and "ad" is not the base word!' },
         preview: [
           { w: 'colony', pic: '🦇🦇🦇', means: 'a big group of animals living together' },
@@ -244,7 +244,7 @@
         advisor: { type: 'odd', q: 'Which animal does NOT belong with the others?', opts: ['🐦 Robin', '🦇 Bat', '🐋 Whale', '🐻 Bear'],
           whyQ: 'Why? Pick the reason that matches the postcard.', whys: ['It is not a mammal. Mammals have fur and feed babies milk.', 'It cannot fly.'], mishap: 'Think about the word "mammal" in the postcard.' },
         fill: { kind: 'word', sent: 'It might seem ___, but at night there are fewer hungry birds.', opts: ['unusual', 'useful', 'untied'] },
-        spell: { w: 'return', sent: 'The sound bounces off a moth and will ___ to the bat.', split: '[re]|turn', pic: '🔁' }
+        spell: { w: 'return', sent: 'The sound bounces off a moth and will ___ to the bat.', split: '[re]|turn', pic: '↩️' }
       }
     }
   },
@@ -274,7 +274,7 @@
         sort: { a: 'Starts open 🚪', b: 'Starts closed 🔒', items: [['open', 'a'], ['dentist', 'b'], ['silent', 'a'], ['problem', 'b']], hint: 'Split the word. Does the first part end with a vowel (open) or a consonant (closed)?', split: { open: 'o|pen', dentist: 'den|tist', silent: 'si|lent', problem: 'prob|lem' } },
         build: { w: 'si|lent', tiles: ['si', 'lent', 'sil'], pic: '🤫', clue: 'No sound at all.' },
         pick: { w: 'what', opts: ['what', 'wut', 'whut'], pic: '❓', clue: '___ is that? (a heart word)', split: 'wh[a]t' },
-        hear: { w: 'shrub', opts: ['shrub', 'srub', 'chrub'], pic: '🌳', clue: 'A small, low bush.', split: '[shr]ub' },
+        hear: { w: 'shrub', opts: ['shrub', 'srub', 'chrub'], pic: '🌿', clue: 'A small, low bush.', split: '[shr]ub' },
         rebel: { words: ['have', 'open', 'silent', 'we'], why: '"have" ends in e, but the a is short! Heart word ❤️.' },
         preview: [
           { w: 'desert', pic: '🏜️', means: 'a dry place with very little rain' },
@@ -333,7 +333,7 @@
           ex: [{ w: '[pre]|pare', tag: 'get ready before' }, { w: '[mis]|judge', tag: 'judge wrongly' }, { w: '[dis]|ap|pear', tag: 'opposite of appear' }]
         },
         sort: { a: 'pre- = before ⏪', b: 'mis- = wrongly ❌', items: [['preview', 'a'], ['mistake', 'b'], ['preheat', 'a'], ['misplace', 'b']], hint: 'Look at the first three letters.' },
-        build: { w: '[dis]|ap|pear', tiles: ['dis', 'ap', 'pear', 'dys'], pic: '🫥', clue: 'Go out of sight.' },
+        build: { w: '[dis]|ap|pear', tiles: ['dis', 'ap', 'pear', 'dys'], pic: '🎩✨', clue: 'Go out of sight.' },
         pick: { w: 'misjudged', opts: ['misjudged', 'missjuged', 'misjuged'], pic: '🤦', clue: 'Guessed wrong about something.', split: '[mis]|judged' },
         hear: { w: 'prepare', opts: ['prepare', 'perpare', 'prepair'], pic: '🎒', clue: 'Get ready ahead of time.', split: '[pre]|pare' },
         rebel: { words: ['dish', 'dislike', 'disagree', 'disappear'], why: 'In "dish," dis is not a prefix. There is no base word "h"!' },
@@ -526,9 +526,9 @@
           ex: [{ w: 'h[a]ve', tag: 'a is short' }, { w: '[o]ne', tag: 'sounds like "wun"' }, { w: 'wh[a]t', tag: 'a says /u/' }, { w: 'p[u]t', tag: 'u says /oo/' }]
         },
         sort: { a: 'Open 🚪', b: 'Closed 🔒', items: [['she', 'a'], ['prob', 'b'], ['go', 'a'], ['nap', 'b']], hint: 'Is there a consonant after the vowel? Then the door is closed.' },
-        build: { w: 'prob|lem', tiles: ['prob', 'lem', 'prod'], pic: '🤔', clue: 'Something that goes wrong.' },
-        pick: { w: 'napkin', opts: ['napkin', 'napkim', 'nepkin'], pic: '🧻', clue: 'You wipe your mouth with it.', split: 'nap|kin' },
-        hear: { w: 'want', opts: ['want', 'wont', 'whant'], pic: '🙏', clue: 'I ___ a snack! (a heart word)', split: 'w[a]nt' },
+        build: { w: 'prob|lem', tiles: ['prob', 'lem', 'prod'], pic: '🧩', clue: 'Something that goes wrong.' },
+        pick: { w: 'napkin', opts: ['napkin', 'napkim', 'nepkin'], pic: 'img:napkin', clue: 'You wipe your mouth with it.', split: 'nap|kin' },
+        hear: { w: 'want', opts: ['want', 'wont', 'whant'], pic: '🍦', clue: 'I ___ a snack! (a heart word)', split: 'w[a]nt' },
         rebel: { words: ['what', 'cat', 'hat', 'bat'], why: '"what" breaks the rule! The a does not say /a/ like in cat. Heart word ❤️.' },
         preview: [
           { w: 'barn', pic: '🏚️', means: 'a big farm building' },
@@ -545,7 +545,7 @@
           q: 'Tap the sentence in today\'s postcard that tells WHY the bats stay close.', a: 'Staying close keeps them warm', mishap: 'Oops! I tried to hang upside down like a bat and my goggles fell off. 🥽 Try again!' },
         advisor: { type: 'predict', q: 'What will Pip see next week?', opts: ['🍰 A green valley with cake', '🧊 More ice', '🌋 A volcano'], evQ: 'Tap the clue in the postcard.', a: ['green valley'], mishap: 'Look for a clue about next week!' },
         fill: { kind: 'word', sent: 'In the winter, there are ___ bugs to eat.', opts: ['no', 'on', 'now'] },
-        spell: { w: 'problem', sent: 'No bugs to eat is a big ___.', split: 'prob|lem', pic: '🤔' }
+        spell: { w: 'problem', sent: 'No bugs to eat is a big ___.', split: 'prob|lem', pic: '🧩' }
       },
       sky: {
         title: 'Same and Different',
@@ -587,7 +587,7 @@
           ex: [{ w: 'hi|ber|na|[tion]', tag: '4 chunks' }, { w: 'e|cho|lo|ca|[tion]', tag: '5 chunks' }, { w: '[un]|be|liev|a|bly', tag: '5 chunks' }]
         },
         sort: { a: 'Has a prefix ⬅️', b: 'Has a suffix ➡️', items: [['return', 'a'], ['careful', 'b'], ['misjudge', 'a'], ['location', 'b']], hint: 'Is the extra part at the START (prefix) or the END (suffix)?' },
-        build: { w: 'e|cho|lo|ca|[tion]', tiles: ['e', 'cho', 'lo', 'ca', 'tion'], pic: '🔊', clue: 'How bats find bugs in the dark.' },
+        build: { w: 'e|cho|lo|ca|[tion]', tiles: ['e', 'cho', 'lo', 'ca', 'tion'], pic: '🦇🔊', clue: 'How bats find bugs in the dark.' },
         pick: { w: 'hibernation', opts: ['hibernation', 'hibernasion', 'hybernation'], pic: '😴', clue: 'A long, deep winter sleep.', split: 'hi|ber|na|[tion]' },
         hear: { w: 'completely', opts: ['completely', 'completly', 'compleatly'], pic: '✅', clue: 'Totally, all the way.', split: 'com|plete|[ly]' },
         rebel: { words: ['uncle', 'unhappy', 'unsafe', 'unkind'], why: 'In "uncle," un is not a prefix. "Cle" is not a word!' },
@@ -677,7 +677,7 @@
         question: { q: 'Cause and effect: WHY do koalas rest for up to twenty hours a day? Tap the sentence that tells the cause.', a: 'hold very little energy', mishap: 'Oops! I tried to wake a koala for a game of tag. It just yawned! 🥱 Look for "Because"!' },
         advisor: { type: 'feel', q: 'How did Pip feel watching the koalas?', opts: ['😊 Thankful and happy', '😡 Grumpy', '😱 Scared'], evQ: 'Tap the sentence that proves it.', a: ['felt thankful'], mishap: 'Look for a feeling word in the postcard!' },
         fill: { kind: 'word', sent: 'Koalas have an ___ diet: they eat almost nothing except eucalyptus leaves.', opts: ['unusual', 'unused', 'usual'] },
-        spell: { w: 'careful', sent: 'I tried to be ___ and quiet.', split: 'care|[ful]', pic: '🤫' }
+        spell: { w: 'careful', sent: 'I tried to be ___ and quiet.', split: 'care|[ful]', pic: '🤲🥚' }
       })
     }
   };
@@ -703,7 +703,7 @@
   const W = window.PIP_WEEKS['u1w2'];
   W.vocab = {
     // Ground: concrete Week 2 words
-    flat: { misread: 'float', split: 'fl[a]t', look: ['float', 'flap'], pic: '📄', means: 'smooth, with no bumps' },
+    flat: { misread: 'float', split: 'fl[a]t', look: ['float', 'flap'], pic: '🥞', means: 'smooth, with no bumps' },
     forest: { misread: 'for-EEST', split: 'f[o]r|[e]st', say: 'for|est', look: ['frost', 'first'], pic: '🌲🌳', means: 'lots of trees' },
     shallow: { misread: 'shay-low', split: 'sh[a]l|l[ow]', say: 'shal|lo', look: ['swallow', 'shadow'], pic: '🦶💧', means: 'not deep' },
     beneath: { misread: 'ben-eeth', split: 'b[e]|n[ea]th', say: 'bee|neeth', look: ['between', 'breath'], pic: '⬇️📦', means: 'under' },
@@ -728,8 +728,8 @@
     cave: { misread: 'cav', split: 'c[a]v[e]', look: ['carve', 'have'], pic: '⛰️🕳️', means: 'a hole in a rocky hill' },
     valley: { misread: 'val-eye', split: 'v[a]l|l[ey]', say: 'val|lee', look: ['volley', 'alley'], pic: '🏞️', means: 'low land between hills',
       tricky: { mark: 'vall[ey]', says: 'VAL-ee', note: '"ey" at the end says ee.' } },
-    stream: { misread: 'strim', split: 'str[ea]m', look: ['steam', 'scream'], pic: '💧〰️', means: 'a small river' },
-    cage: { misread: 'cag', split: 'c[a]g[e]', look: ['cake', 'cape'], pic: '🔲', means: 'a box made of bars',
+    stream: { misread: 'strim', split: 'str[ea]m', look: ['steam', 'scream'], pic: 'img:stream', means: 'a small river' },
+    cage: { misread: 'cag', split: 'c[a]g[e]', look: ['cake', 'cape'], pic: 'img:cage', means: 'a box made of bars',
       tricky: { mark: 'ca[g]e', says: 'kayj', note: 'g before e says j.' } },
     attic: { misread: 'at-ike', split: '[a]t|t[i]c', say: 'at|tick', look: ['attack', 'antic'], pic: '🏠⬆️', means: 'room under the roof' },
     palms: { misread: 'pal-ems', split: 'p[al]ms', look: ['plums', 'palace'], pic: '🌴', means: 'tall trees, big leaves',
@@ -757,7 +757,7 @@
   // Warm-up (easy wins first!): words she already knows from last week. Read the word, tap its picture.
   // Swap in a new list any time: w = word, pic = its picture, other = a clearly different picture.
   W.warmup = [  // Week 1 spelling list from her teacher
-    { w: 'box', pic: '📦', other: '🌸' }, { w: 'this', pic: '👉', other: '🍕' }, { w: 'chest', pic: '🧰', other: '🐸' },
+    { w: 'box', pic: '📦', other: '🌸' }, { w: 'this', pic: '👇', other: '🍕' }, { w: 'chest', pic: 'img:chest', other: '🐸' },
     { w: 'wet', pic: '💦', other: '🔥' }, { w: 'flag', pic: '🚩', other: '🍪' }, { w: 'him', pic: '👦', other: '🌳' },
     { w: 'jump', pic: '🦘', other: '🛏️' }, { w: 'run', pic: '🏃', other: '🪑' }, { w: 'shop', pic: '🏪', other: '🐟' },
     { w: 'stand', pic: '🧍', other: '🛌' }
@@ -766,24 +766,24 @@
   // The caption shows the sentence with a blank (never the word), plus the picture, so it never depends on audio alone.
   W.typeWords = {
     ground: [
-      { w: 'open', pic: '📖', sent: 'Open the book.' }, { w: 'that', pic: '👉', sent: 'I like that one.' }, { w: 'napkin', pic: '🧻', sent: 'Wipe your mouth with a napkin.' },
+      { w: 'open', pic: '📖', sent: 'Open the book.' }, { w: 'that', pic: '👉', sent: 'I like that one.' }, { w: 'napkin', pic: 'img:napkin', sent: 'Wipe your mouth with a napkin.' },
       { w: 'want', pic: '🍦', sent: 'I want ice cream.' }, { w: 'dentist', pic: '🦷', sent: 'The dentist checks my teeth.' }, { w: 'how', pic: '🤔', sent: 'How old are you?' },
       { w: 'have', pic: '🎒', sent: 'I have a bag.' }, { w: 'problem', pic: '🧩', sent: 'We can fix the problem.' }, { w: 'then', pic: '➡️', sent: 'First we eat, then we play.' },
       { w: 'down', pic: '⬇️', sent: 'Sit down, please.' }, { w: 'jump', pic: '🦘', sent: 'Frogs can jump.' }, { w: 'silent', pic: '🤫', sent: 'The room is silent.' },
-      { w: 'one', pic: '1️⃣', sent: 'I have one nose.' }, { w: 'with', pic: '🤝', sent: 'Come with me.' }, { w: 'she', pic: '👧', sent: 'She has a red hat.' },
-      { w: 'put', pic: '📥', sent: 'Put it in the box.' }, { w: 'den', pic: '🦊', sent: 'The fox naps in its den.' }, { w: 'what', pic: '❓', sent: 'What is that?' }
+      { w: 'one', pic: '1️⃣', sent: 'I have one nose.' }, { w: 'with', pic: '🧑‍🤝‍🧑', sent: 'Come with me.' }, { w: 'she', pic: '👧', sent: 'She has a red hat.' },
+      { w: 'put', pic: '🧸📦', sent: 'Put it in the box.' }, { w: 'den', pic: '🦊', sent: 'The fox naps in its den.' }, { w: 'what', pic: '❓', sent: 'What is that?' }
     ],
     sky: [
       { w: 'play', pic: '⚽', sent: "Let's play outside." }, { w: 'that', pic: '👉', sent: 'I like that one.' }, { w: 'paint', pic: '🎨', sent: 'I paint a sun.' },
       { w: 'great', pic: '👍', sent: 'You did a great job!' }, { w: 'mail', pic: '✉️', sent: 'Pip brings the mail.' }, { w: 'how', pic: '🤔', sent: 'How old are you?' },
       { w: 'break', pic: '🍪', sent: 'Break the cookie in half.' }, { w: 'cake', pic: '🎂', sent: 'We ate cake.' }, { w: 'then', pic: '➡️', sent: 'First we eat, then we play.' },
       { w: 'down', pic: '⬇️', sent: 'Sit down, please.' }, { w: 'chain', pic: '⛓️', sent: 'The bike has a chain.' }, { w: 'stay', pic: '🏠', sent: 'Stay with me.' },
-      { w: 'blame', pic: '🐶', sent: 'Do not blame the dog.' }, { w: 'with', pic: '🤝', sent: 'Come with me.' }, { w: 'april', pic: '🌷', sent: 'Flowers bloom in April.', cap: 'April' }
+      { w: 'blame', pic: '🐶', sent: 'Do not blame the dog.' }, { w: 'with', pic: '🧑‍🤝‍🧑', sent: 'Come with me.' }, { w: 'april', pic: '🌷', sent: 'Flowers bloom in April.', cap: 'April' }
     ],
     space: [
       { w: 'careful', pic: '⚠️', sent: 'Be careful on the ice.' }, { w: 'thought', pic: '💭', sent: 'I thought about it.' }, { w: 'fearless', pic: '🦁', sent: 'The lion is fearless.' },
-      { w: 'mistake', pic: '✏️', sent: 'Everyone makes a mistake.' }, { w: 'crowd', pic: '👥', sent: 'The crowd cheered.' }, { w: 'return', pic: '↩️', sent: 'Return the book on Monday.' },
-      { w: 'helpful', pic: '🤝', sent: 'Thanks for being so helpful.' }, { w: 'throw', pic: '⚾', sent: 'Throw the ball to me.' }, { w: 'disappear', pic: '🎩', sent: 'The bunny will disappear.' },
+      { w: 'mistake', pic: '😅✏️', sent: 'Everyone makes a mistake.' }, { w: 'crowd', pic: '👫👭👬', sent: 'The crowd cheered.' }, { w: 'return', pic: '📕↩️', sent: 'Return the book on Monday.' },
+      { w: 'helpful', pic: '🤝', sent: 'Thanks for being so helpful.' }, { w: 'throw', pic: '⚾', sent: 'Throw the ball to me.' }, { w: 'disappear', pic: '🎩🐰', sent: 'The bunny will disappear.' },
       { w: 'unusual', pic: '🦓', sent: 'A pink zebra is unusual.' }, { w: 'thankful', pic: '🙏', sent: 'I am thankful for you.' }, { w: 'preview', pic: '🎬', sent: 'We saw a preview of the movie.' }
     ]
   };
@@ -791,7 +791,7 @@
   // rPairs: R vs W picture pairs. rWords: R words with the guide's silly "oops" way of saying them.
   W.rPairs = [
     { r: 'ring', rp: '💍', w: 'wing', wp: '🪽' }, { r: 'rock', rp: '🪨', w: 'walk', wp: '🚶' }, { r: 'red', rp: '🟥', w: 'wed', wp: '💒' },
-    { r: 'rake', rp: '🍂', w: 'wake', wp: '⏰' }, { r: 'right', rp: '➡️', w: 'white', wp: '⬜' }, { r: 'read', rp: '📖', w: 'weed', wp: '🌱' }
+    { r: 'rake', rp: 'img:rake', w: 'wake', wp: '⏰' }, { r: 'right', rp: '➡️', w: 'white', wp: '⬜' }, { r: 'read', rp: '📖', w: 'weed', wp: '🌱' }
   ];
   W.rWords = [
     { w: 'forest', pic: '🌲', oops: 'fowest' }, { w: 'rabbit', pic: '🐰', oops: 'wabbit' }, { w: 'grassland', pic: '🌾', oops: 'gwassland' },
@@ -804,7 +804,7 @@
     { w: 'said', mark: 's[ai]d', says: 'sed', note: 'Sneaky! "ai" says e here.', pic: '💬' },
     { w: 'one', mark: '[o]n[e]', says: 'wun', note: 'Sneaky! It starts with a w sound.', pic: '1️⃣' },
     { w: 'what', mark: 'wh[a]t', says: 'wut', note: 'Sneaky! "a" says u here.', pic: '❓' },
-    { w: 'put', mark: 'p[u]t', says: 'poot (short, like book)', note: 'Sneaky! "u" says oo, like in book.', pic: '📥' },
+    { w: 'put', mark: 'p[u]t', says: 'poot (short, like book)', note: 'Sneaky! "u" says oo, like in book.', pic: '🧸📦' },
     { w: 'want', mark: 'w[a]nt', says: 'wont', note: 'Sneaky! "a" says o here.', pic: '🍦' },
     { w: 'great', mark: 'gr[ea]t', says: 'grayt', note: 'Sneaky! "ea" says ay here.', pic: '👍' },
     { w: 'break', mark: 'br[ea]k', says: 'brayk', note: 'Sneaky! "ea" says ay here.', pic: '🍪' }

@@ -7,17 +7,38 @@ A reading and spelling game for a 2nd grader. Her guide (she picks one on the fi
 * iPad landscape / TV over AirPlay: picture on the left, words and buttons on the right, bigger text. Swipe up/down or left/right, or use the arrow keys.
 * Works offline after the first visit (service worker `sw.js`). "Add to Home Screen" works on iPad/iPhone.
 
-## How a session feels (designed for a child who gives up when something feels hard)
+## How a session feels (v2.6: snappy, one tap, never stuck)
 
-* Easy wins first: 2 warm-up cards with words she already knows (`W.warmup`), then she chooses: postcard first or word games first.
-* Never failing: no red, no X, no buzzer. A miss is "Not yet!" or the guide's silly mishap. After one miss the choices narrow to 2; after a second only the answer is left (glowing). If she pauses, a clue appears by itself.
-* She is the teacher: the guide misreads a word (e.g. "shay-low" for shallow) and she corrects her. The guide keeps trying on the mail card (3 landing tries) and makes it.
-* Praise is for effort and strategy ("You split it into chunks, that's what great readers do!"), never "smart".
-* Hard things are opt-in: a Challenge word or "Which sound?" card each session (skip = no cost), a Boss postcard (next level, optional, +5) on the home screen, and one Bonus Postcard from Italia each week (after Friday, its own green-white-red style, pick-the-picture only, can be turned off).
-* Levels are never announced as going down. Moving up is celebrated.
-* Proof of growth: the zoo, and a "Then vs Now" card that plays her first recording of a word (or broadcast) next to her latest.
+Full design notes are kept with the project in `ux-audit.md` (outside this repo).
+
+* **Mini map:** she picks the order of 3 stops: 🔤 Word lab, 📬 Postcard, 🗺️ Fly on. Then she feeds her baby. That is about 12–16 short cards, 8–10 minutes.
+* **One tap per answer.** A right answer sparkles and the feed moves on by itself in about 1.1 s. There are no Check buttons. She can swipe up (or tap ↓) at any time to move on, and every card has **Skip ⏭**.
+* **Never stuck.**
+  * 1st miss: a wrong option fades and the right one glows. 2nd miss: the guide shows the answer and moves on (no penalty, no red, no buzzer).
+  * The 🙋 Help button (bottom-left) glows the answer.
+  * ‹ Back (top-left) goes to the previous card. ⏸ Pause saves and quits; she resumes on the same card, even the next day. ⏹ stops the guide talking.
+* **Answers are shuffled** each time a card is shown (Fisher–Yates), and the right answer is never in the same place 3 times in a row. `tests/positions.py` checks this.
+* **Never more than 2 reading cards in a row.** Quick games sit in between: tap the picture, drag the word, feed the baby, silly word, sort one, R or W.
+* **Every read has a one-tap job:** which picture shows it, tap the proof sentence (3 shuffled sentences), what does the bright word mean.
+* **The guide is the progress meter:** in each stop she starts on the far side and hops closer to the girl with every answer, and reaches her at the end of the stop. A miss gets a silly wobble; she never moves backward.
+* **Postcards look like postcards:** cream card, stamp, postmark, divider, picture left and text right.
+* **Rewards and jingles:** the baby hops, a heart pops, the progress bar fills to the ⭐; jingles play for the start, the baby growing, the day finished and a level up.
+* **Optional extras:** a Bonus round (challenge word, which sound?, R/W pairs), a Boss postcard, and Italia on Fridays.
+* She is the teacher: the guide misreads a word and she corrects her. Praise is for effort and strategy, never "smart". Levels are never announced as going down.
+
+## Word practice (v2.6, Sue's spec)
+
+1. **Watch me:** the word shows big and the guide says it once.
+2. **Your turn:** she says it out loud. There is no tapping, no recording and no scoring; a grown-up listens.
+3. **One tap** (Next ▶ or swipe up) moves to the next word.
+4. **Rotate back:** every 3 words an earlier word comes back **without audio**, so she reads it herself. The audio plays after she taps Next, or if she taps the word.
+5. **🙋 Help me** (only if she taps it): the word is said slowly, the tricky part lights up with its mouth-picture cue (e.g. f = 😬💨 "top teeth on your bottom lip, just blow air, no buzz"; v = 😬🐝 "…and buzz"), then it is said again at normal speed so she can retry. Chunks show only inside Help me, and tapping them is optional.
+
+Words she asked for help with come back in her next sessions. The grown-up area lists the words practiced and the Help-me taps.
 
 ## Decoding (reading the printed word) is the focus
+
+*(v2.6: word practice is the Watch me / Your turn routine above; the old required look/chunk/check steps were removed.)*
 
 * New words (`W.vocab`, 3 a day per level in `W.vocabByDay`): I do (the guide taps each colored chunk and says it slowly, then the whole word), We do (she reads it aloud first, then checks and marks herself), You do (whole word, no chunks). Meaning is one picture + a tiny caption. Words she marks "Try again" come back until she gets them twice (listed in the grown-up area). Optional 🎙️ record-and-compare.
 * "Which word says ___?" (hear it, pick among look-alikes), "Sneaky word" cards (`W.sneaky`: said, one, what, put, want, great, break; the WORD is sneaky, not her), pattern words framed like Italian (letters tell you the sounds).

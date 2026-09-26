@@ -22,17 +22,20 @@
   <meta property="og:image" content="https://appuccinohub.github.io/pips-postcards/og-card.jpg" />
   <link rel="preload" href="fonts/andika-regular.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="styles.css?v=2.5" />
+  <link rel="stylesheet" href="styles.css?v=2.6" />
 </head>
 <body>
   <div class="app" id="app">
     <header class="topbar">
+      <button type="button" class="icon-btn back-btn" id="btnBack" aria-label="Back" hidden><span aria-hidden="true">‹</span><span class="back-lbl">Back</span></button>
+      <button type="button" class="icon-btn" id="btnPause" aria-label="Pause" hidden><span aria-hidden="true">⏸</span></button>
       <button type="button" class="icon-btn" id="btnHome" aria-label="Home" hidden><span aria-hidden="true">🏠</span></button>
       <div class="top-mid">
         <p class="top-title" id="topTitle">Pip's Postcards</p>
         <div class="dots" id="dots" aria-hidden="true" hidden></div>
       </div>
       <span class="fish-count" id="fishCount" hidden>🐟 0</span>
+      <button type="button" class="icon-btn stop-audio" id="btnStop" aria-label="Stop the voice" hidden><span aria-hidden="true">⏹</span></button>
       <button type="button" class="icon-btn" id="btnMute" aria-label="Sound on or off" aria-pressed="false"><span aria-hidden="true" id="muteIcon">🔊</span></button>
     </header>
 
@@ -51,6 +54,15 @@
           <button type="button" class="nav-btn" id="btnNext" aria-label="Next card"><span aria-hidden="true">↓</span></button>
         </div>
         <p class="swipe-hint" id="swipeHint" aria-hidden="true" hidden>swipe up ↑</p>
+        <button type="button" class="help-btn" id="btnHelp" aria-label="I need help"><span aria-hidden="true">🙋</span> Help</button>
+        <div class="pause" id="pauseBox" hidden role="dialog" aria-modal="true" aria-label="Paused">
+          <div class="pause-box">
+            <p class="pause-h">⏸ Paused</p>
+            <p class="pause-sub">Your place is saved. Come back any day!</p>
+            <button type="button" class="big-btn" id="pauseGo">▶ Keep going</button>
+            <button type="button" class="big-btn soft" id="pauseQuit">🏠 Save and go home</button>
+          </div>
+        </div>
       </section>
 
       <section class="screen" id="screenEnd" hidden><div class="center-box" id="endBox"></div></section>
@@ -68,11 +80,11 @@
     </div>
     <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
   </div>
-  <script src="guide.js?v=2.5"></script>
-  <script src="audio/index.js?v=2.5"></script>
-  <script src="audio/lines.js?v=2.5"></script>
-  <script src="weeks/index.js?v=2.5"></script>
-  <script src="weeks/u1w2.js?v=2.5"></script>
-  <script src="app.js?v=2.5"></script>
+  <script src="guide.js?v=2.6"></script>
+  <script src="audio/index.js?v=2.6"></script>
+  <script src="audio/lines.js?v=2.6"></script>
+  <script src="weeks/index.js?v=2.6"></script>
+  <script src="weeks/u1w2.js?v=2.6"></script>
+  <script src="app.js?v=2.6"></script>
 </body>
 </html>

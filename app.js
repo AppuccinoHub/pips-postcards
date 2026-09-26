@@ -3,7 +3,14 @@
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = gtext(txt); return e; };
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) setPicText(e, txt); return e; };
+  /* v2.5.1 pictures: "img:napkin" = a drawn picture (img/pics/napkin.svg) for words with no clear emoji. */
+  function setPicText(e, txt) {
+    const t = String(txt);
+    if (/^img:[a-z0-9-]+$/.test(t)) { const im = document.createElement('img'); im.className = 'pic-img'; im.src = `img/pics/${t.slice(4)}.svg`; im.alt = t.slice(4); im.dataset.pic = t; im.draggable = false; e.replaceChildren(im); }
+    else e.textContent = gtext(t);
+  }
+  const picTxt = (p) => (/^img:/.test(String(p || '')) ? '' : (p || ''));
   /* ---- the guide (picked + named by the child on the first screen; config in guide.js) ---- */
   const GUIDES = window.PIP_GUIDES || { kinds: {}, order: [], names: [], generic: { mishaps: [], landing: [], landBtn: [] }, voice: {} };
   const G = () => {
@@ -40,10 +47,11 @@
     space: { icon: '🚀', name: 'Space', sub: '3rd-grade stretch' }
   };
   const levelLabel = (lv) => `${LEVEL_INFO[lv].icon} ${LEVEL_INFO[lv].name} · ${LEVEL_INFO[lv].sub}`;
-  const WORD_TYPES = ['sort', 'build', 'pick', 'hear', 'rebel', 'fill', 'spell', 'type', 'says'];
+  const WORD_TYPES = ['sort', 'build', 'pick', 'hear', 'rebel', 'fill', 'spell', 'type', 'says', 'dragword', 'phrase', 'model'];
   const TYPE_NAMES = { type: 'Type the word you hear', hear: 'Hear & tap (which word says it)', says: 'Which word says ___? (new words)', rebel: 'Find the sneaky word', fill: 'Fill the blank (word tiles)', sort: 'Sort', build: 'Build a word', pick: 'Pick the spelling', spell: 'Spell it',
     question: "Guide's question (evidence)", advisor: 'Advisor card', check: 'Picture checks', echo: 'Echo (review) words', warm: 'Warm-up (easy wins)',
-    decode: 'Read new words (she self-checks)', teach: 'Teach the guide (she self-checks)', rpair: 'R or W? (listening)', rcatch: 'Catch the guide (R, listening)', sound: 'Which sound? (optional)', challenge: 'Challenge word (optional)' };
+    decode: 'Read new words (she self-checks)', teach: 'Teach the guide (she self-checks)', rpair: 'R or W? (listening)', rcatch: 'Catch the guide (R, listening)', sound: 'Which sound? (optional)', challenge: 'Challenge word (optional)',
+    dragword: 'Drag the word (postcard line)', phrase: 'What does it mean? (phrase)', model: 'Pattern check', confirm: 'Known-word quick check', qpre: 'What do you think? (before the proof)', advpick: 'Advisor part 1', feedme: 'Feed the baby (read 3 words)', silly: 'Silly word (postcard line)', sneaky: 'Sneaky part' };
   /* The baby animal she raises (all art is Sue's: babies/<kind>/<stage>.webp). She picks one on first launch.
      Egg animals hatch (egg -> cracked -> peeking -> almost out, played in the reveal); the bat, fox and otter are
      born (snuggled up -> waking up). Then 5 growth stages. "Little baby" comes at the very first feed, so she always
@@ -112,7 +120,9 @@
   const pet = () => PETS[(S.chick && S.chick.kind) || 'penguin'] || PETS.penguin;
   const stagesOf = (pp) => STAGE_KEYS.map((key, i) => ({ at: STAGE_AT[i], key, name: STAGE_NAMES[key], img: babyImg(pp.id, key), scale: STAGE_SCALE[i] }));
   const itemsOf = (pp) => pp.items.map(([name, art, pos], i) => ({ at: ITEM_AT[i], name, pos, img: /\.webp$/.test(art) ? art : '', emoji: /\.webp$/.test(art) ? '' : art }));
-  const AUTO_MS = 1300;
+  const AUTO_MS = 1100; // v2.5.1: like Arianna Scroll (1.2 s): a right answer shows its sparkle, then the feed moves on by itself (no Next tap).
+  const LINE_RATE = 1.12; // guide chatter plays a little faster (words and chunks keep their natural speed)
+  const MAX_DELAY = 1500;  // no card waits longer than this after it is done (except to read a new mini postcard)
   const KEY = 'pipsPostcards.v1';
 
   /* ---------------- state ---------------- */
@@ -120,7 +130,8 @@
     guide: null, kid: '', tryAgain: {}, soundLog: [], rOn: true, rWords: null, italiaOn: true, italiaDone: {}, bossDone: {}, vol: 1,
     chick: { name: '', kind: '', fish: 0 }, family: [], level: 'ground', levelLock: false, good: 0, roughStreak: 0,
     sessions: [], sessionsDone: 0, review: [], levelLog: [], routeEcho: null, progress: null,
-    muted: false, sfxOn: true, capsAlways: false, theme: 'light', hinted: false, weekId: null
+    muted: false, sfxOn: true, capsAlways: false, theme: 'light', hinted: false, weekId: null,
+    words: {}, helpTaps: 0
   });
   let S = fresh();
   function load() { try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (_) {} }
@@ -140,8 +151,29 @@
   const fillName = (t) => gtext(String(t).replace(/\{chick\}/g, chickName()));
 
   /* ---------------- helpers ---------------- */
-  function seeded(seed) { let s = 0; for (const c of String(seed)) s = (s * 31 + c.charCodeAt(0)) >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  /* v2.5.1 fix: the old seed hash had no mixing, so seeds that differ only at the end ("title0", "title1", ...) produced
+     nearly the same first random number, and every card in a session put the right answer in the SAME place (often last).
+     Now: a well-mixed hash + mulberry32 for content choices, and answer positions use real randomness (see placeAnswer). */
+  function hash32(str) { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^ (h >>> 16)) >>> 0; }
+  function seeded(seed) { let a = hash32(String(seed)); return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   function shuffle(arr, seed) { const r = seeded(seed); const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function rand() { try { const u = new Uint32Array(1); crypto.getRandomValues(u); return u[0] / 4294967296; } catch (_) { return Math.random(); } }
+  function fyShuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  /* Fisher-Yates per card view, and never the right answer in the same place (first / middle / last) 3 times in a row. */
+  const POS_LOG = [];
+  const posRole = (p, n) => (p === 0 ? 'first' : p === n - 1 ? 'last' : 'mid' + p);
+  function placeAnswer(items, isAns, kind) {
+    const a = fyShuffle(items), n = a.length;
+    let pos = a.findIndex(isAns);
+    if (n > 1 && pos >= 0) {
+      const h = POS_LOG.slice(-2);
+      if (h.length === 2 && h.every((x) => x.role === posRole(pos, n))) {
+        const np = (pos + 1 + Math.floor(rand() * (n - 1))) % n; [a[pos], a[np]] = [a[np], a[pos]]; pos = np;
+      }
+      POS_LOG.push({ kind: kind || '?', n, pos, role: posRole(pos, n) }); if (POS_LOG.length > 5000) POS_LOG.shift();
+    }
+    return a;
+  }
   const plain = (w) => String(w).replace(/[\[\]|]/g, '');
   /* Render word markup: "|" = syllable split (alternating colors), [..] = pattern highlight.
      With no [..], vowels are highlighted so open/closed syllables are visible. */
@@ -177,9 +209,10 @@
      while the guide is talking. iPad Safari: the audio context is created/resumed on the first tap (unlock).
      Levels (0..1, times the volume) were set by measuring each file against the voice files. */
   const SFX = { crack1: 0.53, crack2: 0.72, crack3: 0.46, hatch: 0.29, rustle: 0.36, snuggle: 0.23, tap: 0.145, key: 0.1, swoosh: 0.2,
-    right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18 };
+    right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
+    j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.5';
+  const SFX_VER = '2.6';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -321,7 +354,7 @@
     return plan.length ? plan : null;
   }
   let curAudio = null, sayToken = 0;
-  function stopVoice() { sayToken++; try { speechSynthesis.cancel(); } catch (_) {} if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; } sfxDuck(); }
+  function stopVoice() { sayToken++; if (speakingWrap) speakingWrap.classList.remove('talking'); try { speechSynthesis.cancel(); } catch (_) {} if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; } sfxDuck(); }
   /* Speak one thing. opts: {rate, slow, lang, word} ; returns a Promise that resolves when done (or after a safety timeout). */
   function say1(text, opts) {
     opts = opts || {};
@@ -338,7 +371,7 @@
       const src = opts.file || AUD[(opts.lang ? opts.lang + ':' : '') + t.toLowerCase()];
       if (src && (opts.file || opts.word !== false)) {
         try {
-          const a = new Audio(src); routeVoice(a); a.playbackRate = opts.slow ? 0.8 : 1; curAudio = a; a.onplaying = () => { voiceWorked(); sfxDuck(); };
+          const a = new Audio(src); routeVoice(a); a.playbackRate = opts.slow ? 0.8 : (/audio\/l\//.test(src) ? LINE_RATE : 1); try { a.preservesPitch = true; a.webkitPreservesPitch = true; } catch (_) {} curAudio = a; a.onplaying = () => { voiceWorked(); sfxDuck(); };
           a.onended = () => { clearTimeout(guard); fin(); }; a.onerror = () => { clearTimeout(guard); voiceFailed(); fin(); };
           a.onloadedmetadata = () => { if (isFinite(a.duration) && a.duration > 0) { clearTimeout(guard); guard = setTimeout(fin, a.duration * 1000 / a.playbackRate + 1500); } };
           const pr = a.play(); if (pr && pr.catch) pr.catch((er) => { clearTimeout(guard); if (!er || er.name !== 'AbortError') voiceFailed(); fin(); });
@@ -351,7 +384,7 @@
         const u = new SpeechSynthesisUtterance(t);
         u.lang = opts.lang === 'it' ? 'it-IT' : 'en-US';
         const V = GUIDES.voice || {};
-        u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.95)); u.pitch = V.pitch || 1.0; u.volume = Math.min(1, vol());
+        u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.95) * (opts.word === false ? 1.1 : 1)); u.pitch = V.pitch || 1.0; u.volume = Math.min(1, vol());
         if (voice && opts.lang !== 'it') u.voice = voice;
         u.onstart = () => { voiceWorked(); sfxDuck(); }; u.onend = () => { clearTimeout(guard); fin(); }; u.onerror = (ev) => { clearTimeout(guard); if (!ev || !/interrupt|cancel/.test(ev.error || '')) voiceFailed(); fin(); };
         speechSynthesis.speak(u);
@@ -366,7 +399,7 @@
       const o = typeof it === 'string' ? { text: it } : it;
       if (o.onStart) o.onStart();
       await say1(o.text, o);
-      if (o.pause) await new Promise((r) => setTimeout(r, o.pause));
+      if (o.pause) await new Promise((r) => setTimeout(r, Math.round(o.pause * 0.6)));
     }
     return my === sayToken;
   }
@@ -443,39 +476,120 @@
   /* ---------------- session building ---------------- */
   function sentencesOf(L) { return L.chunks.flatMap((c) => c.s); }
   function dueReviews() { return S.review.filter((r) => r.due <= S.sessionsDone).slice(0, 2); }
-  /* The session plan. Easy wins first, then she chooses the order (postcard first or word games first).
-     Optional cards (challenge, which-sound) can be skipped at no cost. To shorten sessions, trim these lists. */
+  /* ---------------- the session plan (v2.5.1: short and snappy) ----------------
+     About 12-15 cards, 8-10 minutes. Every card has one goal and one tap answers it. She picks the order of 3 stops on
+     a mini map (Word lab, Postcard, Fly on). Never more than 2 reading cards in a row: quick game cards sit between.
+     The curriculum is spread across the week (each weekday rotates different word games), not crammed into one day.
+     Extra practice lives in an optional Bonus round. To change the pacing, edit the tables below. */
+  const READING_K = ['chunk', 'question', 'advisor', 'broadcast', 'radio'];
+  const STOPS = { words: ['🔤', 'Word lab'], postcard: ['📬', 'Postcard'], fly: ['🗺️', 'Fly on'] };
+  // Word lab games by weekday (Mon..Fri; the 6th/bonus day uses Monday's). Every game shows up during the week.
+  const WORD_GAMES = [['model', 'type'], ['hear', 'type'], ['rebel', 'type'], ['teach', 'type'], ['sneaky', 'type']];
+  // Fly-on card by weekday (then "where next?"). Friday is the radio show / broadcast.
+  const FLY_GAMES = ['fill', 'says', 'rcatch', 'fill', 'show'];
+  // Quick game cards between postcard parts (1 tap, under 20 seconds each), taking turns through the week.
+  const QUICK_GAMES = ['dragword', 'rquick', 'feedme', 'tappic', 'hatchmo', 'sortone'];
+  const ADVISOR_DAYS = [1, 3]; // weekday index (Tue, Thu) + the bonus day; the question (evidence) is every day
+  const dayIdx = (day) => Math.max(0, ((day && day.day) || 1) - 1) % 5;
+  function sentencesOf(L) { return L.chunks.flatMap((c) => c.s); }
+  function dueReviews() { return S.review.filter((r) => r.due <= S.sessionsDone).slice(0, 2); }
+  /* Words for the quick "I know it / Help me" check: today's postcard words, words that came back, and a few more of
+     the week's words at her level that she has not marked yet. At most 8. */
+  /* Word practice words: today's words (up to 6) + up to 2 words she asked for help with before (they come back). */
+  function practiceWords(week, day, lv) {
+    const L = day.levels[lv], V = week.vocab || {}, seen = new Set(), nw = [];
+    (L.preview || []).forEach((v) => { if (v && v.w && !seen.has(v.w) && nw.length < 6) { seen.add(v.w); nw.push(Object.assign({}, V[v.w] || {}, v)); } });
+    const back = Object.entries(S.words || {}).filter(([w, m]) => m.week === week.id && (m.help || 0) > 0 && !seen.has(w) && V[w]).sort((a, b) => (b[1].help || 0) - (a[1].help || 0)).slice(0, 2).map(([w]) => Object.assign({ w }, V[w]));
+    return { new: nw, back };
+  }
+  function checkWords(week, day, lv) {
+    const L = day.levels[lv], out = [], seen = new Set();
+    const add = (v) => { if (!v || !v.w || seen.has(v.w) || out.length >= 8) return; seen.add(v.w); out.push(v); };
+    const wk = (w) => S.words[w];
+    (L.preview || []).forEach((v) => { const m = wk(v.w); if (!m || m.st !== 'known') add(v); });
+    Object.values(S.tryAgain || {}).forEach((t) => { const v = (week.vocab || {})[t.w]; if (v) add(Object.assign({ w: t.w }, v)); });
+    Object.values(week.vocabByDay || {}).forEach((byLv) => (byLv[lv] || []).forEach((w) => { const v = (week.vocab || {})[w]; if (v && !wk(w)) add(Object.assign({ w }, v)); }));
+    return out;
+  }
+  function quickGame(n, day, L) {
+    let k = QUICK_GAMES[(dayIdx(day) * 2 + n) % QUICK_GAMES.length];
+    if (k === 'rquick' && (S.rOn === false || !(W_().rPairs || []).length)) k = 'tappic';
+    if (k === 'sortone' && !(L.sort && L.sort.items && L.sort.items.length)) k = 'tappic';
+    return { k, n };
+  }
+  /* Postcard stop: parts with quick games so there are never more than 2 reading cards in a row. */
+  function postcardStop(day, L, boss) {
+    const out = []; let run = 0, g = 0;
+    const known = Object.entries(S.words || {}).filter(([w, m]) => m.st === 'known' && !m.ok && m.week === (P.week && P.week.id)).map(([w]) => w);
+    const push = (spec) => {
+      if (READING_K.includes(spec.k)) { if (run >= 2) { out.push(quickGame(g, day, L)); g++; run = 0; } run++; }
+      else run = 0;
+      out.push(spec);
+    };
+    L.chunks.forEach((c, i) => push({ k: 'chunk', i }));
+    if (!boss && L.question && L.question.pre) push({ k: 'qpre' });
+    push({ k: 'question' });
+    if (!boss && L.advisor && (ADVISOR_DAYS.includes(dayIdx(day)) || day.day === 6)) {
+      const two = ['odd', 'feel', 'predict', 'rather'].includes(L.advisor.type);
+      push({ k: 'advisor', step: 1 }); if (two) push({ k: 'advisor', step: 2 });
+    }
+    return out;
+  }
+  function wordStop(week, day, L) {
+    const out = [];
+    dueReviews().slice(0, 1).forEach((r) => out.push({ k: 'echo', r }));
+    const words = practiceWords(week, day, P.lv);
+    if (words.new.length) out.push({ k: 'wpractice', words: words.new, back: words.back }); // Watch me -> Your turn, one tap per word
+    else out.push({ k: 'phrase', n: 0 });
+    const pv = L.preview || [];
+    WORD_GAMES[dayIdx(day)].forEach((k, j) => {
+      if ((k === 'teach' || k === 'sneaky') && !pv.length) k = 'hear';
+      if (k === 'teach') out.push({ k, v: pv[S.sessionsDone % pv.length] });
+      else if (k === 'type') out.push({ k, n: dayIdx(day) % 3 });
+      else out.push({ k });
+    });
+    return out;
+  }
+  function flyStop(day, L) {
+    let k = FLY_GAMES[dayIdx(day)];
+    if (day.day === 5 || k === 'show') k = day.radio ? 'radio' : 'broadcast';
+    if (k === 'rcatch' && S.rOn === false) k = 'fill';
+    const pv = L.preview || [];
+    const first = k === 'says' ? (pv.length ? { k, v: pv[(S.sessionsDone + 1) % pv.length] } : { k: 'fill' }) : { k };
+    return [first, { k: 'route' }];
+  }
+  function stopSpecs(id) {
+    const l = id === 'words' ? wordStop(P.week, P.day, P.L) : id === 'postcard' ? postcardStop(P.day, P.L, false) : flyStop(P.day, P.L);
+    return l.map((x) => Object.assign(x, { stop: id }));
+  }
+  /* Before she picks, the plan shows the default order (words, postcard, fly on); the map card rebuilds the rest. */
+  function planAfterMap(first, left) {
+    const rest = left.filter((x) => x !== first);
+    const out = stopSpecs(first);
+    if (rest.length >= 2) out.push({ k: 'map', left: rest });
+    else if (rest.length === 1) out.push(...stopSpecs(rest[0]));
+    out.push({ k: 'feed' });
+    return out;
+  }
   function buildSpecs(week, day, lv, mode) {
     const L = day.levels[lv];
-    if (mode === 'boss') return [{ k: 'mail' }].concat(L.chunks.map((c, i) => ({ k: 'chunk', i })), [{ k: 'question' }, { k: 'advisor' }, { k: 'feed' }]);
+    if (mode === 'boss') return [{ k: 'mail', boss: true }].concat(postcardStop(day, L, true).map((x) => Object.assign(x, { stop: 'postcard' })), [{ k: 'feed' }]);
     if (mode === 'italia') return [{ k: 'italia' }, { k: 'feed' }];
-    const head = [{ k: 'mail' }, { k: 'warm', n: 0 }, { k: 'warm', n: 1 }];
-    dueReviews().slice(0, 1).forEach((r) => head.push({ k: 'echo', r }));
-    const today = (L.preview || []).map((v) => v.w);
-    const again = Object.values(S.tryAgain || {}).filter((t) => !today.includes(t.w)).sort((a, b) => b.n - a.n)[0];
-    if (again) { const v = (week.vocab || {})[again.w]; if (v) head.push({ k: 'decode', v: Object.assign({ w: again.w }, v), again: true, n: 0 }); }
-    head.push({ k: 'order' });
-    return head;
+    if (mode === 'bonus') return bonusSpecs(week, day, L);
+    return [{ k: 'mail', map: ['words', 'postcard', 'fly'] }];
   }
-  function planFor(week, day, lv, order) {
-    const L = day.levels[lv];
-    const even = S.sessionsDone % 2 === 0;
-    const pv = L.preview || [];
-    const G_ = [{ k: 'model' }, { k: 'type', n: 0 }, { k: 'hear' }, { k: 'type', n: 1 }, { k: 'rebel' }];
-    const V = pv.map((v, n) => ({ k: 'decode', v, n, of: pv.length })).concat(pv.length ? [even ? { k: 'teach', v: pv[S.sessionsDone % pv.length] } : { k: 'sneaky' }] : []);
-    const R = L.chunks.map((c, i) => ({ k: 'chunk', i })).concat([{ k: 'question' }, { k: 'advisor' }]);
-    const tail = [{ k: 'fill' }];
-    if (pv.length) tail.push({ k: 'says', v: pv[(S.sessionsDone + 1) % pv.length] });
-    tail.push({ k: 'type', n: 2 });
-    if (S.rOn !== false) tail.push({ k: 'rpair' }, { k: 'rcatch' });
-    tail.push(even ? { k: 'challenge' } : { k: 'sound' });
-    tail.push({ k: day.radio ? 'radio' : 'broadcast' });
-    if (THEN_NOW) tail.push({ k: 'thennow' });
-    tail.push({ k: 'route' }, { k: 'feed' });
-    const mid = order === 'postcard' ? V.concat(R, [{ k: 'wiggle' }], G_) : G_.concat([{ k: 'wiggle' }], V, R);
-    return mid.concat(tail);
+  /* Optional bonus round (never required): a challenge word, a listening game, R practice, extra word practice. */
+  function bonusSpecs(week, day, L) {
+    const out = [{ k: 'challenge' }, { k: 'sound' }];
+    if (S.rOn !== false && (week.rPairs || []).length) out.push({ k: 'rpair' });
+    const help = Object.entries(S.words || {}).filter(([w, m]) => m.st === 'help' && (week.vocab || {})[w]).slice(0, 2);
+    help.forEach(([w]) => out.push({ k: 'decode', v: Object.assign({ w }, week.vocab[w]), help: true, bonus: true }));
+    if (THEN_NOW) out.push({ k: 'thennow' });
+    out.push({ k: 'feed' });
+    return out;
   }
   /* ---------------- play (feed) ---------------- */
+  const PLAN_V = 2; // saved progress from another plan version is not resumed
   const P = { week: null, day: null, lv: null, L: null, specs: [], cards: [], idx: 0, res: {}, fish: 0, started: 0, key: '' };
   let advanceTimer = null, BUILDING = null, idleTimers = [];
   function sessionKey(week, day, lv) { return `${week.id}-${day.day}-${lv}`; }
@@ -483,6 +597,7 @@
   function startSession(dayIdx, resume, mode) {
     const week = currentWeek();
     let day = shownDay(week.days[dayIdx]);
+    if (S.progress && S.progress.v !== PLAN_V) S.progress = null; // a save from the old (long) session plan: start fresh
     if (resume && S.progress && S.progress.mode) mode = S.progress.mode;
     if (!resume) S.progress = null;
     if (resume && S.progress && S.progress.alt && day.alt) day = day.alt;
@@ -491,12 +606,13 @@
     if (resume && S.progress && S.progress.week === week.id && S.progress.day === day.day) {
       lv = S.progress.lv; res = S.progress.res || {}; idx = S.progress.idx || 0; fish = S.progress.fish || 0; started = S.progress.started || started;
     }
-    Object.assign(P, { week, day, lv, L: day.levels[lv], res, fish, started, idx: 0, cards: [], key: sessionKey(week, day, lv) + (mode ? '-' + mode : ''), alt: !!(resume && S.progress && S.progress.alt), mode: mode || '', order: 'words' });
-    P.plan = (order) => planFor(P.week, P.day, P.lv, order);
-    P.specs = resume && S.progress && S.progress.specs ? S.progress.specs : buildSpecs(week, day, lv, mode);
-    // Before she picks the order, the dots show the whole session (word games first by default).
-    if (!(resume && S.progress && S.progress.specs) && !mode) P.specs = P.specs.concat(P.plan('words'));
+    Object.assign(P, { week, day, lv, L: day.levels[lv], res, fish, started, idx: 0, cards: [], key: sessionKey(week, day, lv) + (mode ? '-' + mode : ''), alt: !!(resume && S.progress && S.progress.alt), mode: mode || '', order: 'words', finished: false });
+    const resumed = !!(resume && S.progress && S.progress.specs);
+    P.specs = resumed ? S.progress.specs : buildSpecs(week, day, lv, mode);
+    // Before she picks on the map, the progress bar shows the default order (Word lab, Postcard, Fly on).
+    if (!resumed && !mode) P.specs = P.specs.concat(planAfterMap('words', ['words', 'postcard', 'fly']));
     if (resume && S.progress && S.progress.order) P.order = S.progress.order;
+    sound('j_start');
     $('feed').replaceChildren();
     showScreen('screenPlay');
     renderDots();
@@ -507,17 +623,16 @@
   }
   /* "Skip this postcard": swap in the other animal's postcard at the same level. No penalty: food earned so far
      is kept, and skipped cards are simply not scored. Word workout cards (shared) are kept as they are. */
-  const SKIPPABLE = ['mail', 'decode', 'chunk', 'question', 'advisor', 'fill', 'says', 'broadcast'];
+  const SKIPPABLE = ['chunk', 'qpre', 'question', 'advisor'];
   function swapToAlt() {
     const alt = P.day.alt; if (!alt) return;
     clearTimeout(advanceTimer);
-    const firstPost = P.specs.findIndex((x) => x.k === 'decode' || x.k === 'chunk');
-    const j = P.idx < firstPost ? P.idx : firstPost;
+    // Replace the rest of the postcard stop (from this card on) with the other animal's postcard, from its first part.
+    const j = P.idx;
+    let e = j; while (e < P.specs.length && P.specs[e].stop === 'postcard') e++;
     P.day = alt; P.L = alt.levels[P.lv]; P.alt = true; P.key = sessionKey(P.week, alt, P.lv);
-    const oi = P.specs.findIndex((x) => x.k === 'order');
-    const newPlan = P.plan(P.order);
-    if (j <= oi) { const head = buildSpecs(P.week, alt, P.lv); P.specs = P.specs.slice(0, j).concat(head.slice(j), newPlan); }
-    else P.specs = P.specs.slice(0, j).concat(newPlan.slice(j - (oi + 1)));
+    const fresh = postcardStop(alt, P.L, P.mode === 'boss').map((x) => Object.assign(x, { stop: 'postcard' }));
+    P.specs = P.specs.slice(0, j).concat(fresh, P.specs.slice(e));
     for (let i = j; i < P.cards.length; i++) if (P.cards[i]) P.cards[i].el.remove();
     P.cards.length = j;
     Object.keys(P.res).forEach((i) => { if (/^\d+$/.test(i) && +i >= j) delete P.res[i]; });
@@ -526,7 +641,7 @@
   }
   function saveProgress() {
     if (P.mode === 'italia') return; // the Italian bonus is tiny: no resume needed
-    S.progress = { week: P.week.id, day: P.day.day, alt: !!P.alt, lv: P.lv, idx: Math.max(P.idx, P.cards.length - 1), res: P.res, fish: P.fish, started: P.started, specs: P.specs, mode: P.mode, order: P.order };
+    S.progress = { v: PLAN_V, saved: Date.now(), week: P.week.id, day: P.day.day, alt: !!P.alt, lv: P.lv, idx: Math.max(P.idx, P.cards.length - 1), res: P.res, fish: P.fish, started: P.started, specs: P.specs, mode: P.mode, order: P.order };
     save();
   }
   function appendCard(i, done) {
@@ -539,10 +654,10 @@
     BUILDING = card;
     try { BUILD[spec.k](card, sec); } catch (e) { console.error(e); sec.appendChild(el('p', 'c-text', 'Oops, this card is missing. Swipe on!')); card.done = true; }
     BUILDING = null;
-    if (P.day.alt && SKIPPABLE.includes(spec.k) && !card.done) {
-      const body = sec.querySelector('.c-body');
-      if (body) body.insertBefore(btn('skip-btn', '↪️ Skip this postcard', () => swapToAlt()), body.firstChild);
-    }
+    const body = sec.querySelector('.c-body');
+    if (P.day.alt && SKIPPABLE.includes(spec.k) && !card.done && body) body.insertBefore(btn('skip-btn', '🔀 A different postcard', () => swapToAlt()), body.firstChild);
+    // Every card can be skipped, no questions asked (same small button, same place on every card).
+    if (!card.done && !NO_SKIP.includes(spec.k)) { const sk = btn('skip-card', 'Skip ⏭', (e) => { e.stopPropagation(); skipCard(card); }); sk.setAttribute('aria-label', 'Skip this card'); sec.appendChild(sk); }
     if (card.done) sec.classList.add('is-done');
     P.cards[i] = card;
     $('feed').appendChild(sec);
@@ -553,18 +668,31 @@
     if (card.done) return;
     card.done = true;
     card.el.classList.add('is-done');
-    if (result) P.res[card.i] = Object.assign({ k: card.spec.k }, result);
-    if (card.pip && !(opts && opts.pose === false)) card.pip.pose((opts && opts.pose) || (result ? winPose() : card.pip.dataset.pose));
+    if (result) P.res[card.i] = Object.assign({ k: card.spec.k }, result, card.helped ? { helped: true, first: false } : {});
+    if (card.pip && !(opts && opts.pose === false)) card.pip.pose((opts && opts.pose) || (stopLast(card.i) ? 'love' : (result ? winPose() : card.pip.dataset.pose)));
+    if (card.pip && card.pip.moveTo) card.pip.moveTo(stopFrac(card.i, true), true);
     const fish = opts && opts.fish != null ? opts.fish : 1;
     if (fish) { P.fish += fish; fishPop(card.el, fish); }
+    if (result || fish) babyReact(result && result.first === false ? 'soft' : 'yay');
     appendCard(card.i + 1, false);
     saveProgress();
     updateNav();
     clearTimeout(advanceTimer);
     if (!(opts && opts.stay)) {
       const at = card.i;
-      advanceTimer = setTimeout(() => { if (P.idx === at && $('screenPlay').classList.contains('active')) goNext(); }, (opts && opts.delay) || AUTO_MS);
+      advanceTimer = setTimeout(() => { if (P.idx === at && $('screenPlay').classList.contains('active')) goNext(); }, Math.min((opts && opts.delay) || AUTO_MS, (opts && opts.read) ? 2600 : MAX_DELAY));
     }
+  }
+  /* Skip (the button on each card, or a swipe up / Next on a card that is not finished): no penalty, not scored. */
+  const NO_SKIP = ['mail', 'map', 'feed'];
+  function skipCard(card) {
+    if (!card || card.done) return;
+    clearTimeout(advanceTimer);
+    if (card.onSkip) card.onSkip();
+    card.done = true; card.skipped = true; card.el.classList.add('is-done', 'skipped');
+    P.res[card.i] = { k: card.spec.k, skipped: true };
+    appendCard(card.i + 1, false); saveProgress(); updateNav();
+    if (P.cards[card.i + 1]) scrollToIndex(card.i + 1, true);
   }
   function fishPop(where, n) {
     sound('fish');
@@ -573,22 +701,38 @@
     setTimeout(() => f.remove(), 1400);
     $('fishCount').textContent = pet().food + ' ' + P.fish;
   }
+  /* Progress: a bar that fills card by card toward today's sticker, with her baby riding along (and small dots under it). */
   function renderDots() {
     const d = $('dots'); d.replaceChildren();
-    P.specs.forEach(() => d.appendChild(el('i', 'dot')));
+    const bar = el('div', 'pbar'); bar.append(el('i', 'pbar-fill'), el('span', 'pbar-pet', pet().icon), el('span', 'pbar-goal', '⭐'));
+    const row = el('div', 'dot-row'); P.specs.forEach(() => row.appendChild(el('i', 'dot')));
+    d.append(bar, row);
     $('fishCount').textContent = pet().food + ' ' + P.fish;
   }
+  /* Her baby reacts in the top bar on every win (a hop and a heart). */
+  function babyReact(kind) {
+    const f = $('fishCount'); if (!f) return;
+    f.classList.remove('hop'); void f.offsetWidth; f.classList.add('hop');
+    const h = el('span', 'heart-pop', kind === 'soft' ? '💛' : '❤️'); f.appendChild(h); setTimeout(() => h.remove(), 700);
+  }
   function updateNav() {
-    const dots = $('dots').children;
+    const dots = $('dots').querySelectorAll('.dot');
+    let nDone = 0;
     for (let i = 0; i < dots.length; i++) {
-      dots[i].classList.toggle('done', !!(P.cards[i] && P.cards[i].done));
+      const dn = !!(P.cards[i] && P.cards[i].done); if (dn) nDone++;
+      dots[i].classList.toggle('done', dn);
       dots[i].classList.toggle('here', i === P.idx);
     }
-    $('topTitle').textContent = P.mode === 'italia' ? '🇮🇹 Italia' : P.mode === 'boss' ? `👑 ${P.day ? P.day.name : ''}` : `${P.day ? P.day.name : ''}`;
+    const pct = dots.length ? Math.round((nDone / dots.length) * 100) : 0;
+    const fillEl = $('dots').querySelector('.pbar-fill'), petEl = $('dots').querySelector('.pbar-pet');
+    if (fillEl) fillEl.style.width = pct + '%'; if (petEl) petEl.style.left = `calc(${pct}% - ${pct * 0.22}px)`;
+    $('dots').setAttribute('aria-label', `Card ${P.idx + 1} of ${dots.length}`);
+    $('topTitle').textContent = P.mode === 'italia' ? '🇮🇹 Italia' : P.mode === 'boss' ? `👑 ${P.day ? P.day.name : ''}` : P.mode === 'bonus' ? '⭐ Bonus round' : `${P.day ? P.day.name : ''}`;
     $('btnPrev').disabled = P.idx <= 0;
     const cur = P.cards[P.idx];
-    $('btnNext').disabled = !(cur && cur.done && P.cards[P.idx + 1]);
-    $('btnNext').classList.toggle('ready', !$('btnNext').disabled);
+    $('btnNext').disabled = !cur || (cur.done && !P.cards[P.idx + 1] && cur.spec.k !== 'feed');
+    $('btnNext').classList.toggle('ready', !!(cur && cur.done && P.cards[P.idx + 1]));
+    $('btnNext').setAttribute('aria-label', cur && !cur.done ? 'Skip this card' : 'Next card');
   }
   let scrollLock = { target: -1, until: 0 };
   function scrollToIndex(i, smooth) {
@@ -608,6 +752,7 @@
       const first = !c._shown; c._shown = true;
       // The guide says her line out loud (captions are in the bubble). Cards with their own audio set noAutoSay.
       if (c.pip && !c.noAutoSay && first && !c.done) setTimeout(() => { if (P.cards[P.idx] === c) c.pip.speakNow(); }, 250);
+      if (c.pip && c.pip.moveTo) requestAnimationFrame(() => { c.pip.moveTo(stopFrac(i, c.done), false); });
       if (c.onShow) c.onShow();
       if (!c.done) (c.idle || []).forEach((x) => idleTimers.push(setTimeout(() => { if (P.cards[P.idx] === c && !c.done) { x.fn(); if (c.pip) c.pip.say('Here is a clue! 💡'); } }, x.ms)));
     }
@@ -625,9 +770,14 @@
   }
   function goNext() {
     const cur = P.cards[P.idx];
-    if (!cur || !cur.done) { toast('Help Pip with this card first 💛'); return; }
+    if (!cur) return;
+    if (!cur.done && cur.onNext && cur.onNext()) return; // a card with its own steps (word practice: next word)
+    if (!cur.done) { if (NO_SKIP.includes(cur.spec.k)) { cueNext(cur); return; } return skipCard(cur); } // swipe up any time = skip
     if (P.cards[P.idx + 1]) scrollToIndex(P.idx + 1, true);
+    else if (cur.spec.k === 'feed') finishSession();
   }
+  // On a card she has to answer (the map, feeding the baby), a swipe points at the thing to tap instead.
+  function cueNext(card) { const t = card.el.querySelector('.stop-btn, .big-btn:not([disabled])'); if (t) { t.classList.remove('nudge1'); void t.offsetWidth; t.classList.add('nudge1'); } }
   function goPrev() { if (P.idx > 0) scrollToIndex(P.idx - 1, true); }
 
   /* ---------------- card building blocks ---------------- */
@@ -673,11 +823,20 @@
   function winPose() { return (winTurn++ % 3 === 2) ? 'love' : 'cheer'; }
   /* The girl joins some cards (small, bottom-left of the picture): pirate on boss postcards, Italy on the Italian
      bonus, thinking on "your turn to think" cards, writing on spell/type cards, a postcard on the arrival card. */
+  // Where the guide is in the current stop (0 = far side, 1 = with the girl). Cards outside a stop: mail 0, feed 1.
+  function stopFrac(i, withSelf) {
+    const sp = P.specs[i]; if (!sp) return 0;
+    if (!sp.stop) return sp.k === 'feed' ? 1 : 0;
+    const idx = P.specs.map((x, j) => (x.stop === sp.stop ? j : -1)).filter((j) => j >= 0);
+    let n = 0; idx.forEach((j) => { if (j < i || (withSelf && j === i)) n++; });
+    return n / idx.length;
+  }
+  const stopLast = (i) => { const sp = P.specs[i]; return !!(sp && sp.stop && !(P.specs[i + 1] && P.specs[i + 1].stop === sp.stop)); };
   function sidekick(vis, card, base) {
     if (!vis || !vis.classList || !vis.classList.contains('c-visual') || vis.querySelector('.girl-side')) return;
     if (vis.parentElement && vis.parentElement.classList.contains('tall')) return;
     const k = card && card.spec && card.spec.k;
-    const slot = P && P.mode === 'boss' ? (k === 'feed' ? 'bossWin' : 'boss') : k === 'italia' ? 'italia' : (k === 'spell' || k === 'type') ? 'spell' : base === 'think' ? 'think' : k === 'mail' ? 'mail' : '';
+    const slot = P && P.mode === 'boss' ? (k === 'feed' ? 'bossWin' : 'boss') : k === 'italia' ? 'italia' : (k === 'spell' || k === 'type') ? 'spell' : base === 'think' ? 'think' : k === 'mail' ? 'mail' : (k === 'feed' || k === 'feedme' || k === 'hatchmo') ? '' : 'read';
     if (slot) vis.appendChild(girlEl(slot, 'girl-side'));
   }
   function pipSay(vis, text, mood, content) {
@@ -695,15 +854,32 @@
     b.append(cap, rp);
     if (!text) b.hidden = true;
     w.append(b, img); vis.appendChild(w);
+    img.addEventListener('click', () => { if (voiceActive()) stopVoice(); else w.speakNow(); });
+    b.addEventListener('click', (e) => { if (e.target === rp) return; if (voiceActive()) stopVoice(); });
     sidekick(vis, card, base);
     w.text = text || '';
     w.speakNow = () => { if (w.text) { speakingWrap = w; w.classList.remove('cap-fail'); sayList([{ text: fillName(w.text), word: false }]); } };
     capMode(w);
     w.fit = () => fitBubble(w, b, vis);
+    /* Progress meter: in each stop the guide starts at the far side and moves closer to the girl with every answer.
+       (CSS translate, so it never fights the flap/hop animations.) Never moves backward. */
+    w.frac = 0;
+    w.moveTo = (f, anim) => {
+      if (!w.isConnected || vis.parentElement && vis.parentElement.classList.contains('tall')) return;
+      f = Math.max(w.frac, Math.min(1, f)); w.frac = f;
+      const V = vis.getBoundingClientRect(), R = w.getBoundingClientRect(); if (!V.width) return;
+      const girl = vis.querySelector('.girl-side'); const gw = girl ? girl.getBoundingClientRect().width : 0;
+      const travel = Math.max(0, V.width - R.width - gw * 0.55 - 12);
+      w.classList.toggle('no-anim', !anim);
+      w.style.setProperty('--gx', Math.round(-f * travel) + 'px');
+      if (anim) w.act(f >= 1 ? 'spin' : 'hop');
+      setTimeout(w.fit, anim ? 380 : 0);
+    };
+    w.act = (kind) => { img.classList.remove('hop', 'flap', 'spin', 'wobble'); void img.offsetWidth; img.classList.add(kind); setTimeout(() => img.classList.remove(kind), 420); };
     requestAnimationFrame(w.fit);
-    w.say = (t, m) => {
+    w.say = (t, m, quiet) => {
       w.text = t || ''; b.hidden = !t; w.classList.remove('cap-fail'); capMode(w); setCap(cap, t || ''); w.pose(m || w.base); w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop'); w.fit();
-      if (t && card && P.cards[P.idx] === card) w.speakNow();
+      if (!quiet && t && card && P.cards[P.idx] === card) w.speakNow();
     };
     if (card) card.pip = w;
     return w;
@@ -727,7 +903,7 @@
   function feedback(body) { const f = el('p', 'fb'); f.setAttribute('role', 'status'); f.setAttribute('aria-live', 'polite'); body.appendChild(f); return f; }
   function setFb(f, text, kind) { f.textContent = fillName(text); f.className = 'fb show ' + (kind || ''); }
   // "Not yet": a gentle wobble and a soft boop. No red, no X, no buzzer.
-  function shake(b) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); sound('wrong'); }
+  function shake(b) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); sound('wrong'); const c = P.cards && P.cards[P.idx]; if (c && c.pip && c.pip.act) c.pip.act('wobble'); }
   /* Idle help: if she pauses, a clue appears by itself (before she can get stuck). */
   function onIdle(fn, ms) { const c = BUILDING; if (c) (c.idle = c.idle || []).push({ fn, ms: ms || 12000 }); }
   function sparkle(b) { b.classList.add('right'); sound('ok'); const s = el('span', 'spark', '✨'); b.appendChild(s); setTimeout(() => s.remove(), 900); }
@@ -736,17 +912,24 @@
      If she pauses, one option quietly fades away as a clue. */
   function choices(parent, opts, seed, onRight, onWrong, cls) {
     const row = el('div', 'opts ' + (cls || ''));
+    const card = BUILDING;
     let tries = 0, over = false;
     const btns = [];
     const fadeWrong = (keep) => { const wrong = btns.filter((x) => x.i !== 0 && !x.b.classList.contains('gone')); shuffle(wrong, seed + tries).slice(0, Math.max(0, wrong.length - keep)).forEach((x) => { x.b.classList.add('gone'); x.b.disabled = true; }); };
-    shuffle(opts.map((o, i) => ({ o, i })), seed).forEach(({ o, i }) => {
+    const rightB = () => btns.find((x) => x.i === 0).b;
+    placeAnswer(opts.map((o, i) => ({ o, i })), (x) => x.i === 0, card ? card.spec.k : (((P.cards[P.idx] || {}).spec || {}).k || '?')).forEach(({ o, i }) => {
       const b = btn('opt', null, () => {
         if (over || b.disabled) return;
         if (i === 0) { over = true; sparkle(b); onRight(tries === 0, b); }
         else {
           tries++; shake(b); b.classList.add('gone'); b.disabled = true;
-          if (tries === 1) fadeWrong(1); else { fadeWrong(0); btns[0] && btns.find((x) => x.i === 0).b.classList.add('glow'); }
           onWrong && onWrong(b, tries);
+          if (tries === 1) { fadeWrong(1); rightB().classList.add('glow'); }
+          else { // shown, not failed: the answer lights up and we move on (logged as "helped", no penalty)
+            over = true; fadeWrong(0); const r = rightB(); r.classList.add('glow', 'shown');
+            if (card) card.helped = true;
+            setTimeout(() => { sparkle(r); onRight(false, r, { shown: true }); }, 650);
+          }
         }
       });
       if (o instanceof Node) b.appendChild(o); else b.textContent = fillName(o);
@@ -754,43 +937,50 @@
       row.appendChild(b);
     });
     onIdle(() => { if (!over) { fadeWrong(Math.max(1, btns.filter((x) => x.i !== 0 && !x.b.disabled).length - 1)); } });
+    if (card) card.help = () => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } };
     parent.appendChild(row);
     return row;
   }
   /* Tappable sentences of the whole postcard (evidence). isRight(idx, sentence) -> 'right' | 'near' | false */
   function sentenceList(parent, L, isRight, onDone, onMiss) {
-    const box = el('div', 'evi');
+    /* v2.5.1: proof = 3 sentences from her postcard (the proof, a close one if any, others), shuffled per view, one tap.
+       (Before, the whole postcard was listed in text order, so the proof sat in the same spot every time.) */
+    const box = el('div', 'evi evi-3');
     let tries = 0, over = false;
-    let n = 0;
+    const all = []; let n = 0;
+    L.chunks.forEach((c) => c.s.forEach((s) => { const i = n++; all.push({ i, s, r: isRight(i, s) }); }));
+    const right = all.filter((x) => x.r === 'right'), near = all.filter((x) => x.r === 'near'), wrong = fyShuffle(all.filter((x) => !x.r));
+    const pick = [right[0]].concat(near.slice(0, 1), wrong).filter(Boolean).slice(0, 3);
+    const owner = BUILDING; box._card = owner;
     const help = (lvl) => {
-      box.querySelectorAll('.evi-p').forEach((p) => { if (![...p.querySelectorAll('.evi-s')].some((x) => x._right)) p.classList.add('dim'); });
+      box.querySelectorAll('.evi-s').forEach((x) => { if (!x._right && lvl >= 1) x.closest('.evi-p').classList.add('dim'); });
       if (lvl >= 2) box.querySelectorAll('.evi-s').forEach((x) => { if (x._right) x.classList.add('glow'); });
     };
     onIdle(() => { if (!over) help(1); }, 20000);
-    L.chunks.forEach((c) => {
+    if (owner) owner.help = () => { if (!over) help(2); };
+    placeAnswer(pick, (x) => x.r === 'right', (owner ? owner.spec.k : '?') + ':evi').forEach(({ i, s, r }) => {
       const p = el('p', 'evi-p');
-      c.s.forEach((s) => {
-        const i = n++;
-        const b = btn('evi-s', fillName(s), () => {
-          if (over) return;
-          const r = isRight(i, s);
-          if (r === 'right') { over = true; sparkle(b); onDone(tries === 0, i); }
-          else if (r === 'near') { b.classList.add('near'); onMiss(b, 'near'); }
-          else { tries++; shake(b); b.classList.add('nope'); setTimeout(() => b.classList.remove('nope'), 1200); help(tries); onMiss(b, tries); }
-        });
-        b._right = isRight(i, s) === 'right';
-        p.append(b, document.createTextNode(' '));
+      const b = btn('evi-s', fillName(s), () => {
+        if (over) return;
+        if (r === 'right') { over = true; sparkle(b); onDone(tries === 0, i); }
+        else if (r === 'near') { b.classList.add('near'); onMiss(b, 'near'); }
+        else { tries++; shake(b); b.classList.add('nope'); setTimeout(() => b.classList.remove('nope'), 1200); help(Math.max(1, tries)); onMiss(b, tries);
+          if (tries >= 2) { over = true; const rb = [...box.querySelectorAll('.evi-s')].find((x) => x._right); if (owner) owner.helped = true; if (rb) rb.classList.add('glow'); setTimeout(() => { if (rb) sparkle(rb); onDone(false, -1); }, 900); } }
       });
-      box.appendChild(p);
+      b._right = r === 'right';
+      p.appendChild(b); box.appendChild(p);
     });
     parent.appendChild(box);
     return box;
   }
+  const BUILDING_OF = (node) => node && node._card;
   const hasSub = (s, subs) => [].concat(subs || []).some((x) => s.includes(x));
   function hintBtn(parent, label, onHint) { const b = btn('hint-btn', label || '💡 Hint', () => { b.classList.add('used'); onHint(); }); parent.appendChild(b); return b; }
   const wordLevelLabel = () => `${P.day.name} · ${LEVEL_INFO[P.lv].name}`;
   function recordMiss(markup, type) {
     const w = plain(markup);
+    const kw = S.words && S.words[w];
+    if (kw && kw.st === 'known') { kw.st = 'help'; kw.moved = Date.now(); P.res.moved = (P.res.moved || []).concat(w); save(); }
     if (!P.res.missed) P.res.missed = [];
     if (!P.res.missed.find((m) => m.w === w)) P.res.missed.push({ w, split: markup, type });
   }
@@ -799,28 +989,41 @@
   const BUILD = {};
   BUILD.model = (card, sec) => {
     const m = P.L.model;
-    const { vis, body } = frame(sec, { kicker: '🧩 Pattern · Watch me', title: m.title });
-    body.appendChild(el('p', 'c-note', '🇮🇹 Like Italian: when a word follows the pattern, the letters tell you the sounds.'));
+    const { vis, body } = frame(sec, { kicker: '🧩 Pattern · tap a word to hear it', title: m.title });
     const big = el('div', 'model-hero'); big.appendChild(wordEl(m.ex[0].w, { big: true })); vis.appendChild(big);
-    pipSay(vis, 'Watch me first! Tap each word.');
-    m.lines.forEach((t) => body.appendChild(el('p', 'c-text sm', t)));
+    pipSay(vis, 'These words follow the pattern. Which one is it?');
+    m.lines.slice(0, 1).forEach((t) => body.appendChild(el('p', 'c-text sm', t)));
     const row = el('div', 'ex-row');
-    let tapped = 0;
-    const go = btn('big-btn', 'Got it! 👍', () => complete(card, null, { fish: 0, delay: 300 }));
-    go.disabled = true;
-    m.ex.forEach((x) => {
-      const b = btn('ex', null, () => {
-        big.replaceChildren(wordEl(x.w, { big: true })); big.classList.remove('pulse'); void big.offsetWidth; big.classList.add('pulse');
-        if (!b.classList.contains('seen')) { b.classList.add('seen'); tapped++; }
-        if (tapped >= Math.min(2, m.ex.length)) go.disabled = false;
-        speak(plain(x.w));
-      });
-      b.append(wordEl(x.w), el('span', 'ex-tag', x.tag));
-      row.appendChild(b);
+    m.ex.slice(0, 3).forEach((x) => {
+      const b = btn('ex', null, () => { big.replaceChildren(wordEl(x.w, { big: true })); big.classList.remove('pulse'); void big.offsetWidth; big.classList.add('pulse'); speak(plain(x.w)); });
+      b.append(wordEl(x.w), el('span', 'ex-tag', x.tag)); row.appendChild(b);
     });
-    body.append(row, go);
+    body.appendChild(row);
+    // the job: one tap. A pattern word vs the week's sneaky (rule-breaking) word.
+    const good = plain(m.ex[m.ex.length - 1].w), bad = P.L.rebel && P.L.rebel.words ? plain(P.L.rebel.words[0]) : null;
+    body.appendChild(el('p', 'c-q', 'Which word follows the pattern?'));
+    const fb = feedback(body);
+    if (!bad || bad === good) { body.insertBefore(btn('big-btn', 'Got it! 👍', () => complete(card, null, { fish: 0, delay: 300 })), fb); return; }
+    card.answer = good;
+    const r2 = choices(body, [good, bad], good + bad + P.key, (first) => { setFb(fb, 'Yes! It follows the pattern. 🧩', 'good'); complete(card, { first, type: 'model' }); },
+      () => setFb(fb, 'Look at the colored part. Does it do what the pattern says?', 'soft'), 'words');
+    body.insertBefore(r2, fb);
   };
-  function wordCardVisual(vis, pic, clue, sayText) { const v = el('div', 'pic-hero', pic || '📝'); vis.appendChild(v); return pipSay(vis, sayText || clue); }
+  /* The picture area of a word card: today's scene (the postcard art) with the word's picture as a postage stamp on it,
+     instead of an emoji floating in the sky. stage.setPic(emoji) changes the stamp. */
+  function picHero(pic, o) {
+    o = o || {};
+    const stage = el('div', 'pic-stage' + (o.cls ? ' ' + o.cls : ''));
+    const src = o.scene === false ? '' : (o.scene || (P.day && P.day.scene));
+    if (src) { const sc = sceneImg(src); sc.classList.add('soft'); stage.appendChild(sc); } else stage.classList.add('no-art');
+    const st = el('div', 'stamp'); const inner = el('span', 'stamp-pic', pic || '✉️'); st.appendChild(inner);
+    if (o.cap) st.appendChild(el('span', 'stamp-cap', o.cap));
+    stage.appendChild(st);
+    stage.setPic = (e) => { setPicText(inner, e); st.classList.remove('stamp-in'); void st.offsetWidth; st.classList.add('stamp-in'); };
+    stage.stamp = st;
+    return stage;
+  }
+  function wordCardVisual(vis, pic, clue, sayText) { vis.appendChild(picHero(pic || '📝')); return pipSay(vis, sayText || clue); }
   function nearMisses(w) {
     const out = new Set(); const swaps = { a: 'e', e: 'i', i: 'e', o: 'u', u: 'o' };
     for (let i = 0; i < w.length && out.size < 6; i++) { const c = w[i]; if (swaps[c]) out.add(w.slice(0, i) + swaps[c] + w.slice(i + 1)); }
@@ -950,11 +1153,11 @@
     const k = P.L.rebel;
     const { vis, body } = frame(sec, { kicker: '🕵️ Word workout · Sneaky word hunt', title: 'Find the sneaky word!' });
     const pip = pipSay(vis, 'One word is sneaky: it does NOT follow the pattern. Can you catch it?');
-    vis.appendChild(el('div', 'pic-hero', '🕵️'));
+    vis.appendChild(picHero('🕵️'));
     const fb = feedback(body);
     choices(body, k.words, k.words.join() + P.key, (first) => {
       setFb(fb, k.why, 'good'); pip.say('You caught the sneaky word! 🕵️');
-      complete(card, { first, type: 'rebel' }, { delay: 3200 });
+      complete(card, { first, type: 'rebel' }, { delay: 1500 });
     }, () => { recordMiss(k.words[0], 'rebel'); pip.say('Oops, that one follows the pattern! I got mixed up. 🙃', 'oops'); setFb(fb, 'Say each word in your head. Which one sounds different?', 'soft'); }, 'words grid2');
     body.appendChild(fb);
   };
@@ -983,29 +1186,27 @@
     const L = P.L, i = card.spec.i, c = L.chunks[i], last = i === L.chunks.length - 1;
     const { vis, body } = frame(sec, { kicker: `✉️ ${fillName(L.title)} · part ${i + 1} of ${L.chunks.length}` });
     vis.appendChild(sceneImg(P.day.scene, c.focus, '160%'));
-    vis.appendChild(el('div', 'sticker', c.pic));
-    if (i === 0) body.appendChild(el('p', 'pc-greet', 'Dear Mission Control,'));
-    const txt = el('div', 'pc-text');
-    c.s.forEach((s) => txt.appendChild(el('p', null, fillName(s))));
-    body.appendChild(txt);
-    if (last) body.appendChild(el('p', 'pc-sign', 'Your pal, Pip 🐦'));
-    const quiet = el('p', 'c-sub quiet', '🤫 Read it in your head.');
-    body.appendChild(quiet);
+    { const st = el('div', 'stamp'); st.appendChild(el('span', 'stamp-pic', c.pic)); vis.appendChild(st); }
+    pipSay(vis, ''); // the guide (quiet here) + the girl: the guide is the stop's progress meter // the part's picture as a stamp on the scene (no floating emoji)
+    const pc = postcardEl({ cls: 'pc-chunk' + (i === 0 ? ' first' : '') }); const txt = pc.text;
+    if (i === 0) txt.appendChild(el('p', 'pc-greet', 'Dear Mission Control,'));
+    c.s.forEach((s0) => txt.appendChild(el('p', null, fillName(s0))));
+    if (last) txt.appendChild(el('p', 'pc-sign', `Your pal, ${G().name} ${G().icon || ''}`));
+    body.appendChild(pc);
+    // The reading has a job: read it, then tap the picture of what just happened (one tap; it moves on by itself).
+    const q = el('p', 'c-q', '🤫 Read it, then tap: which picture shows it?');
+    body.appendChild(q);
     const fb = feedback(body);
-    const read = btn('big-btn', 'I read it ✓', () => {
-      read.remove(); quiet.remove();
-      const q = el('p', 'c-q', 'Which picture shows what just happened?');
-      body.insertBefore(q, fb);
-      const row = choices(body, c.check, L.title + i, (first) => {
-        setFb(fb, first ? 'Yes! You pictured it! 🖼️' : 'Yes! That is it!', 'good');
-        complete(card, { first, type: 'check' });
-      }, () => setFb(fb, 'Not yet! Peek at the words again. 👀', 'soft'), 'pics');
-      // Only AFTER she has read it herself can she hear the guide read it.
-      body.insertBefore(btn('hear-btn hear-read', `🔊 Hear ${G().name} read it`, () => sayList(c.s.map((x) => ({ text: fillName(x), word: false, pause: 150 })))), fb);
-      body.insertBefore(row, fb);
-      requestAnimationFrame(() => { body.scrollTo({ top: body.scrollHeight, behavior: 'smooth' }); });
-    });
-    body.insertBefore(read, fb);
+    const row = choices(body, c.check, L.title + i, (first) => {
+      setFb(fb, first ? 'Yes! You pictured it! 🖼️' : 'Yes! That is it!', 'good');
+      complete(card, { first, type: 'check' });
+    }, () => { setFb(fb, 'Peek at the words again. 👀', 'soft'); showHear(); }, 'pics');
+    body.insertBefore(row, fb);
+    // Her own reading comes first: the "hear it" button shows up after a few seconds (or after a miss).
+    const hear = btn('hear-btn hear-read', `🔊 Hear ${G().name} read it`, () => sayList(c.s.map((x) => ({ text: fillName(x), word: false, pause: 150 }))));
+    hear.hidden = true; body.insertBefore(hear, fb);
+    const showHear = () => { hear.hidden = false; };
+    card.onShow = () => { setTimeout(showHear, 6000); };
   };
   function compareVisual(vis) {
     const other = P.week.days.find((d) => d.day === P.day.compareWith);
@@ -1029,89 +1230,74 @@
   BUILD.question = (card, sec) => {
     const L = P.L, q = L.question;
     const pictureQ = q.pre && q.pre.picture;
-    const { vis, body } = frame(sec, { kicker: `❓ Pip's question · ${P.day.qtype}`, tall: !pictureQ, visCls: pictureQ ? 'full-pic' : '' });
+    const preCard = card.spec.k === 'qpre';
+    const { vis, body } = frame(sec, { kicker: preCard ? '🤔 What do you think?' : `❓ Pip's question · ${P.day.qtype}`, tall: !preCard, visCls: preCard && pictureQ ? 'full-pic' : '' });
     let other = null;
-    if (P.day.compareWith) other = compareVisual(vis); else { const s = sceneImg(P.day.scene); if (pictureQ) s.classList.add('contain'); vis.appendChild(s); }
-    const pip = pipSay(vis, q.pre ? q.pre.q : q.q);
+    if (P.day.compareWith && !preCard) other = compareVisual(vis); else { const s = sceneImg(P.day.scene); if (pictureQ) s.classList.add('contain'); vis.appendChild(s); }
+    const isPre = card.spec.k === 'qpre';
+    const pip = pipSay(vis, isPre ? q.pre.q : q.q);
     const fb = feedback(body);
     const evidence = () => {
-      pip.say(q.q);
       body.insertBefore(el('p', 'c-q', fillName(q.q)), fb);
       if (other) body.insertBefore(peekOther(body, other), fb);
       const list = sentenceList(body, L, (i, s) => hasSub(s, q.a) ? 'right' : (q.near && hasSub(s, q.near) ? 'near' : false), (first) => {
         pip.say('You saved me, Mission Control! 🎉'); setFb(fb, first ? 'That is the proof! First try! 🌟' : 'That is the proof! 🎉', 'good');
-        complete(card, { first, type: 'question', pre: card._preFirst });
+        complete(card, { first, type: 'question', pre: P.res.preFirst });
       }, (b, t) => {
         if (t === 'near') { setFb(fb, q.nearText || 'Close! Try a sentence that tells it exactly.', 'hint'); return; }
         pip.say(q.mishap, 'oops'); setFb(fb, q.mishap, 'soft');
       });
       body.insertBefore(list, fb);
     };
-    if (q.pre) {
+    if (q.pre && card.spec.k === 'qpre') {
       body.appendChild(el('p', 'c-q', fillName(q.pre.q)));
       const row = choices(body, q.pre.opts, L.title + 'pre', (first) => {
-        card._preFirst = first; setFb(fb, 'Yes! 👍', 'good');
-        setTimeout(() => { row.classList.add('collapsed'); fb.className = 'fb'; evidence(); }, 700);
+        setFb(fb, 'Yes! 👍', 'good'); P.res.preFirst = first;
+        complete(card, { first, type: 'qpre' });
       }, () => { pip.say(q.pre.mishap, 'oops'); setFb(fb, q.pre.mishap, 'soft'); }, 'stack');
       body.appendChild(fb);
     } else { body.appendChild(fb); evidence(); }
   };
+  BUILD.qpre = (card, sec) => BUILD.question(card, sec);
+  /* Advisor: one question per card. Two-part advisors (odd one out + why, feel + proof, would-you-rather + reason)
+     are two cards in a row (spec.step 1 and 2), each answered with one tap. */
   BUILD.advisor = (card, sec) => {
-    const L = P.L, a = L.advisor;
+    const L = P.L, a = L.advisor, step = card.spec.step || 1;
     const kick = { mistake: '🧐 Advisor · Pip made a mistake', odd: '🧐 Advisor · Odd one out', feel: '🧐 Advisor · How does Pip feel?', rather: '🧐 Advisor · Would you rather?', predict: '🧐 Advisor · Predict' }[a.type];
-    const { vis, body } = frame(sec, { kicker: kick, tall: true });
+    const evid = a.type === 'mistake' || (step === 2 && (a.type === 'feel' || a.type === 'predict'));
+    const { vis, body } = frame(sec, { kicker: kick + (step === 2 ? ' · part 2' : ''), tall: evid });
     vis.appendChild(sceneImg(P.day.scene));
-    const pip = pipSay(vis, a.type === 'mistake' ? '"' + a.pip + '"' : a.q);
+    const pip = pipSay(vis, a.type === 'mistake' ? '"' + a.pip + '"' : (step === 2 ? (a.whyQ || a.evQ || 'Why?') : a.q));
     const fb = feedback(body);
-    const done = (first) => { pip.say('Great advice! You are the best advisor! 🏅'); setFb(fb, 'Great thinking! 🏅', 'good'); complete(card, { first, type: 'advisor' }); };
-    const evidence = (prompt, subs, first0) => {
+    const done = (first, type) => { pip.say(step === 1 && a.type !== 'mistake' ? 'Good thinking! 👍' : 'Great advice! You are the best advisor! 🏅'); setFb(fb, 'Great thinking! 🏅', 'good'); complete(card, { first, type: type || 'advisor' }); };
+    const evidence = (prompt, subs) => {
       body.insertBefore(el('p', 'c-q', prompt), fb);
-      const list = sentenceList(body, L, (i, s) => hasSub(s, subs) ? 'right' : false, (first) => done(first0 && first), () => { pip.say(a.mishap, 'oops'); setFb(fb, a.mishap, 'soft'); });
+      const list = sentenceList(body, L, (i, s0) => hasSub(s0, subs) ? 'right' : false, (first) => done(first && P.res.advFirst !== false), () => { pip.say(a.mishap, 'oops'); setFb(fb, a.mishap, 'soft'); });
       body.insertBefore(list, fb);
     };
-    if (a.type === 'mistake') {
-      body.appendChild(el('p', 'c-quote', 'Pip says: "' + a.pip + '"'));
-      body.appendChild(fb);
-      evidence(a.q, a.a, true);
-    } else if (a.type === 'odd') {
-      body.appendChild(el('p', 'c-q', a.q));
-      let first0 = true;
-      const row = choices(body, a.opts, L.title + 'odd', (first) => {
-        first0 = first;
-        setTimeout(() => {
-          row.classList.add('collapsed');
-          body.insertBefore(el('p', 'c-q', a.whyQ), fb);
-          const r2 = choices(body, a.whys, L.title + 'why', (f2) => done(first0 && f2), () => setFb(fb, a.mishap, 'soft'), 'stack');
-          body.insertBefore(r2, fb);
-        }, 600);
-      }, () => { pip.say('Hmm, that one belongs! Look again.', 'oops'); }, 'stack');
-      body.appendChild(fb);
-    } else if (a.type === 'feel' || a.type === 'predict') {
-      body.appendChild(el('p', 'c-q', a.q));
-      const row = choices(body, a.opts, L.title + 'feel', (first) => {
-        setTimeout(() => { row.classList.add('collapsed'); evidence(a.evQ, a.a, first); }, 600);
-      }, () => { pip.say('Hmm, look at the postcard for clues!', 'oops'); }, 'stack');
-      body.appendChild(fb);
-    } else if (a.type === 'rather') {
-      body.appendChild(el('p', 'c-q', a.q));
-      const pickRow = el('div', 'opts stack');
-      a.choices.forEach((c, ci) => {
-        const b = btn('opt', c.label, () => {
-          pickRow.classList.add('collapsed'); b.classList.add('right');
-          body.insertBefore(el('p', 'c-q', 'Good choice! ' + c.q), fb);
-          const r2 = choices(body, c.reasons, L.title + 'rather' + ci, (f2) => done(f2), () => { pip.say(a.mishap, 'oops'); setFb(fb, a.mishap, 'soft'); }, 'stack');
-          body.insertBefore(r2, fb);
-        });
-        pickRow.appendChild(b);
-      });
-      body.append(pickRow, fb);
+    body.appendChild(fb);
+    const ask = (q, opts, seed, onOk, cls) => { body.insertBefore(el('p', 'c-q', q), fb); body.insertBefore(choices(body, opts, L.title + seed, onOk, () => { pip.say('Hmm, look at the postcard for clues!', 'oops'); setFb(fb, a.mishap || 'Look again!', 'soft'); }, cls || 'stack'), fb); };
+    if (a.type === 'mistake') { body.insertBefore(el('p', 'c-quote', 'Pip says: "' + a.pip + '"'), fb); evidence(a.q, a.a); return; }
+    if (step === 1) {
+      if (a.type === 'rather') {
+        // an opinion: every choice is right (one tap), the reason comes on the next card
+        body.insertBefore(el('p', 'c-q', a.q), fb);
+        const row = el('div', 'opts stack');
+        a.choices.forEach((c, ci) => row.appendChild(btn('opt', c.label, (e) => { if (card.done) return; sparkle(e.currentTarget); P.res.rather = ci; done(true, 'advpick'); })));
+        body.insertBefore(row, fb); return;
+      }
+      ask(a.q, a.opts, a.type, (first) => { P.res.advFirst = first; done(first, 'advpick'); });
+      return;
     }
+    if (a.type === 'odd') ask(a.whyQ, a.whys, 'why', (f2) => done(f2 && P.res.advFirst !== false));
+    else if (a.type === 'rather') { const c = a.choices[P.res.rather || 0]; ask('Good choice! ' + c.q, c.reasons, 'rather' + (P.res.rather || 0), (f2) => done(f2)); }
+    else evidence(a.evQ, a.a);
   };
   BUILD.fill = (card, sec) => {
     const k = P.L.fill;
     const { vis, body } = frame(sec, { kicker: '🧠 Remember it · fill the blank', title: k.kind === 'letters' ? 'Finish the word' : 'Which word fits?' });
     const pip = pipSay(vis, 'A raindrop smudged a word on my postcard! 💧 Can you fix it?');
-    vis.appendChild(el('div', 'pic-hero', '💧'));
+    vis.appendChild(picHero('💧'));
     const sentence = el('p', 'fill-sent');
     const [before, after] = fillName(k.sent).split('___');
     const blank = el('span', 'blank', k.kind === 'letters' ? `${k.pre}__${k.post}` : '_____');
@@ -1166,12 +1352,43 @@
       }
     });
   };
+  /* A real little postcard: cream card, a stamp (her guide) in the corner, a round postmark with the place and day,
+     a thin divider, optional picture on the left half and the words on the right (or the whole card for long text). */
+  function postcardEl(o) {
+    o = o || {};
+    const pc = el('div', 'postcard' + (o.pic || o.scene ? ' pc-split' : '') + (o.cls ? ' ' + o.cls : ''));
+    const stamp = el('div', 'pc-stamp'); const sim = el('img'); sim.src = guideImg('talk'); sim.alt = ''; sim.onerror = () => { stamp.textContent = (P.day && P.day.flag) || '✉️'; };
+    stamp.appendChild(sim); pc.appendChild(stamp);
+    const pm = el('div', 'pc-postmark'); pm.append(el('span', 'pm-place', ((P.day && P.day.place) || 'Mission Control').split(',')[0].slice(0, 18)), el('span', 'pm-day', (P.day && P.day.name) || '')); pc.appendChild(pm);
+    if (o.pic || o.scene) {
+      const left = el('div', 'pc-left');
+      if (o.scene) { const im = el('div', 'pc-photo'); im.style.backgroundImage = `url(${o.scene})`; left.appendChild(im); }
+      else left.appendChild(el('span', 'pc-pic', o.pic));
+      pc.appendChild(left); pc.appendChild(el('div', 'pc-divider'));
+    }
+    const right = el('div', 'pc-right'); pc.appendChild(right);
+    pc.text = right;
+    return pc;
+  }
+  /* Picture options for "tap the picture" checks: the right picture first, then clear, different ones from the week. */
+  function otherPics(right, n, seed) {
+    const W = W_(), pool = [];
+    Object.values(W.vocab || {}).forEach((v) => pool.push(v.pic));
+    Object.values(W.typeWords || {}).forEach((l) => l.forEach((t) => pool.push(t.pic)));
+    (W.warmup || []).forEach((t) => pool.push(t.pic));
+    // never a distractor that shares a picture with the answer (e.g. 📦 next to 🧸📦)
+    const parts = (p) => (/^img:/.test(p) ? [p] : [...String(p)].filter((c) => /\p{Extended_Pictographic}/u.test(c)));
+    const mine = new Set(parts(right || ''));
+    const uniq = [...new Set(pool.filter((p) => p && p !== right && (/^img:/.test(p) || [...p].length <= 4) && !parts(p).some((c) => mine.has(c))))];
+    return shuffle(uniq, seed).slice(0, n);
+  }
+  const picOpt = (p) => el('span', 'pic-opt', p);
   function fullPostcard(parent) {
-    const box = el('div', 'pc-full');
+    const pc = postcardEl({ cls: 'pc-full' }); const box = pc.text;
     box.appendChild(el('p', 'pc-greet', 'Dear Mission Control,'));
     P.L.chunks.forEach((c) => box.appendChild(el('p', null, c.s.map(fillName).join(' '))));
-    box.appendChild(el('p', 'pc-sign', 'Your pal, Pip 🐦'));
-    parent.appendChild(box);
+    box.appendChild(el('p', 'pc-sign', `Your pal, ${G().name} ${G().icon || ''}`));
+    parent.appendChild(pc);
   }
   function takesUI(body, kinds, onAll) {
     const got = {}; const players = el('div', 'takes');
@@ -1236,7 +1453,7 @@
     const R = P.day.route;
     const { vis, body } = frame(sec, { kicker: '🗺️ Reply & route', title: 'Where should Pip fly?', tall: true });
     pipSay(vis, R.q);
-    vis.appendChild(el('div', 'pic-hero', '🗺️'));
+    vis.appendChild(picHero('🗺️'));
     body.appendChild(el('p', 'c-quote', fillName(P.day.ps)));
     const rep = el('details', 'reply'); rep.appendChild(el('summary', null, '🎙️ Record a reply to Pip (optional)'));
     rep.appendChild(recorder({ week: P.week.id, day: P.day.day, dayName: P.day.name, level: P.lv, kind: 'reply', title: 'Reply to Pip' }, () => {}, () => {}));
@@ -1248,7 +1465,7 @@
         row.querySelectorAll('.route').forEach((x) => { x.disabled = true; });
         b.classList.add('right'); sound('ok');
         S.routeEcho = { week: P.week.id, day: P.day.day, text: o.echo }; P.res.route = o.label; save();
-        complete(card, null, { delay: 900 });
+        complete(card, null, { delay: 500 });
       });
       b.append(el('span', 'route-pic', o.pic), el('span', 'route-lbl', o.label));
       row.appendChild(b);
@@ -1280,7 +1497,7 @@
     const fb = feedback(body);
     const feedB = btn('big-btn', `Feed ${chickName()} ${pp.food}`, () => {
       feedB.disabled = true;
-      [...fishRow.children].forEach((f, i) => setTimeout(() => { f.classList.add('eaten'); sound('food'); }, i * 90));
+      [...fishRow.children].forEach((f, i) => setTimeout(() => { f.classList.add('eaten'); sound('food'); }, i * 45));
       setTimeout(() => {
         const after = before + n;
         const sb = stageFor(before), sa = stageFor(after);
@@ -1288,7 +1505,7 @@
         const nc = chickEl(after, 'big grow'); ch.replaceWith(nc); ch = nc;
         const newItems = itemsOf(pp).filter((it) => it.at > before && it.at <= after);
         let msg = sa > sb ? (sa === STAGE_KEYS.length - 1 ? `${chickName()} is all grown up! 🎓🎉` : `${chickName()} grew! Now: ${stagesOf(pp)[sa].name}! 🎉`) : `Yum! ${chickName()} is getting bigger! 😋`;
-        sound(sa > sb ? 'grow' : 'right');
+        sound(sa > sb ? 'j_grow' : 'right');
         if (sa > sb) { const cheer = girlEl(sa === STAGE_KEYS.length - 1 ? 'grown' : 'grow', 'girl-cheer'); vis.appendChild(cheer); }
         if (newItems.length) {
           msg += ` New for the habitat: ${newItems.map((i) => i.name).join(', ')}!`;
@@ -1298,7 +1515,8 @@
         const fin = btn('big-btn', 'Finish ✓', () => { finishSession(); });
         body.appendChild(fin);
         complete(card, null, { fish: 0, stay: true });
-      }, Math.min(n, 24) * 90 + 400);
+        setTimeout(() => { if (P.cards[P.idx] === card && $('screenPlay').classList.contains('active')) finishSession(); }, 2600);
+      }, Math.min(n, 24) * 45 + 300);
     });
     body.append(feedB, fb);
   };
@@ -1360,123 +1578,403 @@
   }
 
   BUILD.mail = (card, sec) => {
-    const g = G();
     const { vis, body } = frame(sec, { kicker: `📬 Mail call · ${P.day.name}`, title: `${P.day.flag} ${P.day.place}` });
     vis.appendChild(sceneImg(P.day.scene));
     const pip = pipSay(vis, P.day.arrive);
-    pip.classList.add('fly-in', 'landing');
+    pip.classList.add('fly-in');
     if (S.routeEcho && S.routeEcho.text) body.appendChild(el('p', 'c-note', '🗺️ ' + S.routeEcho.text));
-    body.appendChild(el('p', 'c-text', `${g.name} has a postcard for you, Mission Control! She is trying to get here. Can you help?`));
-    let n = 0;
-    const land = btn('big-btn', g.landBtn[0], () => {
-      const line = g.landing[Math.min(n, 2)];
-      n++;
-      pip.say(line, n < 3 ? 'oops' : 'carry');
-      pip.classList.remove('bump'); void pip.offsetWidth; pip.classList.add(n < 3 ? 'bump' : 'landed');
-      if (n < 3) land.textContent = gtext(g.landBtn[n]);
-      else { land.remove(); body.appendChild(el('p', 'c-sub', `${g.name} kept trying, and she made it! 🎉`)); complete(card, null, { fish: 0, delay: 1800 }); }
-    });
-    body.appendChild(land);
+    if (card.spec.boss) { body.appendChild(btn('big-btn', 'Open the big postcard! 📬', () => { if (!card.done) complete(card, null, { fish: 0, delay: 200 }); })); return; }
+    mapPick(card, body, card.spec.map || ['words', 'postcard', 'fly'], 'Where do we go first? You choose!');
   };
+  /* The mini map: 2-3 stops; she taps the one she wants next (one tap). Finished stops show a check. */
+  function mapPick(card, body, left, q) {
+    body.appendChild(el('p', 'c-q', q));
+    const row = el('div', 'stops');
+    const all = ['words', 'postcard', 'fly'];
+    const count = (id) => stopSpecs(id).length;
+    all.forEach((id) => {
+      const open = left.includes(id);
+      const b = btn('stop-btn' + (open ? '' : ' done'), null, () => {
+        if (card.done || !open) return;
+        row.querySelectorAll('.stop-btn').forEach((x) => { x.disabled = true; }); b.classList.add('right'); sound('ok');
+        P.res.stops = (P.res.stops || []).concat(id);
+        P.specs = P.specs.slice(0, card.i + 1).concat(planAfterMap(id, left)); renderDots();
+        complete(card, null, { fish: 0, delay: 250 });
+      });
+      b.disabled = !open;
+      b.append(el('span', 'stop-ic', open ? STOPS[id][0] : '✅'), el('span', 'stop-lbl', STOPS[id][1]), el('span', 'stop-n', open ? `${count(id)} cards` : 'done!'));
+      row.appendChild(b);
+    });
+    body.appendChild(row);
+  }
+  BUILD.map = (card, sec) => {
+    const { vis, body } = frame(sec, { kicker: '🗺️ Next stop', title: 'Stop done! 🎉' });
+    vis.appendChild(picHero('🗺️'));
+    pipSay(vis, 'Where to next? You choose!');
+    mapPick(card, body, card.spec.left || ['postcard', 'fly'], 'Where to next?');
+  };
+  /* ---- Word check: a quick grid of the week's words. "I know it" (green) or "Help me" (star), one tap per word.
+     Or "Quick check": each word flashes big and she taps. Known words are skipped (one quick confirm later, at most);
+     only help words get a practice card (read-aloud once, then she reads it and taps its picture). ---- */
+  BUILD.wcheck = (card, sec) => {
+    const words = card.spec.words || [];
+    const { vis, body } = frame(sec, { kicker: '🔤 Word check · super quick!', title: 'Do you know these words?' });
+    vis.appendChild(picHero('🔤'));
+    pipSay(vis, 'Tap I know it, or Help me. Help words get a practice card!');
+    const marks = {};
+    const finish = () => {
+      if (card.done) return;
+      const known = words.filter((v) => marks[v.w] === 'known'), help = words.filter((v) => marks[v.w] === 'help');
+      known.forEach((v) => { S.words[v.w] = Object.assign({}, S.words[v.w], { st: 'known', at: Date.now(), week: P.week.id, ok: false }); });
+      help.forEach((v) => { S.words[v.w] = Object.assign({}, S.words[v.w], { st: 'help', at: Date.now(), week: P.week.id }); });
+      save();
+      P.res.wcheck = { known: known.map((v) => v.w), help: help.map((v) => v.w) };
+      const add = help.slice(0, 2).map((v) => ({ k: 'decode', v, help: true, stop: card.spec.stop || 'words' }));
+      if (add.length) { P.specs.splice(card.i + 1, 0, ...add); renderDots(); }
+      complete(card, null, { fish: 1, delay: 450 });
+    };
+    const mark = (v, st, tile) => {
+      marks[v.w] = st;
+      if (tile) { tile.classList.toggle('is-known', st === 'known'); tile.classList.toggle('is-help', st === 'help'); }
+      sound(st === 'known' ? 'ok' : 'plink');
+      if (words.every((x) => marks[x.w])) setTimeout(finish, 300);
+    };
+    const grid = el('div', 'wgrid' + (words.length > 4 ? ' many' : ''));
+    words.forEach((v) => {
+      const tile = el('div', 'wtile');
+      tile.appendChild(el('span', 'wt-word', v.w));
+      const r = el('div', 'wt-row');
+      const bk = btn('wk-know', '✅', () => mark(v, 'known', tile)), bh = btn('wk-help', '⭐', () => mark(v, 'help', tile));
+      bk.setAttribute('aria-label', 'I know ' + v.w); bh.setAttribute('aria-label', 'Help me with ' + v.w);
+      r.append(bk, bh);
+      tile.appendChild(r); grid.appendChild(tile);
+    });
+    const quick = btn('mini-btn wq-btn', '⚡ Quick check (one at a time)', () => {
+      grid.remove(); quick.remove(); legend.remove();
+      const box = el('div', 'wflash'); body.appendChild(box);
+      let n = 0;
+      const show = () => {
+        const v = words[n]; box.replaceChildren();
+        const w = el('div', 'wf-word', v.w); box.appendChild(w);
+        box.appendChild(el('p', 'wf-count', `${n + 1} of ${words.length}`));
+        const r = el('div', 'wt-row big');
+        const go = (st) => { mark(v, st, null); n++; if (n < words.length) show(); };
+        r.append(btn('wk-know', '✅ I know it', () => go('known')), btn('wk-help', '⭐ Help me', () => go('help')));
+        box.appendChild(r);
+      };
+      show();
+    });
+    const legend = el('p', 'wlegend'); legend.append(el('span', 'wk-know lg', '✅ I know it'), el('span', 'wk-help lg', '⭐ Help me'));
+    body.append(legend, grid, quick);
+    card.onSkip = () => { P.res.wcheck = { known: [], help: [], skipped: true }; };
+  };
+  /* ---- Word practice (Sue's spec): 1) Watch me: the word big, played once. 2) Your turn: she says it out loud
+     (no tapping, no recording, no scoring; a grown-up listens). 3) ONE tap (Next / swipe up) = next word.
+     4) Every 3 words an earlier word comes back WITHOUT audio first; she reads it herself (audio after Next or a tap on it).
+     5) "Help me" only if she taps it: slow, tricky part lit with its mouth cue, then normal speed. Chunks live only in Help me. ---- */
+  const TRICKY_ORDER = ['th', 'ph', 'sh', 'f', 'v', 'r', 'w', 'ow', 'ou', 'aw'];
+  function trickyOf(v) {
+    if (v.tricky && v.tricky.mark) return { mark: v.tricky.mark, note: v.tricky.note || '', key: null };
+    const w = v.w.toLowerCase();
+    for (const key of TRICKY_ORDER) { const i = w.indexOf(key); if (i >= 0 && MOUTH[key === 'ph' ? 'f' : key]) return { mark: v.w.slice(0, i) + '[' + v.w.slice(i, i + key.length) + ']' + v.w.slice(i + key.length), note: '', key: key === 'ph' ? 'f' : key }; }
+    return null;
+  }
+  BUILD.wpractice = (card, sec) => {
+    const news = card.spec.words || [], back = (card.spec.back || []).slice();
+    const seq = []; news.forEach((v, i) => { seq.push({ v, review: false }); if ((i + 1) % 3 === 0 && i < news.length - 1) seq.push({ review: true }); });
+    if (news.length >= 2) seq.push({ review: true });
+    const { vis, body } = frame(sec, { kicker: '🗣️ Word practice', visCls: 'word-vis' });
+    const stage = picHero('👀'); vis.appendChild(stage);
+    const pip = pipSay(vis, 'Watch me, then you say it!');
+    card.noAutoSay = true;
+    const count = el('p', 'wp-count'); const step = el('p', 'wp-step');
+    const word = btn('wp-word', '', () => playWord()); word.setAttribute('aria-label', 'Hear the word');
+    const helpBox = el('div', 'wp-help'); helpBox.hidden = true;
+    const row = el('div', 'wp-row');
+    const nextB = btn('big-btn wp-next', 'Next ▶', () => next());
+    const helpB = btn('mini-btn wp-helpme', '🙋 Help me', () => helpMe());
+    row.append(helpB, nextB);
+    body.append(count, word, step, row, helpBox);
+    const done = [], helpW = new Set(), reviewed = new Set();
+    let n = -1, cur = null, played = false, busy = false;
+    const playWord = (slow) => { played = true; sayList([{ text: cur.v.w, word: true, slow: !!slow }]); if (cur.review) stage.setPic(cur.v.pic || '⭐'); };
+    const pickReview = () => {
+      const cand = [...helpW].map((w) => done.find((x) => x.w === w)).concat(back, done).filter((x) => x && !reviewed.has(x.w));
+      return cand[0] || null;
+    };
+    const show = () => {
+      helpBox.hidden = true; helpBox.replaceChildren(); played = false;
+      let item = seq[n];
+      if (item.review) { const v = pickReview(); if (!v) { n++; if (n >= seq.length) return finish(); item = seq[n]; if (item.review) return show(); } else item = { v, review: true }; }
+      cur = item; if (cur.review) { reviewed.add(cur.v.w); if (back.includes(cur.v)) back.splice(back.indexOf(cur.v), 1); }
+      word.replaceChildren(el('span', 'w w-big plain-word', cur.v.w)); word.classList.remove('pop'); void word.offsetWidth; word.classList.add('pop');
+      const real = seq.slice(0, n + 1).length;
+      count.textContent = `Word ${Math.min(real, seq.length)} of ${seq.length}`;
+      if (cur.review) {
+        stage.setPic('📖'); step.textContent = '📖 Read it yourself! Then tap Next.';
+        pip.say('Can you read this one by yourself?', null, true);
+      } else {
+        stage.setPic(cur.v.pic || '👀'); step.textContent = '👀 Watch me… then 🗣️ your turn: say it out loud!';
+        pip.say('Watch me, then you say it!', null, true);
+        const first = !done.length;
+        setTimeout(() => { if (P.cards[P.idx] !== card || card.done) return; if (first) { played = true; sayList([{ text: 'Watch me!', word: false, pause: 120 }, { text: cur.v.w, word: true }]); } else playWord(); }, 200);
+        if (!done.find((x) => x.w === cur.v.w)) done.push(cur.v);
+      }
+      const m = S.words[cur.v.w] = Object.assign({ week: P.week.id }, S.words[cur.v.w]); m.practiced = (m.practiced || 0) + 1; m.at = Date.now(); m.week = P.week.id; save();
+    };
+    const next = () => {
+      if (busy || card.done) return true;
+      if (cur && cur.review && !played) { busy = true; playWord(); setTimeout(() => { busy = false; advance(); }, 900); return true; }
+      advance(); return true;
+    };
+    const advance = () => { n++; if (n >= seq.length) finish(); else show(); };
+    const finish = () => {
+      if (card.done) return;
+      P.res.practice = { words: done.map((v) => v.w), help: [...helpW], reviewed: [...reviewed] };
+      step.textContent = 'Great practice! 🌟'; sound('ok');
+      complete(card, null, { fish: 2, delay: 500 });
+    };
+    const helpMe = () => {
+      if (!cur || card.done) return;
+      helpW.add(cur.v.w); const m = S.words[cur.v.w]; m.help = (m.help || 0) + 1; save();
+      P.res.helpWords = (P.res.helpWords || 0) + 1;
+      helpBox.hidden = false; helpBox.replaceChildren();
+      const t = trickyOf(cur.v);
+      if (String(cur.v.split || '').includes('|') || !t) helpBox.appendChild(chunkWord(cur.v)); // chunks: only here (tapping them is optional)
+      let lit = null;
+      if (t) {
+        const tw = el('div', 'wp-tricky'); lit = wordEl(t.mark, { big: true, gaps: false }); tw.appendChild(lit);
+        const mo = t.key && MOUTH[t.key];
+        if (mo) { const mc = el('p', 'mouth'); mc.append(el('span', 'mouth-ic', mo[0]), el('span', null, `“${t.key}”: ${mo[1]}.`)); tw.appendChild(mc); }
+        else if (t.note) tw.appendChild(el('p', 'dec-note sneaky', '🕵️ ' + t.note));
+        helpBox.appendChild(tw);
+      }
+      played = true; if (cur.review) stage.setPic(cur.v.pic || '⭐');
+      sayList([{ text: cur.v.w, word: true, slow: true, pause: 450, onStart: () => lit && lit.classList.add('pulse') }, { text: cur.v.w, word: true, pause: 200 }]);
+      pip.say('Listen slowly… now say it again with me!', null, true);
+    };
+    card.help = helpMe; card.onNext = () => next();
+    card.onSkip = () => { P.res.practice = { words: done.map((v) => v.w), help: [...helpW], skipped: true }; };
+    card.onShow = () => { if (n < 0) advance(); };
+  };
+  /* Help word: the guide reads it in chunks ONCE (tap 🔁 for more). She reads it out loud, then taps its picture. */
+  BUILD.decode = (card, sec) => {
+    const v = card.spec.v;
+    const { vis, body } = frame(sec, { kicker: card.spec.bonus ? '⭐ Bonus · help word' : (card.spec.again ? '🔁 Practice word' : '⭐ Help word · let\'s read it'), visCls: 'word-vis' });
+    const stage = picHero('❓'); vis.appendChild(stage);
+    const pip = pipSay(vis, 'I read it in chunks. Now you read it, and tap its picture!');
+    card.noAutoSay = true;
+    const wbox = chunkWord(v);
+    body.appendChild(wbox);
+    if (v.tricky) { const note = el('p', 'dec-note sneaky'); note.append('🕵️ Sneaky part: '); note.appendChild(wordEl(v.tricky.mark)); note.append(' ' + v.tricky.note); body.appendChild(note); }
+    const play = () => sayList(chunkItems(v, wbox));
+    const tools = el('div', 'tool-row'); tools.appendChild(btn('hear-btn', '🔁 Hear it again', play)); body.appendChild(tools);
+    body.appendChild(el('p', 'c-q', 'Read it out loud. Which picture is it?'));
+    const fb = feedback(body);
+    card.answer = v.pic;
+    const row = choices(body, [picOpt(v.pic)].concat(otherPics(v.pic, 2, v.w).map(picOpt)), v.w + P.key, (first) => {
+      stage.setPic(v.pic); stage.stamp.appendChild(el('span', 'stamp-cap', v.means || ''));
+      markTry(v, first);
+      const m = S.words[v.w] = Object.assign({ week: P.week.id }, S.words[v.w], { practiced: ((S.words[v.w] || {}).practiced || 0) + 1 }); if (first && m.practiced >= 2) m.st = 'known';
+      save();
+      setFb(fb, first ? praise('chunks') : 'Yes! That is it! 🌱', 'good');
+      complete(card, { first, type: 'decode', w: v.w, help: true });
+    }, () => { setFb(fb, 'Look at the chunks again. 👀', 'soft'); }, 'pics');
+    body.insertBefore(row, fb);
+    card.onShow = () => { if (!card.done) play(); }; // ONE read-aloud pass; she can tap the pictures right away
+  };
+  /* Known word, one quick confirm (at most once, mixed into the postcard). A miss quietly moves it to her help list. */
+  BUILD.confirm = (card, sec) => {
+    const w = card.spec.w, v = Object.assign({ w }, (W_().vocab || {})[w] || {});
+    const { vis, body } = frame(sec, { kicker: '⚡ Quick check · a word you know', visCls: 'word-vis' });
+    vis.appendChild(picHero('⚡'));
+    pipSay(vis, 'You know this one! Tap its picture.');
+    const d = el('div', 'dec-word'); d.appendChild(el('span', 'w w-big plain-word', w)); body.appendChild(d);
+    const fb = feedback(body);
+    let missed = false; card.answer = v.pic || '⭐';
+    const row = choices(body, [picOpt(v.pic || '⭐')].concat(otherPics(v.pic, 2, w + 'c').map(picOpt)), w + 'confirm', (first) => {
+      const m = S.words[w] = Object.assign({}, S.words[w]);
+      if (first) { m.ok = true; setFb(fb, 'Yes! You really know it! 🌟', 'good'); }
+      else { m.st = 'help'; m.moved = Date.now(); P.res.moved = (P.res.moved || []).concat(w); setFb(fb, 'We will practice this one together soon. 🌱', 'good'); }
+      save(); complete(card, { first, type: 'confirm', w });
+    }, () => { missed = true; }, 'pics');
+    body.insertBefore(row, fb);
+  };
+  /* Arianna-style phrase card: a line from her postcard with one word lit up; tap what it means (one tap). */
+  function phraseFor(w) {
+    const re = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    for (const d of P.week.days) { const L = d.levels[P.lv] || d.levels.ground; for (const c of (L ? L.chunks : [])) for (const s0 of c.s) if (re.test(s0)) return fillName(s0); }
+    return null;
+  }
+  BUILD.phrase = (card, sec) => {
+    const V = W_().vocab || {}, pv = (P.L.preview || []).map((x) => x.w);
+    const pool = pv.concat(Object.keys(V)).filter((w, i, a) => a.indexOf(w) === i && V[w] && V[w].means && phraseFor(w));
+    if (!pool.length) return BUILD.tappic(card, sec);
+    const w = pool[(S.sessionsDone + (card.spec.n || 0)) % pool.length], v = V[w];
+    const { vis, body } = frame(sec, { kicker: '💬 What does it mean?' });
+    vis.appendChild(sceneImg(P.day.scene));
+    pipSay(vis, 'Read the line. What does the bright word mean?');
+    const line = phraseFor(w), parts = line.split(new RegExp('(\\b' + w + '\\b)', 'i'));
+    const p = el('p', 'phrase'); parts.forEach((x) => { if (x.toLowerCase() === w.toLowerCase()) p.appendChild(el('mark', 'hl', x)); else if (x) p.append(x); });
+    body.appendChild(p);
+    const others = shuffle(Object.keys(V).filter((x) => x !== w && V[x].means && V[x].means !== v.means), w).slice(0, 2).map((x) => V[x].means);
+    const fb = feedback(body); card.answer = v.means;
+    const row = choices(body, [v.means].concat(others), w + 'phrase', (first) => { setFb(fb, `Yes! “${w}” means ${v.means}. ${picTxt(v.pic)}`, 'good'); complete(card, { first, type: 'phrase', w }); },
+      () => { recordMiss(w, 'phrase'); setFb(fb, 'Read the whole line again. 👀', 'soft'); }, 'stack');
+    body.insertBefore(row, fb);
+  };
+  /* Drag (or tap) the missing word into a line from her postcard. */
+  BUILD.dragword = (card, sec) => {
+    const V = W_().vocab || {}, pv = (P.L.preview || []).map((x) => x.w);
+    const cands = [];
+    P.L.chunks.forEach((c) => c.s.forEach((s0) => { pv.concat(Object.keys(V)).forEach((w) => { if (new RegExp('\\b' + w + '\\b', 'i').test(s0) && !cands.find((x) => x.w === w)) cands.push({ w, s: fillName(s0) }); }); }));
+    if (!cands.length) return BUILD.phrase(card, sec);
+    const it = cands[(S.sessionsDone + (card.spec.n || 0)) % cands.length];
+    const { vis, body } = frame(sec, { kicker: '🧲 Drag the word · fix the postcard' });
+    vis.appendChild(sceneImg(P.day.scene));
+    pipSay(vis, 'A word fell off my postcard! Drag it back, or tap it.');
+    const [before, after] = it.s.split(new RegExp('\\b' + it.w + '\\b', 'i'));
+    const sent = el('p', 'fill-sent'); const blank = el('span', 'blank drop', '_____'); sent.append(before || '', blank, after || '');
+    body.appendChild(sent);
+    const opts = [it.w].concat(shuffle(Object.keys(V).filter((x) => x !== it.w && Math.abs(x.length - it.w.length) < 4), it.w).slice(0, 1));
+    const fb = feedback(body); card.answer = it.w;
+    const row = choices(body, opts, it.w + 'drag', (first) => { blank.textContent = it.w; blank.classList.add('filled'); setFb(fb, first ? 'Fixed! 🌟' : 'Fixed! 🎉', 'good'); complete(card, { first, type: 'dragword', w: it.w }); },
+      () => { recordMiss(it.w, 'dragword'); setFb(fb, 'Read the line with that word. Does it make sense?', 'soft'); }, 'words drag');
+    body.insertBefore(row, fb);
+    dragToTap(row, blank);
+  };
+  /* Pointer drag for option buttons: dropping one on the target counts as tapping it (tapping still works). */
+  function dragToTap(row, target) {
+    row.querySelectorAll('.opt').forEach((b) => {
+      let st = null, ghost = null;
+      b.addEventListener('pointerdown', (e) => { if (b.disabled) return; st = { x: e.clientX, y: e.clientY }; });
+      b.addEventListener('pointermove', (e) => {
+        if (!st) return; const dx = e.clientX - st.x, dy = e.clientY - st.y;
+        if (!ghost && Math.hypot(dx, dy) > 12) { ghost = b.cloneNode(true); ghost.classList.add('drag-ghost'); document.body.appendChild(ghost); try { b.setPointerCapture(e.pointerId); } catch (_) {} }
+        if (ghost) { ghost.style.left = e.clientX + 'px'; ghost.style.top = e.clientY + 'px'; target.classList.toggle('over', (() => { const r = target.getBoundingClientRect(); return e.clientX > r.left - 20 && e.clientX < r.right + 20 && e.clientY > r.top - 30 && e.clientY < r.bottom + 30; })()); }
+      });
+      const end = (e) => {
+        if (ghost) { ghost.remove(); ghost = null; const over = target.classList.contains('over'); target.classList.remove('over'); b._dragged = true; setTimeout(() => { b._dragged = false; }, 50); if (over) b.click(); }
+        st = null;
+      };
+      b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+      b.addEventListener('click', (e) => { if (b._dragged) { e.stopImmediatePropagation(); } }, true);
+    });
+  }
+  /* Feed the baby: read three words, tap the food (one tap). Her baby eats and hops. */
+  BUILD.feedme = (card, sec) => {
+    const pp = pet();
+    const { vis, body } = frame(sec, { kicker: `${pp.food} Quick game · feed ${chickName()}` , title: `Which one can ${chickName()} eat?` });
+    vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'));
+    const ch = chickEl(S.chick.fish, 'big'); vis.appendChild(ch);
+    const nope = shuffle(['sock', 'rock', 'hat', 'drum', 'bell', 'shoe', 'kite', 'box', 'lamp'], P.key + card.i).slice(0, 2);
+    const fb = feedback(body); card.answer = pp.foodName;
+    const row = choices(body, [pp.foodName].concat(nope), pp.foodName + P.key + card.i, (first) => {
+      ch.classList.remove('hop'); void ch.offsetWidth; ch.classList.add('hop'); sound('food');
+      setFb(fb, `Yum! ${chickName()} loves ${pp.foodName}! ${pp.food}`, 'good');
+      complete(card, { first, type: 'feedme' });
+    }, () => { setFb(fb, `Hmm, ${chickName()} can't eat that! 😄`, 'soft'); }, 'words');
+    body.insertBefore(row, fb);
+  };
+  /* Silly word: one word in a line from her postcard was swapped for a silly one. Tap it and her baby giggles. */
+  const SILLY = ['banana', 'pancake', 'noodle', 'pickle', 'teapot', 'cupcake', 'sock', 'jelly'];
+  BUILD.hatchmo = (card, sec) => {
+    const all = P.L.chunks.flatMap((c) => c.s).map(fillName);
+    const sent = all[(S.sessionsDone + card.i) % all.length] || 'I see the sun.';
+    const words = sent.split(/\s+/);
+    const cand = words.map((w, i) => ({ w, i })).filter((x) => x.i > 0 && /^[a-z]{4,}[.,!?]?$/.test(x.w));
+    const pick = cand.length ? cand[(card.i) % cand.length] : { w: words[words.length - 1], i: words.length - 1 };
+    const silly = SILLY[(S.sessionsDone + card.i) % SILLY.length];
+    const punct = (pick.w.match(/[.,!?]$/) || [''])[0];
+    const pp = pet(); card.answer = silly + punct;
+    const { vis, body } = frame(sec, { kicker: '🤪 Silly word!', title: 'Tap the word that is silly' });
+    vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'));
+    const ch = chickEl(S.chick.fish, 'big'); vis.appendChild(ch);
+    const fb = feedback(body);
+    const line = el('p', 'silly-line');
+    let over = false, tries = 0;
+    const btns = [];
+    words.forEach((w, i) => {
+      const shown = i === pick.i ? silly + punct : w;
+      const b = btn('silly-w', shown, () => {
+        if (over) return;
+        if (i === pick.i) { over = true; sparkle(b); b.classList.add('right'); ch.classList.remove('hop'); void ch.offsetWidth; ch.classList.add('hop'); sound(pp.how === 'born' ? 'snuggle' : 'crack1'); setFb(fb, `Ha! “${silly}” is silly! It should say “${pick.w.replace(/[.,!?]$/, '')}”. 😂`, 'good'); complete(card, { first: tries === 0, type: 'silly' }); }
+        else { tries++; shake(b); if (tries >= 1) btns[pick.i].classList.add('glow'); if (tries >= 2) { over = true; card.helped = true; setTimeout(() => btns[pick.i].click(), 10); over = false; } }
+      });
+      btns.push(b); line.append(b, ' ');
+    });
+    body.append(line, fb);
+  };
+  /* Sound sort, one word: which door does it go through? (one tap) */
+  BUILD.sortone = (card, sec) => {
+    const k = P.L.sort; const [w, ans] = k.items[(S.sessionsDone + (card.spec.n || 0)) % k.items.length];
+    const { vis, body } = frame(sec, { kicker: '🧺 Quick game · sort it', title: 'Where does this word go?' });
+    vis.appendChild(picHero('🧺'));
+    pipSay(vis, 'Read the word. Which side?');
+    const d = el('div', 'dec-word'); d.appendChild(wordEl((k.split && k.split[w]) || w, { big: true })); body.appendChild(d);
+    const fb = feedback(body);
+    const right = ans === 'a' ? k.a : k.b, wrong = ans === 'a' ? k.b : k.a; card.answer = right;
+    const row = choices(body, [right, wrong], w + 'sort1', (first) => { setFb(fb, first ? 'Sorted! 🌟' : 'Sorted! 🎉', 'good'); complete(card, { first, type: 'sort' }); },
+      () => { recordMiss((k.split && k.split[w]) || w, 'sort'); setFb(fb, k.hint, 'hint'); }, 'bins2');
+    body.insertBefore(row, fb);
+  };
+  /* R or W, one round: she hears one, taps its picture. */
+  BUILD.rquick = (card, sec) => {
+    const pairs = W_().rPairs || []; const pr = pairs[(S.sessionsDone + (card.spec.n || 0)) % pairs.length];
+    const sayR = seeded(P.key + card.i)() < 0.5, target = sayR ? pr.r : pr.w; card.answer = target;
+    const { vis, body } = frame(sec, { kicker: '👂 Quick game · R or W?', title: 'Which one did I say?' });
+    vis.appendChild(picHero('👂'));
+    pipSay(vis, 'Listen closely! Which one did I say?');
+    card.noAutoSay = true;
+    const mk = (w, pic) => { const d = el('span', 'pic-word'); d.append(el('span', 'pic-opt', pic), wordEl(rMark(w))); return d; };
+    const tools = hearBtn(target, '🔊 Hear it again'); body.appendChild(tools);
+    const fb = feedback(body);
+    const row = choices(body, sayR ? [mk(pr.r, pr.rp), mk(pr.w, pr.wp)] : [mk(pr.w, pr.wp), mk(pr.r, pr.rp)], target + P.key, (first) => {
+      setFb(fb, `Yes! I said “${target}”. ${praise('listen')}`, 'good'); complete(card, { first, type: 'rpair' });
+    }, () => { setTimeout(() => sayList([{ text: target, word: true, slow: true }]), 400); }, 'pics two');
+    body.insertBefore(row, fb);
+    card.onShow = () => { if (!card.done) sayList([{ text: target, word: true }]); };
+  };
+  BUILD.tappic = (card, sec) => BUILD.warm(card, sec);
   BUILD.warm = (card, sec) => {
     const list = W_().warmup || [];
     const it = list[(S.sessionsDone * 2 + card.spec.n) % Math.max(1, list.length)] || { w: 'cat', pic: '🐱', other: '🐶' };
     card.answer = it.pic;
-    const { vis, body } = frame(sec, { kicker: `☀️ Warm-up ${card.spec.n + 1} of 2 · you know this one!`, title: 'Read it, then tap its picture' });
-    pipSay(vis, 'Warm-up time! You know this word. Read it, then tap its picture!');
-    vis.appendChild(el('div', 'pic-hero', '☀️'));
+    const { vis, body } = frame(sec, { kicker: '🎯 Quick game · tap the picture', title: 'Read it, then tap its picture' });
+    pipSay(vis, 'Read it, then tap its picture!');
+    vis.appendChild(picHero('🎯'));
     body.appendChild((() => { const d = el('div', 'dec-word'); d.appendChild(el('span', 'w w-big plain-word', it.w)); return d; })());
     const fb = feedback(body);
     const row = choices(body, [el('span', 'pic-opt', it.pic), el('span', 'pic-opt', it.other)], it.w + P.key, (first) => {
       setFb(fb, praise('first'), 'good'); speak(it.w);
-      complete(card, { first, type: 'warm' }, { delay: 1100 });
+      complete(card, { first, type: 'warm' });
     }, () => { setFb(fb, 'Not yet! Say the word softly, sound by sound.', 'soft'); }, 'pics two');
     body.insertBefore(row, fb);
   };
-  BUILD.order = (card, sec) => {
-    const { vis, body } = frame(sec, { kicker: '🧭 You choose!', title: 'What do you want to do first?' });
-    pipSay(vis, 'You are the boss today! What should we do first?');
-    vis.appendChild(el('div', 'pic-hero', '🧭'));
-    const row = el('div', 'order-row');
-    [['postcard', '📬', 'The postcard first'], ['words', '🎮', 'Word games first']].forEach(([id, ic, lbl]) => {
-      const b = btn('order-btn', null, () => {
-        row.querySelectorAll('button').forEach((x) => { x.disabled = true; }); b.classList.add('right'); sound('ok');
-        P.order = id; P.specs = P.specs.slice(0, card.i + 1).concat(P.plan(id)); renderDots();
-        complete(card, null, { fish: 0, delay: 500 });
-      });
-      b.append(el('span', 'order-ic', ic), el('span', null, lbl));
-      row.appendChild(b);
-    });
-    body.appendChild(row);
-  };
-  BUILD.decode = (card, sec) => {
-    const v = card.spec.v, again = card.spec.again;
-    const { vis, body } = frame(sec, { kicker: again ? '🔁 Practice word · this one came back' : `🔤 New word ${card.spec.n + 1} of ${card.spec.of || 3} · let's read it`, visCls: 'word-vis' });
-    vis.appendChild(el('div', 'pic-hero', v.pic)); vis.appendChild(el('p', 'pic-cap', v.means));
-    const pip = pipSay(vis, 'Watch me first! I tap each chunk and say it.');
-    const stepLbl = el('p', 'step-lbl', '1 · Watch me');
-    let wbox = chunkWord(v);
-    const note = el('p', 'dec-note');
-    if (v.tricky) { note.append('🕵️ Sneaky part: '); note.appendChild(wordEl(v.tricky.mark)); note.append(' ' + v.tricky.note); note.classList.add('sneaky'); }
-    else note.textContent = '✅ Pattern word: each chunk says what it shows.';
-    const row = el('div', 'dec-row');
-    const fb = feedback(body);
-    body.insertBefore(stepLbl, fb); body.insertBefore(wbox, fb); body.insertBefore(note, fb); body.insertBefore(row, fb);
-    let weFirst = true, youFirst = true;
-    const finish = () => {
-      if (weFirst && youFirst) markTry(v, true);
-      setFb(fb, praise('chunks'), 'good');
-      complete(card, { first: weFirst && youFirst, type: 'decode', w: v.w }, { delay: 1800 });
-    };
-    const youDo = () => {
-      stepLbl.textContent = '3 · All by yourself';
-      const whole = el('div', 'dec-word'); whole.appendChild(el('span', 'w w-big plain-word', v.w)); wbox.replaceWith(whole); wbox = whole; note.hidden = true;
-      pip.say('Now the whole word, no chunks! Read it out loud, then check.', 'think');
-      let tries = 0;
-      const check = () => { row.replaceChildren(); sayList([{ text: v.w, word: true }]).then(() => selfMark(row, () => finish(), () => {
-        tries++; youFirst = false; markTry(v, false);
-        if (tries >= 2) { pip.say('That is OK! We will practice this one again soon. You worked hard! 💪'); return finish(); }
-        pip.say('Let me show the chunks again. Then you try!', 'talk');
-        const ch = chunkWord(v); wbox.replaceWith(ch); wbox = ch;
-        sayList(chunkItems(v, ch)).then(() => { const w2 = el('div', 'dec-word'); w2.appendChild(el('span', 'w w-big plain-word', v.w)); ch.replaceWith(w2); wbox = w2; row.replaceChildren(btn('big-btn', '🗣️ I read it · check 🔊', check), wordRec(v)); });
-      })); };
-      row.replaceChildren(btn('big-btn', '🗣️ I read it · check 🔊', check), wordRec(v));
-    };
-    const weDo = () => {
-      stepLbl.textContent = '2 · Together';
-      pip.say('Your turn! Read it out loud first. Then tap Check to hear me.', 'think');
-      let tries = 0;
-      const check = () => { row.replaceChildren(); sayList(chunkItems(v, wbox)).then(() => selfMark(row, () => { setFb(fb, praise('chunks'), 'good'); setTimeout(() => { fb.className = 'fb'; youDo(); }, 900); }, () => {
-        tries++; weFirst = false; markTry(v, false);
-        if (tries >= 2) { pip.say('Good trying! Let us keep going. You will see it again. 🌱'); return youDo(); }
-        pip.say('No problem! Chunk by chunk, with me.');
-        row.replaceChildren(btn('big-btn', '🗣️ I read it · check 🔊', check), wordRec(v));
-      })); };
-      row.replaceChildren(btn('big-btn', '🗣️ I read it · check 🔊', check), wordRec(v));
-    };
-    const go = btn('big-btn', `▶️ Read it, ${G().name}!`, () => {
-      go.disabled = true;
-      const next = btn('big-btn', 'My turn →', () => weDo()); next.disabled = true;
-      const t = setTimeout(() => { next.disabled = false; }, 5000);
-      sayList(chunkItems(v, wbox)).then(() => { clearTimeout(t); next.disabled = false; });
-      row.replaceChildren(btn('mini-btn', '🔁 Again', () => sayList(chunkItems(v, wbox))), next);
-    });
-    row.appendChild(go);
-  };
+
   BUILD.sneaky = (card, sec) => {
     const L = P.L, W = W_();
     const withTricky = (L.preview || []).filter((v) => v.tricky);
     const pool = (W.sneaky || []).concat(W.trickyExtra || []);
     const it = (S.sessionsDone % 2 === 0 && withTricky.length) ? Object.assign({ w: withTricky[0].w, pic: withTricky[0].pic }, withTricky[0].tricky) : pool[S.sessionsDone % Math.max(1, pool.length)];
-    const { vis, body } = frame(sec, { kicker: '🕵️ Sneaky word!', title: 'This word is sneaky (not you!)' });
-    vis.appendChild(el('div', 'pic-hero', it.pic || '🕵️'));
-    pipSay(vis, 'Most English words follow patterns, just like Italian. But some words are sneaky! Let us catch the sneaky part.');
-    const d = el('div', 'dec-word sneaky-word'); d.appendChild(wordEl(it.mark, { big: true })); body.appendChild(d);
+    const { vis, body } = frame(sec, { kicker: '🕵️ Sneaky word!', title: 'Tap the sneaky part' });
+    vis.appendChild(picHero(it.pic || '🕵️'));
+    pipSay(vis, `This word is sneaky! It says “${it.says}”. Which part is sneaky?`);
+    const segs = String(it.mark).split(/(\[[^\]]+\])/).filter(Boolean);
+    const row = el('div', 'sneak-row');
+    const fb = feedback(body);
+    let over = false, tries = 0;
+    const btns = segs.map((sg) => {
+      const sneaky = /^\[/.test(sg), txt = sg.replace(/[\[\]]/g, '');
+      const b = btn('sneak-seg', txt, () => {
+        if (over) return;
+        if (sneaky) { over = true; sparkle(b); b.classList.add('pat-on'); body.insertBefore(el('p', 'dec-note sneaky', '🕵️ ' + it.note), fb); setFb(fb, 'You caught it! 🕵️', 'good'); speak(it.w); complete(card, { first: tries === 0, type: 'sneaky' }, { delay: 1500 }); }
+        else { tries++; shake(b); const r = btns.find((x) => x._s); if (r) r.classList.add('glow'); if (tries >= 2 && r) { card.helped = true; setTimeout(() => r.click(), 500); } }
+      });
+      b._s = sneaky; row.appendChild(b); return b;
+    });
     body.appendChild(el('p', 'c-text', `It says: “${it.says}”`));
-    body.appendChild(el('p', 'dec-note sneaky', '🕵️ ' + it.note));
-    const row = el('div', 'dec-row');
-    row.append(hearBtn(it.w, '🔊 Hear it'), btn('big-btn', 'Caught it! ✓', () => { row.querySelectorAll('button').forEach((b) => { b.disabled = true; }); complete(card, null, { delay: 900 }); }));
-    body.appendChild(row);
+    body.append(row, hearBtn(it.w, '🔊 Hear it'), fb);
   };
   BUILD.teach = (card, sec) => {
     const v = card.spec.v;
@@ -1485,22 +1983,18 @@
     const pip = pipSay(vis, `I will read this one! “${oops}!”`);
     card.noAutoSay = true;
     card.onShow = () => { if (!card.done) sayList([{ text: 'I will read this one!', word: false }, { text: oops, word: true }]); };
-    vis.appendChild(el('div', 'pic-hero', '🧑‍🏫'));
+    vis.appendChild(picHero('🧑‍🏫'));
     const wb = el('div', 'dec-word'); wb.appendChild(el('span', 'w w-big plain-word', v.w)); body.appendChild(wb);
     body.appendChild(el('p', 'c-q', `Did ${G().name} say it right?`));
     const row = el('div', 'dec-row');
     const fb = feedback(body);
     body.insertBefore(row, fb);
     const teachIt = (caught) => {
+      row.querySelectorAll('button').forEach((b) => { b.disabled = true; });
       const ch = chunkWord(v); wb.replaceWith(ch);
-      row.replaceChildren(btn('big-btn', '🗣️ I read it to you · hear it', () => {
-        row.replaceChildren();
-        sayList(chunkItems(v, ch)).then(() => {
-          pip.say(`${v.w}! Thank you, teacher! 🧑‍🏫`);
-          setFb(fb, caught ? 'You caught the mistake and fixed it. That is what great readers do! 🔎' : praise('listen'), 'good');
-          complete(card, { first: caught, type: 'teach' }, { delay: 2000 });
-        });
-      }));
+      setFb(fb, caught ? 'You caught my mistake! That is what great readers do! 🔎' : `Oops, I said it wrong! It is “${v.w}”. 🙃`, 'good');
+      sayList(chunkItems(v, ch));
+      complete(card, { first: caught, type: 'teach' }, { delay: 1500 });
     };
     row.append(btn('big-btn soft', '✅ Yes', () => { pip.say(`Hmm, let me look again... Oh! It is not “${oops}”! Silly me! 😅 Can you read it to me?`, 'oops'); teachIt(false); }),
       btn('big-btn', `🧑‍🏫 Not quite, ${G().name}!`, () => { pip.say('You caught my mistake! Please read it to me the right way.', 'oops'); teachIt(true); }));
@@ -1511,7 +2005,7 @@
     const pip = pipSay(vis, 'Listen! Which word did I say?');
     card.noAutoSay = true;
     card.onShow = () => { if (!card.done) sayList([{ text: 'Listen! Which word did I say?', word: false, pause: 200 }, { text: v.w, word: true }]); };
-    vis.appendChild(el('div', 'pic-hero', '👂'));
+    vis.appendChild(picHero('👂'));
     const tools = el('div', 'tool-row'); tools.append(hearBtn(v.w, '🔊 Hear it'), btn('hear-btn', '🐢 Slower', () => sayList([{ text: v.w, word: true, slow: true }])));
     body.appendChild(tools);
     const fb = feedback(body);
@@ -1527,7 +2021,8 @@
     ['th', 'd', 'th/d', 'th heard as d'], ['th', 'f', 'th/f', 'th heard as f'], ['th', 't', 'th/t', 'th heard as t'], ['e', 'i', 'e/i', 'short e heard as i'], ['i', 'e', 'e/i', 'short i heard as e'], ['r', 'w', 'r/w', 'r heard as w']];
   const MOUTH = { ow: ['😮➡️😗', 'Mouth opens, then lips make a circle (like "ouch!")'], ou: ['😮➡️😗', 'Mouth opens, then lips make a circle (like "ouch!")'], aw: ['😮', 'Mouth open wide and stays still (like "ahh")'],
     th: ['😛', 'Tongue peeks out between your teeth'], d: ['👅', 'Tongue taps behind your top teeth'], f: ['😬', 'Top teeth rest on your bottom lip'], t: ['👅', 'Tongue taps and lets out a puff'],
-    e: ['😬', 'Mouth a little open, like "eh"'], i: ['🙂', 'Small smile, like "ih"'], r: ['🙂', 'Lips loose, tongue pulls back'], w: ['😗', 'Lips make a tight little circle'] };
+    e: ['😬', 'Mouth a little open, like "eh"'], i: ['🙂', 'Small smile, like "ih"'], r: ['🙂', 'Lips loose, tongue pulls back'], w: ['😗', 'Lips make a tight little circle'], v: ['😬🐝', 'Top teeth on your bottom lip, and buzz (your throat hums)'], sh: ['🤫', 'Lips push out, like "shhh"'] };
+  MOUTH.f = ['😬💨', 'Top teeth on your bottom lip, just blow air (no buzz)'];
   function soundAlike(target, typed) {
     for (const [a, b, pair, label] of SOUND_SWAPS) {
       let idx = target.indexOf(a);
@@ -1547,7 +2042,7 @@
     const shown = it.cap || it.w; card.answer = it.w;
     const blankSent = fillName(it.sent).replace(new RegExp('\\b' + shown + '\\b', 'i'), '___');
     const { vis, body } = frame(sec, { kicker: '⌨️ Type the word you hear', title: null });
-    vis.appendChild(el('div', 'pic-hero', it.pic));
+    const stage = picHero('⌨️'); vis.appendChild(stage);
     const pip = pipSay(vis, `Type the word I say. “${blankSent}”`, null, true);
     card.noAutoSay = true;
     const hear = (slow) => sayList([{ text: 'Type the word', word: false, pause: 150 }, { text: it.w, word: true, slow, pause: 350 }, { text: fillName(it.sent), word: false, rate: slow ? 0.7 : undefined, pause: 300 }, { text: it.w, word: true, slow }]);
@@ -1561,29 +2056,32 @@
     const fb = feedback(body);
     body.insertBefore(tools, fb); body.insertBefore(form, fb); body.insertBefore(help, fb);
     card.onShow = () => { if (!card.done) { hear(false); setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (_) {} }, 300); } };
-    let tries = 0, copy = false;
+    let tries = 0, copy = false, won = false;
+    inp.addEventListener('input', () => { if (!won && inp.value.trim().toLowerCase() === it.w.toLowerCase()) { won = true; sound('ok'); win(tries === 0 && !copy); } });
     const win = (first) => {
+      won = true;
       form.remove(); help.replaceChildren(); tools.remove();
-      const mini = el('div', 'mini-pc');
-      mini.appendChild(el('p', 'mini-h', '✉️ Your mini-postcard'));
+      const mini = postcardEl({ cls: 'mini-pc', scene: P.day.scene });
       const p = el('p', 'mini-s'); const parts = fillName(it.sent).split(new RegExp('(\\b' + shown + '\\b)', 'i'));
       parts.forEach((x) => { if (x.toLowerCase() === shown.toLowerCase()) p.appendChild(el('strong', 'mini-w', x)); else if (x) p.append(x); });
-      mini.appendChild(p);
+      mini.text.append(el('p', 'mini-h', 'Dear Mission Control,'), p);
       body.insertBefore(mini, fb);
-      setFb(fb, (first ? praise('listen') : praise('retry')) + ' Now read your postcard!', 'good');
-      pip.say(first ? 'You spelled it! Now read the little postcard.' : 'You got it! Now read the little postcard.');
-      const r = btn('big-btn', 'I read it ✓', () => {
-        r.remove();
-        body.insertBefore(btn('hear-btn', `🔊 Hear ${G().name} read it`, () => sayList([{ text: fillName(it.sent), word: false }])), fb);
-        complete(card, { first, type: 'type', w: it.w }, { fish: 2, delay: 1600 });
-      });
-      body.insertBefore(r, fb);
+      setFb(fb, first ? praise('listen') : praise('retry'), 'good');
+      pip.say('You spelled it! Read your postcard. Which picture is it?');
+      stage.setPic('✉️');
+      const q = el('p', 'c-q', 'Which picture shows your postcard?'); body.insertBefore(q, fb);
+      card.answer2 = it.pic;
+      const row = choices(body, [picOpt(it.pic)].concat(otherPics(it.pic, 2, it.w + 't').map(picOpt)), it.w + 'mini' + P.key, (f2) => {
+        setFb(fb, 'Yes! You read it! 📬', 'good');
+        complete(card, { first, type: 'type', w: it.w, readFirst: f2 }, { fish: 2 });
+      }, () => setFb(fb, 'Read your postcard again. 👀', 'soft'), 'pics');
+      body.insertBefore(row, fb);
     };
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const typed = inp.value.trim().toLowerCase().replace(/\s+/g, ' ');
       if (!typed) return;
-      if (typed === it.w.toLowerCase()) return win(tries === 0 && !copy);
+      if (typed === it.w.toLowerCase()) { if (!won) win(tries === 0 && !copy); return; }
       if (copy) { setFb(fb, 'Almost! Look at each letter and copy it. 👀', 'soft'); return; }
       tries++;
       const sa = soundAlike(it.w.toLowerCase(), typed);
@@ -1631,17 +2129,17 @@
     const pair = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || keys[S.sessionsDone % keys.length];
     const C = SOUND_CARDS[pair];
     const { vis, body } = frame(sec, { kicker: '⭐ Bonus (optional) · Which sound?', title: `“${C.a[0]}” or “${C.b[0]}”?` });
-    const pip = pipSay(vis, `Want to play a listening game? “${C.a[0]}” like ${C.a[2]}, or “${C.b[0]}” like ${C.b[2]}. You can skip it!`);
-    const pic = el('div', 'pic-hero', '👂'); vis.appendChild(pic);
+    const pip = pipSay(vis, `Listening game! “${C.a[0]}” like ${C.a[2]}, or “${C.b[0]}” like ${C.b[2]}?`);
+    const pic = picHero('👂'); vis.appendChild(pic);
     const fb = feedback(body);
-    optionalGate(body, pip, '', () => {
+    ((go) => go())(() => {
       const words = shuffle(C.words, P.key + pair).slice(0, 3);
       let r = 0, firsts = 0;
       const round = () => {
         const [w, wp, ans] = words[r]; card.answer = (ans === 'a' ? C.a : C.b)[0];
-        pic.textContent = wp;
+        pic.setPic(wp);
         pip.say('Listen! Which sound is in this word?');
-        setTimeout(() => sayList([{ text: w, word: true, slow: true }]), 1600);
+        setTimeout(() => sayList([{ text: w, word: true, slow: true }]), 250);
         const mk = (s) => { const d = el('span', 'snd-opt'); d.append(el('span', 'snd-pic', s[1]), el('strong', null, s[0]), el('span', 'snd-mouth', (MOUTH[s[0]] || ['', ''])[0]), el('span', 'snd-key', 'like ' + s[2])); return d; };
         const right = ans === 'a' ? C.a : C.b, wrong = ans === 'a' ? C.b : C.a;
         const tools = hearBtn(w, '🔊 Hear it again');
@@ -1649,12 +2147,12 @@
         const row = choices(body, [mk(right), mk(wrong)], w + P.key, (first) => {
           if (first) firsts++;
           setFb(fb, `Yes! “${w}” has “${right[0]}”. ${praise('listen')}`, 'good');
-          setTimeout(() => { row.remove(); tools.remove(); fb.className = 'fb'; r++; if (r < words.length) round(); else complete(card, { first: firsts === words.length, type: 'sound' }, { fish: 2, delay: 900 }); }, 1500);
+          setTimeout(() => { row.remove(); tools.remove(); fb.className = 'fb'; r++; if (r < words.length) round(); else complete(card, { first: firsts === words.length, type: 'sound' }, { fish: 2, delay: 600 }); }, 900);
         }, () => { pip.say(`${mishap()} Watch my mouth: ${(MOUTH[right[0]] || ['', ''])[1]}.`, 'oops'); }, 'snd two');
         body.insertBefore(row, fb);
       };
       round();
-    }, card);
+    });
   };
 
   /* ---- R practice: listening only. Never grades her speech. ---- */
@@ -1669,20 +2167,19 @@
     const { vis, body } = frame(sec, { kicker: '👂 R or W? · listening game', title: 'Which one did I say?' });
     const pip = pipSay(vis, 'Listen closely! Which one did I say?');
     card.noAutoSay = true;
-    vis.appendChild(el('div', 'pic-hero', '👂'));
+    vis.appendChild(picHero('👂'));
     const fb = feedback(body);
     let r = 0;
     const round = () => {
       const pr = picks[r]; const sayR = seeded(P.key + r)() < 0.5;
       const target = sayR ? pr.r : pr.w; card.answer = target;
-      setTimeout(() => sayList([{ text: 'Listen closely! Which one did I say?', word: false, pause: 200 }, { text: target, word: true }]), r === 0 ? 400 : 200);
+      setTimeout(() => sayList(r === 0 ? [{ text: 'Listen closely! Which one did I say?', word: false, pause: 150 }, { text: target, word: true }] : [{ text: target, word: true }]), 150);
       const mk = (w, pic) => { const d = el('span', 'pic-word'); d.append(el('span', 'pic-opt', pic), wordEl(rMark(w))); return d; };
       const opts = sayR ? [mk(pr.r, pr.rp), mk(pr.w, pr.wp)] : [mk(pr.w, pr.wp), mk(pr.r, pr.rp)];
       const tools = hearBtn(target, '🔊 Hear it again'); body.insertBefore(tools, fb);
       const row = choices(body, opts, target + P.key, () => {
         setFb(fb, `Yes! I said “${target}”. ${praise('listen')}`, 'good');
-        setTimeout(() => sayList([{ text: pr.r, word: true, pause: 300 }, { text: pr.w, word: true }]), 500);
-        setTimeout(() => { row.remove(); tools.remove(); fb.className = 'fb'; r++; if (r < picks.length) round(); else complete(card, { first: true, type: 'rpair' }, { delay: 700 }); }, 2600);
+        setTimeout(() => { row.remove(); tools.remove(); fb.className = 'fb'; r++; if (r < picks.length) round(); else complete(card, { first: true, type: 'rpair' }, { delay: 500 }); }, 1000);
       }, () => { pip.say('Hmm, let me say it again!', 'oops'); setTimeout(() => sayList([{ text: target, word: true, slow: true }]), 900); }, 'pics two');
       body.insertBefore(row, fb);
     };
@@ -1695,11 +2192,12 @@
     const { vis, body } = frame(sec, { kicker: '🕵️ Catch the guide! · R words', title: `Did ${G().name} say it right?` });
     const pip = pipSay(vis, 'I love R words! Let me say one...');
     card.noAutoSay = true;
-    const pic = el('div', 'pic-hero', '🕵️'); vis.appendChild(pic);
+    const pic = picHero('🕵️'); vis.appendChild(pic);
     const fb = feedback(body);
     let r = 0;
     const done = () => {
-      pip.say('You are a great listener! Want to say some R words and save them? You can skip it.');
+      pip.say('You are a great listener! 👂'); complete(card, { first: true, type: 'rcatch' }); return;
+      // eslint-disable-next-line no-unreachable
       const words = list.slice(0, 4).map((x) => x.w);
       const det = el('details', 'reply rsave'); det.appendChild(el('summary', null, '🎙️ Say it and save it (optional)'));
       const wl = el('div', 'r-list'); list.slice(0, 4).forEach((x) => { const d = el('span', 'pic-word'); d.append(el('span', 'pic-opt', x.pic || '🔴'), wordEl(rMark(x.w))); wl.appendChild(d); });
@@ -1710,7 +2208,7 @@
     const round = () => {
       const it = items[r]; const oops = it.oops || autoOops(it.w); card.answer = it.w;
       const other = list.find((x) => x.w !== it.w && x.pic !== it.pic) || { w: 'sun', pic: '☀️' };
-      pic.textContent = '🗣️';
+      pic.setPic('🗣️');
       pip.say(`Look! A “${oops}”!`, 'oops');
       sayList([{ text: 'Look! A', word: false }, { text: oops, word: true }]);
       const mk = (x) => { const d = el('span', 'pic-word'); d.append(el('span', 'pic-opt', x.pic || '🔴'), wordEl(rMark(x.w))); return d; };
@@ -1718,7 +2216,7 @@
       const fix = btn('big-btn soft', `Oops, say it right, ${G().name}! 🔁`, () => { fix.disabled = true; pip.say(`Oops! I meant “${it.w}”!`); sayList([{ text: 'Oops! I meant', word: false }, { text: it.w, word: true }]); });
       const row = choices(body, [mk(it), mk(other)], it.w + P.key, () => {
         pip.say(`Yes! I meant “${it.w}”! Thanks for catching me!`); sayList([{ text: 'Yes! I meant', word: false }, { text: it.w, word: true }]);
-        setTimeout(() => { body.querySelectorAll('.r-q').forEach((q) => q.remove()); row.remove(); fix.remove(); r++; if (r < items.length) round(); else done(); }, 2400);
+        setTimeout(() => { body.querySelectorAll('.r-q').forEach((q) => q.remove()); row.remove(); fix.remove(); r++; if (r < items.length) round(); else done(); }, 1200);
       }, () => { pip.say('Hmm, listen again!', 'oops'); }, 'pics two');
       body.insertBefore(row, fb); body.insertBefore(fix, fb);
     };
@@ -1731,18 +2229,16 @@
     const w = pool.sort((a, b) => b.length - a.length)[0];
     const v = vocabOf(w) || { w: 'opportunity', split: 'op|por|tu|ni|ty', pic: '🚪✨', means: 'a good chance' };
     const { vis, body } = frame(sec, { kicker: '⭐ Challenge word (optional)', title: 'Want to try a big word?' });
-    const pip = pipSay(vis, `Here is a big challenge word! Want to try it for bonus ${pet().foodName}? Skipping is totally fine.`);
-    vis.appendChild(el('div', 'pic-hero', v.pic)); vis.appendChild(el('p', 'pic-cap', v.means));
+    const pip = pipSay(vis, `A big challenge word, for bonus ${pet().foodName}!`);
+    vis.appendChild(picHero('⭐'));
     const fb = feedback(body);
-    optionalGate(body, pip, '', () => {
-      const ch = chunkWord(v); body.insertBefore(ch, fb);
-      pip.say('Read it chunk by chunk, out loud. Then check!');
-      const row = el('div', 'dec-row'); body.insertBefore(row, fb);
-      row.append(btn('big-btn', '🗣️ I read it · check 🔊', () => {
-        row.replaceChildren();
-        sayList(chunkItems(v, ch)).then(() => { setFb(fb, praise('brave'), 'good'); complete(card, { first: true, type: 'challenge', w: v.w }, { fish: 3, delay: 1600 }); });
-      }), wordRec(v));
-    }, card);
+    const d0 = el('div', 'dec-word'); d0.appendChild(el('span', 'w w-big plain-word', v.w)); body.insertBefore(d0, fb);
+    const hb = btn('mini-btn wp-helpme', '🙋 Help me', () => { hb.remove(); const ch = chunkWord(v); d0.replaceWith(ch); sayList(chunkItems(v, ch)); }); // chunks only if she asks
+    body.insertBefore(hb, fb);
+    body.insertBefore(el('p', 'c-q', 'Read it out loud. Which picture is it?'), fb);
+    card.answer = v.pic;
+    body.insertBefore(choices(body, [picOpt(v.pic)].concat(otherPics(v.pic, 2, v.w + 'ch').map(picOpt)), v.w + 'chal', (first) => { setFb(fb, praise('brave'), 'good'); complete(card, { first: true, type: 'challenge', w: v.w }, { fish: 3 }); }, () => setFb(fb, 'Try the chunks one by one. 🧩', 'soft'), 'pics'), fb);
+    body.insertBefore(wordRec(v), fb);
   };
   let THEN_NOW = null;
   async function refreshThenNow() {
@@ -1759,19 +2255,19 @@
     const T = THEN_NOW;
     const { vis, body } = frame(sec, { kicker: '🌱 Then vs Now', title: 'Listen to you grow!' });
     pipSay(vis, 'Listen to how you read before, and how you read now! 🌱');
-    vis.appendChild(el('div', 'pic-hero', '🌱'));
+    vis.appendChild(picHero('🌱'));
     if (!T) { body.appendChild(el('p', 'c-text', 'Keep recording, and soon you can hear yourself grow!')); complete(card, null, { fish: 0, stay: true }); return; }
     body.appendChild(el('p', 'c-sub', T.label));
     const row = el('div', 'takes');
     [['Then', T.first], ['Now', T.last]].forEach(([lbl, r]) => { const c = el('div', 'take'); c.append(el('p', 'take-h', `${lbl} · ${fmtDate(r.date)}`), audioFor(r)); row.appendChild(c); });
     body.appendChild(row);
-    body.appendChild(btn('big-btn', 'Wow! ✓', () => complete(card, null, { fish: 0, delay: 300 })));
+    card.onShow = () => complete(card, null, { fish: 0, stay: true });
   };
   BUILD.italia = (card, sec) => {
     const I = W_().italia;
     sec.classList.add('italia');
     const { vis, body } = frame(sec, { kicker: '🇮🇹 Bonus Postcard from Italia!', title: `${I.place}` });
-    vis.appendChild(el('div', 'pic-hero', I.scene));
+    vis.appendChild(picHero(I.scene, { scene: false }));
     const pip = pipSay(vis, `Ciao! I am at the beach near Naples. Can you teach me 3 Italian words?`);
     body.appendChild(el('p', 'it-flag', '🇮🇹 ' + I.region));
     const pc = el('div', 'pc-full it-pc'); I.postcard.forEach((t) => pc.appendChild(el('p', null, t))); body.appendChild(pc);
@@ -1779,7 +2275,7 @@
     const skip = btn('link-btn', 'Skip, no problem', () => { goHome(); });
     body.appendChild(skip);
     const go = btn('big-btn', 'Teach me! 🇮🇹', () => {
-      go.remove(); pc.remove();
+      go.remove();
       let r = 0;
       const round = () => {
         const wd = I.words[r]; card.answer = wd.pic;
@@ -1787,16 +2283,17 @@
         big.querySelector('.hear-btn').onclick = (e) => { e.stopPropagation(); sayList([{ text: wd.it, word: true, lang: 'it' }]); };
         body.insertBefore(big, fb);
         pip.say(`What does “${wd.it}” mean? Tap the picture!`);
-        setTimeout(() => sayList([{ text: wd.it, word: true, lang: 'it' }]), 1400);
+        setTimeout(() => sayList([{ text: wd.it, word: true, lang: 'it' }]), 300);
         const row = choices(body, [el('span', 'pic-opt', wd.pic)].concat(wd.others.map((o) => el('span', 'pic-opt', o))), wd.it + P.key, () => {
           pip.say(`Grazie! Now I know “${wd.it}”! 🇮🇹`);
-          setTimeout(() => { big.remove(); row.remove(); fb.className = 'fb'; r++; if (r < I.words.length) round(); else { skip.remove(); S.italiaDone = Object.assign({}, S.italiaDone, { [P.week.id]: Date.now() }); save(); setFb(fb, 'Bravissima! You taught me 3 words! 🇮🇹', 'good'); complete(card, null, { fish: 3, delay: 1500 }); } }, 1600);
+          setTimeout(() => { big.remove(); row.remove(); fb.className = 'fb'; r++; if (r < I.words.length) round(); else { skip.remove(); S.italiaDone = Object.assign({}, S.italiaDone, { [P.week.id]: Date.now() }); save(); setFb(fb, 'Bravissima! You taught me 3 words! 🇮🇹', 'good'); complete(card, null, { fish: 3, delay: 1200 }); } }, 900);
         }, () => { pip.say(mishap(), 'oops'); }, 'pics');
         body.insertBefore(row, fb);
       };
       round();
     });
     body.insertBefore(go, skip);
+    card.onShow = () => { if (!card._go) { card._go = true; go.click(); } };
   };
 
   /* ---------------- end of session + level rules ----------------
@@ -1831,20 +2328,24 @@
     return { good, rough, change };
   }
   function finishSession() {
+    if (P.finished) return; P.finished = true;
     const sc = scoreSession(P.res);
+    const wlog = { practiced: (P.res.practice || {}).words || [], help: (P.res.practice || {}).help || [], known: [], moved: [] };
     if (P.mode) {  // Boss postcard / Italian bonus: bonus only, never changes the level
+      if (P.mode === 'bonus') S.chick.fish += 0;
       if (P.mode === 'boss') { S.chick.fish += 5; S.bossDone = Object.assign({}, S.bossDone, { [P.key]: Date.now() }); }
-      S.sessions.push({ id: 's' + Date.now(), week: P.week.id, day: P.mode, dayName: P.mode === 'boss' ? `Boss postcard (${P.day.name})` : 'Bonus Postcard from Italia', level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish, bonus: P.mode,
+      S.sessions.push({ id: 's' + Date.now(), week: P.week.id, day: P.mode, dayName: P.mode === 'boss' ? `Boss postcard (${P.day.name})` : P.mode === 'bonus' ? `Bonus round (${P.day.name})` : 'Bonus Postcard from Italia', level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish, bonus: P.mode,
         wordFirst: sc.wordFirst, wordTotal: sc.wordTotal, evidence: sc.evidence, advisor: sc.advisor, checksFirst: sc.checksFirst, checksTotal: sc.checksTotal, byType: sc.byType });
       S.progress = null; save(); refreshThenNow();
-      return showEnd(sc, { change: null }, P.mode === 'boss' ? '👑 Boss postcard done! +5 bonus!' : '🇮🇹 Bravissima! Bonus done!');
+      return showEnd(sc, { change: null }, P.mode === 'boss' ? '👑 Boss postcard done! +5 bonus!' : P.mode === 'bonus' ? '⭐ Bonus round done!' : '🇮🇹 Bravissima! Bonus done!');
     }
     const rule = applyLevelRules(sc, P.lv);
     S.sessionsDone++;
     (P.res.missed || []).forEach((m) => { if (!S.review.find((r) => r.w === m.w)) S.review.push({ w: m.w, split: m.split, due: S.sessionsDone + 2, from: `${P.day.name} (${LEVEL_INFO[P.lv].name})` }); });
     S.sessions.push({ id: 's' + Date.now(), week: P.week.id, day: P.day.day, dayName: P.day.name, level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish,
       wordFirst: sc.wordFirst, wordTotal: sc.wordTotal, evidence: sc.evidence, advisor: sc.advisor, checksFirst: sc.checksFirst, checksTotal: sc.checksTotal, byType: sc.byType,
-      alt: !!P.alt, missed: (P.res.missed || []).map((m) => m.w), route: P.res.route || '', good: rule.good, rough: rule.rough });
+      alt: !!P.alt, missed: (P.res.missed || []).map((m) => m.w), route: P.res.route || '', good: rule.good, rough: rule.rough,
+      practiced: wlog.practiced, known: wlog.known, help: wlog.help, moved: wlog.moved, helped: Object.values(P.res).filter((r) => r && r.helped).length, skipped: Object.values(P.res).filter((r) => r && r.skipped).length, cards: P.specs.length });
     S.progress = null;
     save();
     refreshThenNow();
@@ -1865,11 +2366,13 @@
     if (nStk >= 1 && nStk <= STICKERS.length) { // she just earned a sticker for the zoo shelf
       const sk = el('p', 'end-sticker'); const im = el('img'); im.src = `img/stickers/${STICKERS[nStk - 1]}.webp`; im.alt = ''; sk.append(im, el('span', null, 'New sticker for your zoo!'));
       box.insertBefore(sk, bye);
-      sound('plink', 1300);
+      sound('plink', 2300);
     }
     box.appendChild(btn('big-btn', `Back to ${chickName()} ${pet().icon}`, () => goHome()));
+    if (!P.mode && P.week) { const di = P.week.days.findIndex((d) => d.day === P.day.day || (d.alt && d.alt.day === P.day.day)); if (di >= 0) box.insertBefore(btn('big-btn soft bonus-btn', '⭐ Bonus round (optional)', () => startSession(di, false, 'bonus')), box.lastChild); }
     showScreen('screenEnd');
-    sound('fanfare');
+    const up = rule.change && LEVELS.indexOf(rule.change.to) > LEVELS.indexOf(rule.change.from);
+    sound(up ? 'j_level' : 'j_day');
   }
 
   /* ---------------- home + habitat ---------------- */
@@ -1923,7 +2426,7 @@
       days.appendChild(b);
     });
     bot.appendChild(days);
-    const resume = S.progress && S.progress.week === week.id;
+    const resume = !!(S.progress && S.progress.v === PLAN_V && S.progress.week === week.id && week.days.some((d) => d.day === S.progress.day));
     const target = resume ? week.days.findIndex((d) => d.day === S.progress.day) : week.days.indexOf(firstOpen || week.days[0]);
     const label = resume ? `Keep going: ${week.days[target].name} ▶` : (firstOpen ? `Start ${firstOpen.name} ▶` : 'Play again ▶');
     bot.appendChild(btn('big-btn', label, () => begin(target, resume)));
@@ -1935,6 +2438,7 @@
       const bkey = sessionKey(week, shownDay(lastDone), LEVELS[LEVELS.indexOf(S.level) + 1]) + '-boss';
       if (!(S.bossDone || {})[bkey]) extras.appendChild(btn('extra-btn', `👑 Boss postcard (optional): ${shownDay(lastDone).place}`, () => startSession(di, false, 'boss')));
     }
+    if (lastDone && !resume) extras.appendChild(btn('extra-btn', '⭐ Bonus round (optional)', () => startSession(week.days.indexOf(lastDone), false, 'bonus')));
     const fri = week.days.find((d) => d.day === 5);
     if (week.italia && S.italiaOn !== false && fri && ds[5] && !resume) extras.appendChild(btn('extra-btn italia-btn', (S.italiaDone || {})[week.id] ? '🇮🇹 Bonus Postcard from Italia! (again)' : '🇮🇹 Bonus Postcard from Italia!', () => startSession(week.days.indexOf(fri), false, 'italia')));
     if (extras.children.length) bot.appendChild(extras);
@@ -1973,7 +2477,7 @@
   }
   function begin(di, resume) {
     const week = currentWeek();
-    const isResume = resume || (S.progress && S.progress.week === week.id && S.progress.day === week.days[di].day);
+    const isResume = resume || !!(S.progress && S.progress.v === PLAN_V && S.progress.week === week.id && S.progress.day === week.days[di].day);
     startSession(di, isResume);
   }
   function goHome() {
@@ -1982,10 +2486,33 @@
     document.querySelectorAll('.rec').forEach((r) => r.stop && r.stop());
     renderHome(); showScreen('screenHome');
   }
+  let nameBack = null; // set by the first-launch steps that have a step before them
+  function curScreen() { return ['screenHome', 'screenPlay', 'screenEnd', 'screenParent', 'screenName'].find((x) => $(x).classList.contains('active')); }
+  function goBack() {
+    const sc = curScreen();
+    if (sc === 'screenPlay') { if (P.idx > 0) goPrev(); else pauseOpen(); return; }
+    if (sc === 'screenName' && nameBack) { const f = nameBack; nameBack = null; f(); return; }
+    goHome();
+  }
+  function pauseOpen() { clearTimeout(advanceTimer); stopVoice(); saveProgress(); $('pauseBox').hidden = false; }
+  function pauseClose() { $('pauseBox').hidden = true; }
+  /* 🙋 Help (same place on every card): the card's clue now (a wrong choice fades, the answer glows) + the guide says it again. */
+  function helpNow() {
+    const c = P.cards[P.idx]; if (!c || c.done) return;
+    S.helpTaps = (S.helpTaps || 0) + 1; P.res.helpTaps = (P.res.helpTaps || 0) + 1; save();
+    if (c.help) c.help();
+    (c.idle || []).forEach((x) => x.fn());
+    if (c.pip) { c.pip.say(c.pip.text || 'Here is a clue! 💡'); }
+  }
   function showScreen(id) {
     ['screenHome', 'screenPlay', 'screenEnd', 'screenParent', 'screenName'].forEach((s) => { const e = $(s); const on = s === id; e.hidden = !on; e.classList.toggle('active', on); });
     $('dots').hidden = id !== 'screenPlay'; $('fishCount').hidden = id !== 'screenPlay';
-    $('btnHome').hidden = id === 'screenHome' || id === 'screenName';
+    // One Back button, same place and look on every screen (top left). Play also has Pause (save and quit).
+    $('btnHome').hidden = true;
+    $('btnBack').hidden = id === 'screenHome' || (id === 'screenName' && !nameBack);
+    $('btnPause').hidden = id !== 'screenPlay';
+    $('btnHelp').hidden = id !== 'screenPlay';
+    $('pauseBox').hidden = true;
     if (id !== 'screenPlay') $('topTitle').textContent = id === 'screenParent' ? 'Grown-ups' : (S.guide ? `${G().name}'s Postcards` : 'Postcards');
     document.title = S.guide ? `${G().name}'s Postcards` : "Pip's Postcards";
   }
@@ -2070,6 +2597,13 @@
   function renderName() {
     const box = $('nameBox'); box.replaceChildren();
     box.classList.remove('choosing');
+    // Back (top left) steps back through the first-launch steps.
+    const firstTime = !(S.chick && S.chick.name) && !S.choosing;
+    nameBack = !S.kidAsked ? null
+      : !S.guide ? () => { S.kidAsked = false; save(); renderName(); }
+      : (!S.chick.kind || S.choosing) ? (S.choosing ? () => { S.choosing = false; save(); goHome(); } : (firstTime ? () => { S.guide = null; save(); renderName(); } : null))
+      : (!S.chick.name ? () => { S.chick.kind = ''; save(); renderName(); } : null);
+    if ($('btnBack')) $('btnBack').hidden = !nameBack;
     if (!S.kidAsked) return renderKid(box);
     if (!S.guide) return renderGuide(box);
     const choosing = !S.chick.kind || S.choosing;
@@ -2218,14 +2752,14 @@
     wk.appendChild(el('p', 'pa-small', `Heart (high-frequency) words: ${week.school.hf.join(', ')}`));
     wk.appendChild(el('p', 'pa-small', `Next week (Sky preview): ${week.school.nextSpelling.join(', ')}`));
     const tbl = el('table', 'pa-tbl');
-    tbl.innerHTML = '<thead><tr><th>Day</th><th>Place</th><th>Level</th><th>Words 1st try</th><th>Evidence</th><th>Advisor</th><th>Pictures</th><th>When</th></tr></thead>';
+    tbl.innerHTML = '<thead><tr><th>Day</th><th>Place</th><th>Level</th><th>Words 1st try</th><th>Evidence</th><th>Advisor</th><th>Pictures</th><th>Help / skipped</th><th>When</th></tr></thead>';
     const tb = el('tbody');
     const ds = dayStatus(week);
     week.days.forEach((d0) => {
       const s = ds[d0.day]; const tr = el('tr');
       const d = (s && s.alt && d0.alt) ? d0.alt : shownDay(d0);
-      const cells = s ? [d.name, d.place, LEVEL_INFO[s.level].icon + ' ' + LEVEL_INFO[s.level].name, `${s.wordFirst}/${s.wordTotal}`, s.evidence ? '✅ 1st try' : '🔁 retry', s.advisor ? '✅' : '🔁', `${s.checksFirst}/${s.checksTotal}`, `${fmtDate(s.date)} · ${s.mins} min`]
-        : [d.name, d.place, '·', '·', '·', '·', '·', 'not yet'];
+      const cells = s ? [d.name, d.place, LEVEL_INFO[s.level].icon + ' ' + LEVEL_INFO[s.level].name, `${s.wordFirst}/${s.wordTotal}`, s.evidence ? '✅ 1st try' : '🔁 retry', s.advisor ? '✅' : '🔁', `${s.checksFirst}/${s.checksTotal}`, `${s.helped || 0} / ${s.skipped || 0}`, `${fmtDate(s.date)} · ${s.mins} min${s.cards ? ' · ' + s.cards + ' cards' : ''}`]
+        : [d.name, d.place, '·', '·', '·', '·', '·', '·', 'not yet'];
       cells.forEach((c) => tr.appendChild(el('td', null, c)));
       tb.appendChild(tr);
     });
@@ -2249,11 +2783,19 @@
     const allMissed = [...new Set(S.sessions.flatMap((s) => s.missed || []))];
     if (allMissed.length) mw.appendChild(el('p', 'pa-small', 'All words missed at least once: ' + allMissed.join(', ')));
 
-    const ta = sec('Reading practice: words she tapped "Try again" on');
-    ta.appendChild(el('p', 'pa-small', 'She reads a new word, then checks herself against the model. Words she marks "Try again" come back in later sessions until she marks them right twice. Her word recordings (if she taps 🎙️) are in Recordings below.'));
+    const wc = sec('Word practice (this week)');
+    wc.appendChild(el('p', 'pa-small', 'Watch me → Your turn: the guide shows each word big and says it once; she says it out loud (you listen; nothing is recorded or scored). One tap (Next or swipe up) moves on. Every 3 words an earlier word comes back without audio so she reads it herself. "Help me" (only if she taps it) says it slowly, lights the tricky part with a mouth cue, and says it again. Words she asked for help with come back next session.'));
+    const wmap = Object.entries(S.words || {}).filter(([, m]) => m.week === week.id && m.practiced);
+    wc.appendChild(el('p', null, '🗣️ Practiced: ' + (wmap.map(([w, m]) => `${w} ×${m.practiced}`).join(', ') || '—')));
+    const hw = wmap.filter(([, m]) => m.help).sort((a, b) => b[1].help - a[1].help);
+    wc.appendChild(el('p', null, '🙋 Asked for help: ' + (hw.map(([w, m]) => `${w} (${m.help}×)`).join(', ') || '—')));
+    const wkS = S.sessions.filter((x) => x.week === week.id);
+    wc.appendChild(el('p', 'pa-small', `🙋 Help button taps (all time): ${S.helpTaps || 0} · answers shown by the guide after 2 misses this week: ${wkS.reduce((a, x) => a + (x.helped || 0), 0)} · cards skipped this week: ${wkS.reduce((a, x) => a + (x.skipped || 0), 0)}.`));
+    const ta = sec('Reading practice: words to practice again');
+    ta.appendChild(el('p', 'pa-small', 'Help words she has not read on the first try yet come back in later sessions until she gets them right twice. Her word recordings (if she taps 🎙️) are in Recordings below.'));
     const tw = Object.values(S.tryAgain || {}).sort((a, b) => b.n - a.n);
     if (!tw.length) ta.appendChild(el('p', 'pa-small', 'None right now. 🎉'));
-    tw.forEach((t) => { const p = el('p', 'pa-word'); p.append(wordEl(t.split || t.w), el('span', 'pa-small', `  "try again" ${t.n}× · from ${t.from || ''} · last ${fmtDate(t.last)}`)); ta.appendChild(p); });
+    tw.forEach((t) => { const p = el('p', 'pa-word'); p.append(wordEl(t.split || t.w), el('span', 'pa-small', `  missed ${t.n}× · from ${t.from || ''} · last ${fmtDate(t.last)}`)); ta.appendChild(p); });
 
     const sl = sec('Spelling: sounds she hears differently');
     sl.appendChild(el('p', 'pa-small', 'When a typed word matches a sound swap (like "dat" for "that"), she sees "You wrote what you heard!" with a mouth cue. Counts:'));
@@ -2357,6 +2899,14 @@
     $('btnNext').addEventListener('click', goNext);
     $('btnPrev').addEventListener('click', goPrev);
     $('btnHome').addEventListener('click', goHome);
+    $('btnBack').addEventListener('click', goBack);
+    $('btnPause').addEventListener('click', pauseOpen);
+    $('pauseGo').addEventListener('click', pauseClose);
+    $('pauseQuit').addEventListener('click', () => { saveProgress(); pauseClose(); goHome(); });
+    $('btnHelp').addEventListener('click', helpNow);
+    // ⏹ Stop: shows only while the voice is talking; same button on every screen.
+    $('btnStop').addEventListener('click', () => { stopVoice(); $('btnStop').hidden = true; });
+    setInterval(() => { const on = voiceActive(); if ($('btnStop').hidden === on) $('btnStop').hidden = !on; sfxDuck(); }, 250);
     // Quick settings (the 🔊 button, easy for her to reach): volume Off / Soft / Normal / Loud and screen Light / Dim / Dark.
     const volIcon = () => { const l = volLevel(); $('muteIcon').textContent = { off: '🔇', soft: '🔈', normal: '🔉', loud: '🔊' }[l]; $('btnMute').setAttribute('aria-pressed', String(!!S.muted)); $('btnMute').setAttribute('aria-label', `Sound and screen settings. Sound is ${l}.`); };
     const qs = el('div', 'quick'); qs.id = 'quick'; qs.hidden = true; qs.setAttribute('role', 'dialog'); qs.setAttribute('aria-label', 'Sound and screen');
@@ -2389,7 +2939,10 @@
     $('feed').addEventListener('touchend', (e) => {
       if (!t0) return; const t = e.changedTouches[0]; const dx = t.clientX - t0.x, dy = t.clientY - t0.y; const quick = Date.now() - t0.at < 700; t0 = null;
       if (quick && Math.abs(dx) > 60 && Math.abs(dx) > 1.6 * Math.abs(dy)) { if (dx < 0) goNext(); else goPrev(); }
+      else if (quick && dy < -60 && Math.abs(dy) > 1.4 * Math.abs(dx) && !P.cards[P.idx + 1]) goNext(); // swipe up on the newest card: move on (skips if not done)
     }, { passive: true });
+    let wheelT = 0;
+    $('feed').addEventListener('wheel', (e) => { if (e.deltaY > 40 && !P.cards[P.idx + 1] && Date.now() - wheelT > 900) { wheelT = Date.now(); goNext(); } }, { passive: true });
     const wideQ = window.matchMedia('(orientation: landscape) and (min-width: 700px)');
     const hintText = () => { $('swipeHint').textContent = wideQ.matches ? 'swipe ↑ or ←  ·  arrow keys work too' : 'swipe up ↑'; };
     hintText(); if (wideQ.addEventListener) wideQ.addEventListener('change', hintText);
@@ -2401,14 +2954,18 @@
     if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.3') return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.6') return;
       const list = [...new Set(Object.values(AUD))];
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.3'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.6'); } catch (_) {}
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   // Small hook for automated tests (no effect on the child's experience).
-  window.PipApp = { soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; } };
+  window.PipApp = { skipCard: () => skipCard(P.cards[P.idx]), goNext, helpNow, pauseOpen, goBack, startSession, get words() { return S.words; }, soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; }, get posLog() { return POS_LOG; },
+    /* test hooks: build a card off-screen (answer-position test) */
+    _stop: (id) => stopSpecs(id), _plan: (first, left) => planAfterMap(first, left),
+    _specs: () => { const V = W_().vocab || {}, w = Object.keys(V)[0]; return [].concat(stopSpecs('words'), stopSpecs('postcard'), stopSpecs('fly'), bonusSpecs(P.week, P.day, P.L), QUICK_GAMES.map((k, n) => ({ k, n })), [0, 1, 2].map((n) => ({ k: 'type', n })), W_().italia ? [{ k: 'italia' }] : [], w ? [{ k: 'decode', v: Object.assign({ w }, V[w]) }, { k: 'confirm', w }] : []).filter((x) => BUILD[x.k]); },
+    _probe: (spec, show) => { const card = { i: P.idx, spec, done: false, el: null }; const sec = el('section', 'card card-' + spec.k); card.el = sec; const prev = BUILDING; BUILDING = card; try { BUILD[spec.k](card, sec); } finally { BUILDING = prev; } BUILDING = card; try { if (show && card.onShow) card.onShow(); if (spec.k === 'type') { const inp = sec.querySelector('.type-in'); inp.value = card.answer; inp.dispatchEvent(new Event('input')); } } catch (_) {} finally { BUILDING = prev; } return { k: spec.k, opts: sec.querySelectorAll('.opt, .evi-s').length, card }; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

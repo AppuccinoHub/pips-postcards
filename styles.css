@@ -650,3 +650,249 @@ html.theme-dark { --green-d: #86dc8d; }
 .theme-dark .big-btn.soft { color: #9fe6a5; }
 .c-sub.quiet { color: var(--ink2); }
 .theme-dark .pa-small { color: #b4bdd0; }
+
+/* ======================= v2.5.1: snappy sessions, real postcards, guide progress meter ======================= */
+/* Snappy: one-shot animations stay under ~0.3 s (loops like glow/bob are gentle and never block anything). */
+.pip-wrap.pop .bubble { animation-duration: .22s; }
+.pip-wrap.oops .pip { animation-duration: .3s; }
+.pip-wrap.fly-in { animation: fly .3s ease-out both; }
+.model-hero.pulse, .sort-word.pop { animation-duration: .25s; }
+.big-btn.later { transition-duration: .2s; }
+.shake { animation-duration: .3s; }
+.spark { animation-duration: .5s; }
+.chick.grow, .chick.hatch { animation-duration: .3s; }
+.fishy.eaten { animation-duration: .28s; }
+.unlock img, .unlock-emoji { animation-duration: .3s; }
+.fish-pop { animation-duration: .9s; }
+.opt.gone { transition-duration: .2s; }
+.evi-p.dim { transition-duration: .25s; }
+.pip-wrap.landing.bump .pip, .pip-wrap.landing.landed .pip { animation-duration: .3s; }
+.nest-btn.chosen .nest-scene { animation-duration: .3s; }
+.reveal-hidden.out { transition-duration: .3s; }
+.scene-card, .girl-side, .girl-cheer { animation-duration: .3s; animation-delay: 0s; }
+
+/* ---- top bar: Back (same place, same look on every screen), Pause, Stop-voice ---- */
+.back-btn { width: auto; min-width: 46px; padding: 0 12px 0 8px; border-radius: 999px; display: inline-flex; gap: 2px; align-items: center; font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+.back-btn > span:first-child { font-size: 1.6rem; line-height: 1; margin-top: -3px; }
+.back-lbl { font-size: .9rem; }
+@media (max-width: 380px) { .back-lbl { display: none; } }
+.stop-audio { background: #fff3e0; color: #b25500; }
+.icon-btn { min-width: 46px; }
+/* progress: a bar toward today's sticker with her baby riding along */
+.dots { flex-direction: column; align-items: stretch; width: min(260px, 100%); gap: 3px; }
+.pbar { position: relative; height: 12px; border-radius: 99px; background: #eadfc6; overflow: visible; }
+.pbar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--teal), #41c1b0); transition: width .3s ease; }
+.pbar-pet { position: absolute; top: 50%; left: 0; transform: translate(-30%, -58%); font-size: 1.05rem; transition: left .3s ease; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+.pbar-goal { position: absolute; right: -6px; top: 50%; transform: translateY(-55%); font-size: .95rem; }
+.dot-row { display: flex; gap: 3px; justify-content: center; }
+.dot-row .dot { width: 5px; height: 5px; }
+.fish-count { position: relative; }
+.fish-count.hop { animation: hopTop .3s ease; }
+@keyframes hopTop { 50% { transform: translateY(-5px) scale(1.08); } }
+.heart-pop { position: absolute; right: -4px; top: -10px; font-size: .9rem; animation: heartUp .65s ease-out forwards; pointer-events: none; }
+@keyframes heartUp { from { opacity: 1; transform: translateY(0) scale(.7); } to { opacity: 0; transform: translateY(-18px) scale(1.2); } }
+
+/* ---- every card: Skip (same small button, same place) and 🙋 Help (same place on every card) ---- */
+.skip-card { position: absolute; right: 10px; bottom: calc(10px + var(--safe-b)); z-index: 7; min-height: 44px; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,.9); border: 2px solid #e6dcc6; font-weight: 600; font-size: .95rem; color: var(--ink2); }
+.card.is-done .skip-card { display: none; }
+.help-btn { position: absolute; left: 10px; bottom: calc(10px + var(--safe-b)); z-index: 7; min-height: 44px; padding: 6px 14px; border-radius: 999px; background: #fff7d6; border: 2px solid #f1d98a; font-weight: 700; font-size: .95rem; color: #6b4e00; }
+.card .c-body { padding-bottom: 64px; }
+.nudge1 { animation: nudgeOnce .35s ease 2; }
+@keyframes nudgeOnce { 50% { transform: scale(1.05); } }
+/* pause sheet */
+.pause { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(20, 20, 30, .45); }
+.pause-box { background: var(--paper); border-radius: 24px; padding: 22px; width: min(92%, 380px); display: grid; gap: 12px; text-align: center; box-shadow: var(--shadow); }
+.pause-h { margin: 0; font-size: 1.6rem; font-weight: 700; }
+.pause-sub { margin: 0; color: var(--ink2); }
+
+/* ---- the picture area of word cards: today's scene with the picture as a postage stamp (no floating emoji) ---- */
+.pic-stage { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.pic-stage .scene.soft { filter: saturate(.9) brightness(1.04); }
+.pic-stage.no-art { background: linear-gradient(160deg, #cfe9ff, #fdf1d6); }
+.stamp { position: absolute; left: 7%; top: 9%; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; background: #fffdf5; padding: 8px 10px 6px; border-radius: 4px; transform: rotate(-4deg); box-shadow: 0 3px 8px rgba(0,0,0,.2);
+  /* perforated edge */
+  -webkit-mask: radial-gradient(circle 4px at 4px 4px, transparent 98%, #000) -4px -4px / 12px 12px; mask: radial-gradient(circle 4px at 4px 4px, transparent 98%, #000) -4px -4px / 12px 12px; outline: 2px dashed rgba(170, 120, 60, .35); outline-offset: -7px; }
+.stamp-pic { font-size: clamp(2.2rem, 7vh, 4.2rem); line-height: 1.05; }
+.stamp-cap { font-size: .8rem; font-weight: 600; color: #5a4a2a; max-width: 9em; text-align: center; line-height: 1.15; }
+.stamp.stamp-in { animation: stampIn .25s ease; }
+@keyframes stampIn { from { transform: rotate(-12deg) scale(.6); } to { transform: rotate(-4deg) scale(1); } }
+.c-visual .girl-side { z-index: 2; }
+
+/* ---- a real postcard (mini postcard, daily postcard parts, the whole postcard, proof sentences) ---- */
+.postcard { --pc-bg: #fffaf0; --pc-ink: #23324d; --pc-line: rgba(160, 120, 70, .28); position: relative; background: var(--pc-bg); color: var(--pc-ink); border-radius: 10px; padding: 16px 16px 14px;
+  box-shadow: 0 1px 0 #e9dcc0, 0 6px 16px rgba(80, 50, 10, .18); border: 1px solid #eadcc0; transform: rotate(-.6deg); animation: pcIn .28s ease-out both; }
+.postcard::before { content: ""; position: absolute; inset: 5px; border: 1.5px solid rgba(214, 90, 60, .25); border-radius: 7px; pointer-events: none;
+  background: repeating-linear-gradient(135deg, transparent 0 10px, rgba(214, 90, 60, .0) 10px 20px); }
+@keyframes pcIn { from { transform: translateY(14px) rotate(-2deg); opacity: 0; } to { transform: rotate(-.6deg); opacity: 1; } }
+.pc-stamp { position: absolute; right: 12px; top: 10px; width: 54px; height: 62px; background: #fff; border-radius: 3px; display: grid; place-items: center; font-size: 1.6rem; box-shadow: 0 1px 3px rgba(0,0,0,.18); transform: rotate(3deg);
+  outline: 2px dashed rgba(170, 120, 60, .45); outline-offset: -5px; overflow: hidden; }
+.pc-stamp img { width: 86%; height: 86%; object-fit: contain; }
+.pc-postmark { position: absolute; right: 50px; top: 16px; width: 70px; height: 70px; border: 2px solid rgba(60, 70, 110, .35); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-12deg); color: rgba(50, 60, 100, .6); font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; text-align: center; line-height: 1.1; pointer-events: none; }
+.pc-postmark::after { content: ""; position: absolute; left: 60px; top: 22px; width: 46px; height: 22px; background: repeating-linear-gradient(180deg, rgba(60, 70, 110, .32) 0 2px, transparent 2px 7px); border-radius: 40%; }
+.pm-place { max-width: 60px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pc-right { position: relative; z-index: 1; padding-right: 64px; }
+.pc-right > :first-child { margin-top: 0; }
+.postcard .pc-text p, .pc-right p { font-family: var(--read); font-size: 1.4rem; line-height: 1.65; margin: 0 0 .35em; background: repeating-linear-gradient(180deg, transparent 0 calc(1.65em - 1px), var(--pc-line) calc(1.65em - 1px) 1.65em); }
+.postcard .pc-greet { color: #6a5a45; font-style: italic; font-size: 1.2rem; }
+.postcard .pc-sign { color: #6a5a45; font-size: 1.15rem; }
+.pc-split { display: grid; grid-template-columns: minmax(80px, 38%) 2px 1fr; gap: 12px; align-items: stretch; padding-top: 14px; }
+.pc-left { position: relative; z-index: 1; display: grid; place-items: center; min-height: 110px; }
+.pc-photo { width: 100%; height: 100%; min-height: 110px; background-size: cover; background-position: center; border-radius: 4px; border: 5px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,.2); transform: rotate(-2deg); }
+.pc-pic { font-size: 3.2rem; }
+.pc-divider { background: linear-gradient(180deg, transparent, var(--pc-line) 12%, var(--pc-line) 88%, transparent); width: 2px; }
+.pc-split .pc-right { padding-top: 58px; padding-right: 4px; }
+.pc-split .pc-postmark { right: 58px; top: 8px; width: 56px; height: 56px; }
+.pc-split .pc-postmark::after { display: none; }
+.mini-pc .mini-h { font-family: var(--read); font-style: italic; color: #6a5a45; font-size: 1.05rem; margin: 0; background: none; }
+.mini-pc .mini-s { font-size: 1.55rem; }
+.mini-pc .mini-w { background: #fff1a8; border-radius: 6px; padding: 0 4px; }
+.pc-chunk .pc-right { padding-right: 70px; }
+.pc-chunk:not(.first) .pc-postmark { display: none; }
+.pc-chunk:not(.first) .pc-right { padding-right: 62px; }
+.pc-full.postcard { font-size: 1rem; }
+.pc-full .pc-right p { font-size: 1.25rem; }
+/* the proof sentences sit on a postcard too */
+.evi { position: relative; background: #fffaf0; border: 1px solid #eadcc0; border-radius: 10px; box-shadow: 0 6px 16px rgba(80, 50, 10, .15); padding: 14px 14px 10px; }
+.evi::before { content: ""; position: absolute; inset: 5px; border: 1.5px solid rgba(214, 90, 60, .22); border-radius: 7px; pointer-events: none; }
+.evi .evi-s { position: relative; z-index: 1; }
+/* the postcard look in every theme (dark: a dark card with light ink, same stamp and postmark) */
+.theme-dim .postcard, .theme-dim .evi { --pc-bg: #f6ecd6; background: #f6ecd6; }
+.theme-dark .postcard, .theme-dark .evi { --pc-bg: #242b3a; --pc-ink: #eef1f7; --pc-line: rgba(200, 210, 240, .18); background: #242b3a; border-color: #465270; color: #eef1f7; box-shadow: 0 6px 16px rgba(0,0,0,.45); }
+.theme-dark .postcard .pc-greet, .theme-dark .postcard .pc-sign, .theme-dark .mini-pc .mini-h { color: #cfd6e6; }
+.theme-dark .pc-postmark { border-color: rgba(200, 210, 240, .45); color: rgba(220, 228, 245, .75); }
+.theme-dark .pc-postmark::after { background: repeating-linear-gradient(180deg, rgba(200, 210, 240, .35) 0 2px, transparent 2px 7px); }
+.theme-dark .mini-pc .mini-w { background: #6b5a12; color: #fff; }
+.theme-dark .stamp { background: #fff8e8; }
+
+/* ---- mini map (stops) ---- */
+.stops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stop-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 104px; padding: 10px 6px; border-radius: 20px; background: #fff; border: 3px solid #e6dcc6; box-shadow: 0 4px 0 #e6dcc6; font-weight: 700; color: var(--ink); }
+.stop-btn .stop-ic { font-size: 2.2rem; line-height: 1.1; }
+.stop-btn .stop-lbl { font-size: 1.05rem; }
+.stop-btn .stop-n { font-size: .8rem; font-weight: 600; color: var(--ink2); }
+.stop-btn.done { opacity: .6; background: #eef7ee; }
+.stop-btn.right { border-color: var(--teal); box-shadow: 0 4px 0 var(--teal); }
+.theme-dark .stop-btn { background: #2a3244; border-color: #465270; box-shadow: 0 4px 0 #465270; }
+.theme-dark .stop-btn .stop-n { color: #c6cfe0; }
+.theme-dim .stop-btn { background: #f5ead3; }
+
+/* ---- word check grid + quick check ---- */
+.wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.wtile { background: #fff; border: 3px solid #e6dcc6; border-radius: 16px; padding: 6px; display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.wt-word { font-family: var(--read); font-size: 1.45rem; font-weight: 700; text-align: center; }
+.wt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.wt-row button { min-height: 44px; border-radius: 12px; font-weight: 700; font-size: .85rem; padding: 4px; }
+.wk-know { background: #e3f5e1; color: #1d6b24; border: 2px solid #9fd79a; }
+.wk-help { background: #fff5d4; color: #7a5600; border: 2px solid #f0d27a; }
+.wtile.is-known { border-color: #4caf50; background: #eefbec; }
+.wtile.is-known .wk-know { background: #3f9f45; color: #fff; }
+.wtile.is-help { border-color: #f0b93a; background: #fffaea; }
+.wtile.is-help .wk-help { background: #f0b93a; color: #3e2a00; }
+.wq-btn { margin-top: 6px; justify-self: center; }
+.wflash { display: grid; gap: 10px; justify-items: center; }
+.wf-word { font-family: var(--read); font-size: clamp(2.6rem, 9vh, 4.5rem); font-weight: 700; animation: pop .22s ease; }
+.wf-count { margin: 0; color: var(--ink2); font-weight: 600; }
+.wt-row.big { width: min(100%, 420px); }
+.wt-row.big button { min-height: 64px; font-size: 1.15rem; }
+.theme-dark .wtile { background: #2a3244; border-color: #465270; }
+.theme-dark .wk-know { background: #1f3b25; color: #b9f0bf; border-color: #3c7a46; }
+.theme-dark .wk-help { background: #3d3314; color: #ffe39a; border-color: #7a6424; }
+.theme-dark .wtile.is-known { background: #1c3322; } .theme-dark .wtile.is-help { background: #352c12; }
+.theme-dim .wtile { background: #f5ead3; }
+
+/* ---- phrase (Arianna-style), drag the word, silly word, sneaky part ---- */
+.phrase { font-family: var(--read); font-size: 1.5rem; line-height: 1.6; margin: 4px 0 6px; }
+.phrase .hl { background: #ffe066; color: #1f2f4a; border-radius: 8px; padding: 0 6px; font-weight: 700; box-shadow: 0 2px 0 #e7c23a; }
+.opts.stack .opt, .opts.words .opt { border-radius: 999px; min-height: 58px; }
+.blank.drop { display: inline-block; min-width: 4.5em; border-bottom: 3px dashed var(--teal); text-align: center; transition: background .15s; }
+.blank.drop.over { background: #d9f3f7; border-radius: 8px; }
+.drag-ghost { position: fixed; z-index: 50; pointer-events: none; transform: translate(-50%, -60%) rotate(-3deg); opacity: .92; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+.opts.drag .opt { touch-action: none; }
+.silly-line { font-family: var(--read); font-size: 1.4rem; line-height: 2.1; }
+.silly-w { font: inherit; padding: 2px 8px; margin: 2px 0; border-radius: 10px; background: #fff; border: 2px solid #e6dcc6; min-height: 44px; color: var(--ink); }
+.silly-w.right { background: #fff1a8; border-color: #f0c93a; }
+.silly-w.glow { animation: glow 1s ease-in-out infinite; border-color: var(--gold); }
+.theme-dark .silly-w { background: #2a3244; border-color: #465270; }
+.sneak-row { display: flex; justify-content: center; gap: 4px; margin: 6px 0; }
+.sneak-seg { font-family: var(--read); font-size: 2.4rem; font-weight: 700; min-width: 56px; min-height: 64px; padding: 4px 10px; border-radius: 14px; background: #fff; border: 3px solid #e6dcc6; color: var(--ink); }
+.sneak-seg.pat-on { background: #ffe066; border-color: #e7c23a; }
+.sneak-seg.glow { animation: glow 1s ease-in-out infinite; border-color: var(--gold); }
+.theme-dark .sneak-seg { background: #2a3244; border-color: #465270; }
+.opts.bins2 { grid-template-columns: 1fr 1fr; }
+.opts.bins2 .opt { text-align: center; min-height: 72px; font-size: 1.2rem; }
+.opt.shown { border-color: var(--gold); }
+.chick.hop { animation: chickHop .3s ease; }
+@keyframes chickHop { 50% { transform: translateX(-50%) translateY(-14px) scale(1.04); } }
+.bonus-btn { margin-top: 4px; }
+
+/* ---- the guide is the progress meter: far side at the start of a stop, next to the girl at the end ---- */
+.pip-wrap { translate: var(--gx, 0px) 0; transition: translate .35s cubic-bezier(.3, 1.3, .5, 1); }
+.pip-wrap.no-anim { transition: none; }
+.card.tall .pip-wrap { translate: none; }
+.pip { animation: bob 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.pip.hop { animation: gHop .35s ease; }
+.pip.flap { animation: gFlap .35s ease; }
+.pip.spin { animation: gSpin .38s ease; }
+.pip.wobble { animation: gWob .3s ease; }
+@keyframes gHop { 0% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-16px) rotate(-6deg); } 70% { transform: translateY(0) rotate(4deg); } 100% { transform: none; } }
+@keyframes gFlap { 25% { transform: rotate(-9deg) scale(1.03); } 75% { transform: rotate(8deg); } }
+@keyframes gSpin { 0% { transform: rotate(0) scale(1); } 60% { transform: rotate(300deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+@keyframes gWob { 20% { transform: rotate(-10deg) translateX(-3px); } 50% { transform: rotate(9deg) translateX(3px); } 80% { transform: rotate(-5deg); } }
+@media (prefers-reduced-motion: reduce) { .pip-wrap { transition: none; } }
+@media (orientation: landscape) and (min-width: 700px) {
+  .stops { gap: 14px; } .stop-btn { min-height: 120px; }
+  .pc-right p, .postcard .pc-text p { font-size: 1.25rem; }
+  .skip-card { right: 16px; bottom: 14px; } .help-btn { left: 16px; bottom: 14px; }
+}
+/* proof: 3 sentence pills (shuffled), one tap */
+.evi.evi-3 { column-count: auto; display: grid; gap: 8px; }
+.evi-3 .evi-p { margin: 0; }
+.evi-3 .evi-s { display: block; width: 100%; min-height: 52px; padding: 10px 14px; border-radius: 16px; border: 2px solid #efdca6; line-height: 1.45; font-size: 1.25rem; }
+.theme-dark .evi-3 .evi-s { border-color: #5a4f33; }
+/* stamp v2: solid paper with perforated edge (holes only at the border) */
+.stamp { -webkit-mask: none; mask: none; outline: none; background: #fffdf5; border: 2px dashed rgba(170, 120, 60, .35); box-shadow: 0 0 0 5px #fffdf5, 0 3px 10px 5px rgba(0,0,0,.18); }
+.stamp::before { content: ""; position: absolute; inset: -9px; z-index: -1; background: radial-gradient(circle, transparent 3px, #fffdf5 3.6px) -4px -4px / 9px 9px; border-radius: 2px; }
+/* compact word grid: word + ✅ / ⭐ on one row */
+.wlegend { display: flex; gap: 8px; justify-content: center; margin: 0 0 6px; flex-wrap: wrap; }
+.wlegend .lg { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: .85rem; }
+.wgrid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 6px; }
+.wtile { flex-direction: row; align-items: center; padding: 4px 4px 4px 10px; gap: 4px; }
+.wt-word { flex: 1; text-align: left; font-size: 1.3rem; min-width: 0; overflow-wrap: anywhere; }
+.wtile .wt-row { display: flex; gap: 4px; }
+.wtile .wt-row button { width: 46px; min-height: 46px; font-size: 1.25rem; padding: 0; }
+.stamp { box-shadow: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.22)); }
+.stamp::before { inset: -8px; padding: 8px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* phones (portrait): postcard reading cards give more room to the text and the picture choices */
+@media (orientation: portrait) {
+  .card.card-chunk, .card.card-wcheck, .card.card-model, .card.card-type.is-done { grid-template-rows: 25% 1fr; }
+  .pc-chunk .pc-right p { font-size: 1.28rem; line-height: 1.5; background-size: 100% 1.5em; }
+  .pc-chunk .pc-right { padding-right: 0; }
+  .pc-chunk .pc-greet { padding-right: 118px; }
+  .pc-chunk .pc-stamp { width: 44px; height: 50px; top: 8px; right: 10px; }
+  .pc-chunk .pc-postmark { width: 54px; height: 54px; right: 46px; top: 6px; font-size: .5rem; }
+  .pc-chunk .pc-postmark::after { display: none; }
+  .pc-chunk:not(.first) .pc-right > p:first-child { padding-right: 56px; }
+  .pc-chunk.postcard { padding: 12px 12px 8px; }
+  .card-chunk .c-q { font-size: 1.1rem; margin: 8px 0 6px; }
+  .card-chunk .opts.pics .opt { min-height: 70px; }
+}
+/* drawn pictures (words with no clear emoji: napkin, chest, cage, rake) sit in text like an emoji */
+.pic-img { width: 1.15em; height: 1.15em; display: inline-block; vertical-align: -0.2em; object-fit: contain; pointer-events: none; }
+.stamp-pic .pic-img, .pic-opt .pic-img { width: 1.1em; height: 1.1em; }
+/* word practice: Watch me -> Your turn, one tap per word */
+.card-wpractice .c-body { align-items: center; text-align: center; }
+.wp-count { margin: 0; color: var(--ink2); font-weight: 600; font-size: .95rem; }
+.wp-word { display: block; margin: 6px auto; padding: 6px 18px; border-radius: 20px; background: #fff; border: 3px solid #e6dcc6; min-width: 60%; }
+.wp-word .w-big { font-size: clamp(2.8rem, 10vh, 5rem); }
+.wp-word.pop { animation: pop .22s ease; }
+.wp-step { font-size: 1.2rem; font-weight: 700; margin: 4px 0 8px; }
+.wp-row { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.wp-next { min-width: 180px; min-height: 64px; font-size: 1.4rem; }
+.wp-helpme { min-height: 52px; padding: 8px 16px; border-radius: 999px; background: #fff7d6; border: 2px solid #f1d98a; font-weight: 700; color: #6b4e00; }
+.wp-help { margin-top: 10px !important; background: #fffaf0; border: 2px dashed #f0d27a; border-radius: 16px; padding: 8px; margin: 0 0 8px; display: grid; gap: 6px; justify-items: center; }
+.wp-tricky .w-big { font-size: 2.2rem; }
+.wp-tricky .pulse { animation: pop .3s ease 2; }
+.theme-dark .wp-word { background: #2a3244; border-color: #465270; }
+.theme-dark .wp-help { margin-top: 10px !important; background: #242b3a; border-color: #7a6424; }
+.theme-dark .wp-helpme { background: #3d3314; color: #ffe39a; border-color: #7a6424; }
