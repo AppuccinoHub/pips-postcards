@@ -51,7 +51,7 @@
           lines: ['Closed syllable: a consonant closes the door. The vowel is short.', 'Open syllable: the door is open. The vowel says its name!'],
           ex: [{ w: 'den', tag: 'closed 🔒' }, { w: 'go', tag: 'open 🚪' }, { w: 'she', tag: 'open 🚪' }, { w: 'nap|kin', tag: 'closed + closed' }]
         },
-        sort: { a: 'Closed 🔒', b: 'Open 🚪', items: [['den', 'a'], ['we', 'b'], ['no', 'b'], ['jump', 'a']], hint: 'Is there a consonant AFTER the vowel? Then the door is closed.' },
+        sort: { a: 'Closed 🔒', b: 'Open 🚪', items: [['den', 'a'], ['we', 'b'], ['no', 'b'], ['jump', 'a']], hint: 'Is there a consonant AFTER the vowel? Then the door is closed.', split: { den: 'd[e]n', we: 'w[e]', no: 'n[o]', jump: 'j[u]mp' } },
         build: { w: 'nap|kin', tiles: ['nap', 'kin', 'pen'], pic: 'img:napkin', clue: 'You wipe your mouth with it.' },
         pick: { w: 'dentist', opts: ['dentist', 'dentest', 'dintist'], pic: '🦷', clue: 'This helper keeps your teeth healthy.', split: 'den|tist' },
         hear: { w: 'open', opts: ['open', 'opin', 'oppen'], pic: '📖', clue: 'The opposite of shut.', split: 'o|pen' },
@@ -80,7 +80,7 @@
           lines: ['When a and i team up in the MIDDLE of a word, they say /ā/.', 'The a says its name. The i is silent!'],
           ex: [{ w: 'm[ai]l', tag: 'ai = /ā/' }, { w: 'ch[ai]n', tag: 'ai = /ā/' }, { w: 'p[ai]nt', tag: 'ai = /ā/' }, { w: 'w[ai]ts', tag: 'ai = /ā/' }]
         },
-        sort: { a: 'ai (middle) 🟡', b: 'ay (end) 🔵', items: [['mail', 'a'], ['play', 'b'], ['chain', 'a'], ['stay', 'b']], hint: 'Where is the /ā/ sound? In the middle = ai. At the very end = ay.' },
+        sort: { a: 'ai (middle) 🟡', b: 'ay (end) 🔵', items: [['mail', 'a'], ['play', 'b'], ['chain', 'a'], ['stay', 'b']], hint: 'Where is the /ā/ sound? In the middle = ai. At the very end = ay.', split: { mail: 'm[ai]l', play: 'pl[ay]', chain: 'ch[ai]n', stay: 'st[ay]' } },
         build: { w: 'p|[ai]|nt', tiles: ['p', 'ai', 'nt', 'ay'], pic: '🎨', clue: 'You use it to make art on paper.' },
         pick: { w: 'chain', opts: ['chain', 'chane', 'chayn'], pic: '⛓️', clue: 'Metal rings hooked together.', split: 'ch[ai]n' },
         hear: { w: 'complain', opts: ['complain', 'complane', 'compleign'], pic: '😤', clue: 'Say that you are not happy about something.', split: 'com|pl[ai]n' },
@@ -111,8 +111,8 @@
           lines: ['A suffix is a word part stuck on the END of a word. It changes the meaning.', '-ful means "full of."  -less means "without."'],
           ex: [{ w: 'care|[ful]', tag: 'full of care' }, { w: 'fear|[less]', tag: 'without fear' }, { w: 'end|[less]', tag: 'without an end' }, { w: 'help|[ful]', tag: 'full of help' }]
         },
-        sort: { a: '-ful = full of 🫙', b: '-less = without 🚫', items: [['careful', 'a'], ['endless', 'b'], ['helpful', 'a'], ['motionless', 'b']], hint: 'Cover the base word. Is the ending -ful or -less?' },
-        build: { w: 'mo|tion|less', tiles: ['mo', 'tion', 'less', 'shun'], pic: '🛑', clue: 'Not moving at all.' },
+        sort: { a: '-ful = full of 🫙', b: '-less = without 🚫', items: [['careful', 'a'], ['endless', 'b'], ['helpful', 'a'], ['motionless', 'b']], hint: 'Cover the base word. Is the ending -ful or -less?', split: { careful: 'care|[ful]', endless: 'end|[less]', helpful: 'help|[ful]', motionless: 'mo|tion|[less]' } },
+        build: { w: 'mo|tion|[less]', tiles: ['mo', 'tion', 'less', 'shun'], pic: '🛑', clue: 'Not moving at all.' },
         pick: { w: 'fearless', opts: ['fearless', 'fearles', 'feerless'], pic: '🦁', clue: 'Without any fear.', split: 'fear|[less]' },
         hear: { w: 'carefully', opts: ['carefully', 'carefuly', 'carefoolly'], pic: '🤲🥚', clue: 'In a way that is full of care.', split: 'care|[ful]|ly' },
         rebel: { words: ['bless', 'fearless', 'endless', 'helpless'], why: '"bless" is not "without b"! There is no base word, so -less is not a suffix here.' },
@@ -159,7 +159,7 @@
           lines: ['See two consonants in the middle? Split between them!', 'Now each part is a closed syllable, so the vowels are short.'],
           ex: [{ w: 'den|tist', tag: 'closed + closed' }, { w: 'prob|lem', tag: 'closed + closed' }, { w: 'nap|kin', tag: 'closed + closed' }]
         },
-        sort: { a: 'Short vowel 🔒', b: 'Long vowel 🚪', items: [['prob', 'a'], ['she', 'b'], ['den', 'a'], ['no', 'b']], hint: 'Door closed by a consonant = short vowel. Open door = the vowel says its name.' },
+        sort: { a: 'Short vowel 🔒', b: 'Long vowel 🚪', items: [['prob', 'a'], ['she', 'b'], ['den', 'a'], ['no', 'b']], hint: 'Door closed by a consonant = short vowel. Open door = the vowel says its name.', split: { prob: 'pr[o]b', she: 'sh[e]', den: 'd[e]n', no: 'n[o]' } },
         build: { w: 'den|tist', tiles: ['den', 'tist', 'dan'], pic: '🦷', clue: 'This helper cleans your teeth.' },
         pick: { w: 'problem', opts: ['problem', 'probelm', 'prablem'], pic: '🧩', clue: 'Something that goes wrong.', split: 'prob|lem' },
         hear: { w: 'squeak', opts: ['squeak', 'sqeak', 'sweak'], pic: '🐭', clue: 'A tiny, high sound.', split: '[squ]eak' },
@@ -190,10 +190,10 @@
           lines: ['When you hear /ā/ at the END of a word, use ay.', 'Middle = ai (rain). End = ay (play).'],
           ex: [{ w: 'pl[ay]', tag: 'ay = /ā/' }, { w: 'st[ay]', tag: 'ay = /ā/' }, { w: 'gr[ay]', tag: 'ay = /ā/' }, { w: 'to|d[ay]', tag: 'ay = /ā/' }]
         },
-        sort: { a: 'ai (middle) 🟡', b: 'ay (end) 🔵', items: [['trail', 'a'], ['day', 'b'], ['paint', 'a'], ['gray', 'b']], hint: 'Say it slowly. Is /ā/ at the very end? Then it is ay.' },
+        sort: { a: 'ai (middle) 🟡', b: 'ay (end) 🔵', items: [['trail', 'a'], ['day', 'b'], ['paint', 'a'], ['gray', 'b']], hint: 'Say it slowly. Is /ā/ at the very end? Then it is ay.', split: { trail: 'tr[ai]l', day: 'd[ay]', paint: 'p[ai]nt', gray: 'gr[ay]' } },
         build: { w: 'to|d[ay]', tiles: ['to', 'day', 'dai'], pic: '📅', clue: 'This day, right now.' },
         pick: { w: 'stay', opts: ['stay', 'stai', 'staye'], pic: '🏠', clue: 'Remain in one place.', split: 'st[ay]' },
-        hear: { w: 'spray', opts: ['spray', 'sprai', 'spay'], pic: '🚿', clue: 'Tiny drops of water flying out.', split: '[spr][ay]' },
+        hear: { w: 'spray', opts: ['spray', 'sprai', 'spay'], pic: '🚿', clue: 'Tiny drops of water flying out.', split: 'spr[ay]' },
         rebel: { words: ['says', 'play', 'stay', 'day'], why: '"says" has ay, but it sounds like "sez"! Heart word ❤️.' },
         preview: [
           { w: 'mammal', pic: '🐻', means: 'an animal with fur or hair that feeds its babies milk' },
@@ -221,7 +221,7 @@
           lines: ['A prefix is a word part at the START of a word.', 'un- means "not."  re- means "again" or "back."'],
           ex: [{ w: '[un]|safe', tag: 'not safe' }, { w: '[un]|u|su|al', tag: 'not usual' }, { w: '[re]|turn', tag: 'come back' }, { w: '[re]|tell', tag: 'tell again' }]
         },
-        sort: { a: 'un- = not 🚫', b: 're- = again/back 🔁', items: [['unusual', 'a'], ['return', 'b'], ['unable', 'a'], ['retell', 'b']], hint: 'Look at the first two letters.' },
+        sort: { a: 'un- = not 🚫', b: 're- = again/back 🔁', items: [['unusual', 'a'], ['return', 'b'], ['unable', 'a'], ['retell', 'b']], hint: 'Look at the first two letters.', split: { unusual: '[un]|u|su|al', return: '[re]|turn', unable: '[un]|a|ble', retell: '[re]|tell' } },
         build: { w: '[re]|ap|pear', tiles: ['re', 'ap', 'pear', 'rep'], pic: '🎩🐇', clue: 'Show up again.' },
         pick: { w: 'unusual', opts: ['unusual', 'unusal', 'unusuall'], pic: '🦄', clue: 'Not usual; strange.', split: '[un]|u|su|al' },
         hear: { w: 'return', opts: ['return', 'retern', 'ritern'], pic: '↩️', clue: 'Come back.', split: '[re]|turn' },
@@ -271,7 +271,7 @@
           lines: ['See ONE consonant in the middle? Try splitting after the vowel.', 'The first part is open, so the vowel says its name: o|pen, si|lent.'],
           ex: [{ w: 'o|pen', tag: 'open + closed' }, { w: 'si|lent', tag: 'open + closed' }, { w: 'ro|bot', tag: 'open + closed' }]
         },
-        sort: { a: 'Starts open 🚪', b: 'Starts closed 🔒', items: [['open', 'a'], ['dentist', 'b'], ['silent', 'a'], ['problem', 'b']], hint: 'Split the word. Does the first part end with a vowel (open) or a consonant (closed)?', split: { open: 'o|pen', dentist: 'den|tist', silent: 'si|lent', problem: 'prob|lem' } },
+        sort: { a: 'Starts open 🚪', b: 'Starts closed 🔒', items: [['open', 'a'], ['dentist', 'b'], ['silent', 'a'], ['problem', 'b']], hint: 'Split the word. Does the first part end with a vowel (open) or a consonant (closed)?', split: { open: '[o]|pen', dentist: 'd[e]n|tist', silent: 's[i]|lent', problem: 'pr[o]b|lem' } },
         build: { w: 'si|lent', tiles: ['si', 'lent', 'sil'], pic: '🤫', clue: 'No sound at all.' },
         pick: { w: 'what', opts: ['what', 'wut', 'whut'], pic: '❓', clue: '___ is that? (a heart word)', split: 'wh[a]t' },
         hear: { w: 'shrub', opts: ['shrub', 'srub', 'chrub'], pic: '🌿', clue: 'A small, low bush.', split: '[shr]ub' },
@@ -301,7 +301,7 @@
           lines: ['An e at the end is silent, but it has magic!', 'It jumps over one letter and makes the a say its name: cap → cape.'],
           ex: [{ w: 'c[a]k[e]', tag: 'a_e = /ā/' }, { w: 'bl[a]m[e]', tag: 'a_e = /ā/' }, { w: 'pl[a]t[e]', tag: 'a_e = /ā/' }, { w: 'es|c[a]p[e]', tag: 'a_e = /ā/' }]
         },
-        sort: { a: 'a_e 🪄', b: 'ai 🟡', items: [['cake', 'a'], ['rain', 'b'], ['blame', 'a'], ['wait', 'b']], hint: 'Is there an e at the very end? That is magic e (a_e).' },
+        sort: { a: 'a_e 🪄', b: 'ai 🟡', items: [['cake', 'a'], ['rain', 'b'], ['blame', 'a'], ['wait', 'b']], hint: 'Is there an e at the very end? That is magic e (a_e).', split: { cake: 'c[a]k[e]', rain: 'r[ai]n', blame: 'bl[a]m[e]', wait: 'w[ai]t' } },
         build: { w: 'es|c[a]p[e]', tiles: ['es', 'cape', 'cap'], pic: '🏃', clue: 'Get away or get out.' },
         pick: { w: 'blame', opts: ['blame', 'blaim', 'blam'], pic: '👉', clue: 'Say something is someone\'s fault.', split: 'bl[a]m[e]' },
         hear: { w: 'plate', opts: ['plate', 'plait', 'plat'], pic: '🍽️', clue: 'You eat dinner on it.', split: 'pl[a]t[e]' },
@@ -332,7 +332,7 @@
           lines: ['pre- means "before."  mis- means "wrongly."', 'dis- means "not" or "the opposite of."'],
           ex: [{ w: '[pre]|pare', tag: 'get ready before' }, { w: '[mis]|judge', tag: 'judge wrongly' }, { w: '[dis]|ap|pear', tag: 'opposite of appear' }]
         },
-        sort: { a: 'pre- = before ⏪', b: 'mis- = wrongly ❌', items: [['preview', 'a'], ['mistake', 'b'], ['preheat', 'a'], ['misplace', 'b']], hint: 'Look at the first three letters.' },
+        sort: { a: 'pre- = before ⏪', b: 'mis- = wrongly ❌', items: [['preview', 'a'], ['mistake', 'b'], ['preheat', 'a'], ['misplace', 'b']], hint: 'Look at the first three letters.', split: { preview: '[pre]|view', mistake: '[mis]|take', preheat: '[pre]|heat', misplace: '[mis]|place' } },
         build: { w: '[dis]|ap|pear', tiles: ['dis', 'ap', 'pear', 'dys'], pic: '🎩✨', clue: 'Go out of sight.' },
         pick: { w: 'misjudged', opts: ['misjudged', 'missjuged', 'misjuged'], pic: '🤦', clue: 'Guessed wrong about something.', split: '[mis]|judged' },
         hear: { w: 'prepare', opts: ['prepare', 'perpare', 'prepair'], pic: '🎒', clue: 'Get ready ahead of time.', split: '[pre]|pare' },
@@ -354,7 +354,7 @@
           q: 'That dust is pollen, and it rides to the next flower. WHY does the bat\'s visit matter to the cactus? Tap the sentence.', a: 'that visit helps the cactus', mishap: 'Oops! I tried to carry pollen and sneezed so hard I flew backward. 🤧 Try again!' },
         advisor: { type: 'feel', q: 'How did Pip feel on the hot ground?', opts: ['🥵 Uncomfortable and too hot', '😌 Calm and cool', '😴 Sleepy'], evQ: 'How do you know? Tap a sentence that shows it.', a: ['like it was a frying pan', 'wear shoes'], mishap: 'Look for what Pip did with those feet!' },
         fill: { kind: 'word', sent: 'Luckily, desert animals are ___ for the heat.', opts: ['prepared', 'repaired', 'misplaced'] },
-        spell: { w: 'release', sent: 'Its enormous ears ___ extra body heat.', split: '[re]|lease', pic: '🎈' }
+        spell: { w: 'release', sent: 'Its enormous ears ___ extra body heat.', split: 're|lease', pic: '🎈' }
       }
     }
   },
@@ -381,7 +381,7 @@
           lines: ['Some words start with THREE consonants. Blend them fast!', 's + t + r = str.  s + p + l = spl.  t + h + r = thr.'],
           ex: [{ w: '[str]ong', tag: 'str' }, { w: '[spl]ash', tag: 'spl' }, { w: '[thr]ee', tag: 'thr' }, { w: '[squ]eak', tag: 'squ' }]
         },
-        sort: { a: 'str 🧵', b: 'spl 💦', items: [['strong', 'a'], ['splash', 'b'], ['string', 'a'], ['split', 'b']], hint: 'Look at the first three letters.' },
+        sort: { a: 'str 🧵', b: 'spl 💦', items: [['strong', 'a'], ['splash', 'b'], ['string', 'a'], ['split', 'b']], hint: 'Look at the first three letters.', split: { strong: '[str]ong', splash: '[spl]ash', string: '[str]ing', split: '[spl]it' } },
         build: { w: '[thr]|ee', tiles: ['thr', 'ee', 'shr'], pic: '3️⃣', clue: 'The number after two.' },
         pick: { w: 'strong', opts: ['strong', 'stong', 'srong'], pic: '💪', clue: 'Very powerful.', split: '[str]ong' },
         hear: { w: 'splash', opts: ['splash', 'spash', 'slpash'], pic: '💦', clue: 'What water does when you jump in.', split: '[spl]ash' },
@@ -414,7 +414,7 @@
           lines: ['A|pril: the first part is open, so the A says its name.', 'Usually ea says /ē/ (eat). But in break and great, ea says /ā/!'],
           ex: [{ w: '[A]|pril', tag: 'open a' }, { w: 'br[ea]k', tag: 'ea = /ā/' }, { w: 'gr[ea]t', tag: 'ea = /ā/' }]
         },
-        sort: { a: 'Long a 🅰️', b: 'Short a 🍎', items: [['great', 'a'], ['nap', 'b'], ['April', 'a'], ['flag', 'b']], hint: 'Does the a say its name (long) or /a/ like apple (short)?' },
+        sort: { a: 'Long a 🅰️', b: 'Short a 🍎', items: [['great', 'a'], ['nap', 'b'], ['April', 'a'], ['flag', 'b']], hint: 'Does the a say its name (long) or /a/ like apple (short)?', split: { great: 'gr[ea]t', nap: 'n[a]p', April: '[A]|pril', flag: 'fl[a]g' } },
         build: { w: '[A]|pril', tiles: ['A', 'pril', 'Ap'], pic: '🌷', clue: 'The month after March.' },
         pick: { w: 'great', opts: ['great', 'grate', 'grait'], pic: '🌟', clue: 'Super good!', split: 'gr[ea]t' },
         hear: { w: 'break', opts: ['break', 'brake', 'braik'], pic: '☕', clue: 'A short rest.', split: 'br[ea]k' },
@@ -448,7 +448,7 @@
           lines: ['-tion sounds like "shun." It often turns an action into a thing: protect → protection.', '-able means "can be": comfort → comfortable.'],
           ex: [{ w: 'pro|tec|[tion]', tag: '/shun/' }, { w: 'lo|ca|[tion]', tag: '/shun/' }, { w: 'com|fort|[a]|[ble]', tag: 'can be' }]
         },
-        sort: { a: '-tion 🏷️', b: '-able ✅', items: [['protection', 'a'], ['comfortable', 'b'], ['location', 'a'], ['imaginable', 'b']], hint: 'Look at the last letters.' },
+        sort: { a: '-tion 🏷️', b: '-able ✅', items: [['protection', 'a'], ['comfortable', 'b'], ['location', 'a'], ['imaginable', 'b']], hint: 'Look at the last letters.', split: { protection: 'pro|tec|[tion]', comfortable: 'com|fort|[a]|[ble]', location: 'lo|ca|[tion]', imaginable: 'i|mag|i|n[a]|[ble]' } },
         build: { w: 'lo|ca|[tion]', tiles: ['lo', 'ca', 'tion', 'shun'], pic: '📍', clue: 'A place or spot.' },
         pick: { w: 'protection', opts: ['protection', 'protecshun', 'protektion'], pic: '🛡️', clue: 'Something that keeps you safe.', split: 'pro|tec|[tion]' },
         hear: { w: 'comfortable', opts: ['comfortable', 'comfterble', 'comfortible'], pic: '🛋️', clue: 'Cozy and relaxed.', split: 'com|fort|[a]|[ble]' },
@@ -525,7 +525,7 @@
           lines: ['Some words do not follow the rules.', 'We learn the tricky part by heart!'],
           ex: [{ w: 'h[a]ve', tag: 'a is short' }, { w: '[o]ne', tag: 'sounds like "wun"' }, { w: 'wh[a]t', tag: 'a says /u/' }, { w: 'p[u]t', tag: 'u says /oo/' }]
         },
-        sort: { a: 'Open 🚪', b: 'Closed 🔒', items: [['she', 'a'], ['prob', 'b'], ['go', 'a'], ['nap', 'b']], hint: 'Is there a consonant after the vowel? Then the door is closed.' },
+        sort: { a: 'Open 🚪', b: 'Closed 🔒', items: [['she', 'a'], ['prob', 'b'], ['go', 'a'], ['nap', 'b']], hint: 'Is there a consonant after the vowel? Then the door is closed.', split: { she: 'sh[e]', prob: 'pr[o]b', go: 'g[o]', nap: 'n[a]p' } },
         build: { w: 'prob|lem', tiles: ['prob', 'lem', 'prod'], pic: '🧩', clue: 'Something that goes wrong.' },
         pick: { w: 'napkin', opts: ['napkin', 'napkim', 'nepkin'], pic: 'img:napkin', clue: 'You wipe your mouth with it.', split: 'nap|kin' },
         hear: { w: 'want', opts: ['want', 'wont', 'whant'], pic: '🍦', clue: 'I ___ a snack! (a heart word)', split: 'w[a]nt' },
@@ -555,8 +555,8 @@
           lines: ['ai in the middle, ay at the end, a_e with magic e.', 'They ALL say /ā/!'],
           ex: [{ w: 'r[ai]n', tag: 'ai' }, { w: 'gr[ay]', tag: 'ay' }, { w: 'c[a]k[e]', tag: 'a_e' }, { w: 'gr[ea]t', tag: 'sneaky ea' }]
         },
-        sort: { a: 'Long a 🅰️', b: 'Short vowel 🔒', items: [['plate', 'a'], ['napkin', 'b'], ['gray', 'a'], ['dentist', 'b']], hint: 'Listen for /ā/. Do you see ai, ay, or a_e?' },
-        build: { w: 'hi|ber|nate', tiles: ['hi', 'ber', 'nate', 'nat'], pic: '😴', clue: 'Sleep deeply all winter.' },
+        sort: { a: 'Long a 🅰️', b: 'Short vowel 🔒', items: [['plate', 'a'], ['napkin', 'b'], ['gray', 'a'], ['dentist', 'b']], hint: 'Listen for /ā/. Do you see ai, ay, or a_e?', split: { plate: 'pl[a]t[e]', napkin: 'n[a]p|k[i]n', gray: 'gr[ay]', dentist: 'd[e]n|t[i]st' } },
+        build: { w: 'hi|ber|n[a]t[e]', tiles: ['hi', 'ber', 'nate', 'nat'], pic: '😴', clue: 'Sleep deeply all winter.' },
         pick: { w: 'paint', opts: ['paint', 'pante', 'paynt'], pic: '🎨', clue: 'You use it to color a picture.', split: 'p[ai]nt' },
         hear: { w: 'chain', opts: ['chain', 'chane', 'cain'], pic: '⛓️', clue: 'Metal rings hooked together.', split: 'ch[ai]n' },
         rebel: { words: ['said', 'April', 'play', 'great'], why: '"said" does not say /ā/. It says /sed/! Heart word ❤️.' },
@@ -586,7 +586,7 @@
           lines: ['Long word? Break it into chunks. Find the prefix, the suffix, and the vowels.', 'Read each chunk, then glue them together!'],
           ex: [{ w: 'hi|ber|na|[tion]', tag: '4 chunks' }, { w: 'e|cho|lo|ca|[tion]', tag: '5 chunks' }, { w: '[un]|be|liev|a|bly', tag: '5 chunks' }]
         },
-        sort: { a: 'Has a prefix ⬅️', b: 'Has a suffix ➡️', items: [['return', 'a'], ['careful', 'b'], ['misjudge', 'a'], ['location', 'b']], hint: 'Is the extra part at the START (prefix) or the END (suffix)?' },
+        sort: { a: 'Has a prefix ⬅️', b: 'Has a suffix ➡️', items: [['return', 'a'], ['careful', 'b'], ['misjudge', 'a'], ['location', 'b']], hint: 'Is the extra part at the START (prefix) or the END (suffix)?', split: { return: '[re]|turn', careful: 'care|[ful]', misjudge: '[mis]|judge', location: 'lo|ca|[tion]' } },
         build: { w: 'e|cho|lo|ca|[tion]', tiles: ['e', 'cho', 'lo', 'ca', 'tion'], pic: '🦇🔊', clue: 'How bats find bugs in the dark.' },
         pick: { w: 'hibernation', opts: ['hibernation', 'hibernasion', 'hybernation'], pic: '😴', clue: 'A long, deep winter sleep.', split: 'hi|ber|na|[tion]' },
         hear: { w: 'completely', opts: ['completely', 'completly', 'compleatly'], pic: '✅', clue: 'Totally, all the way.', split: 'com|plete|[ly]' },
@@ -704,7 +704,7 @@
   W.vocab = {
     // Ground: concrete Week 2 words
     flat: { misread: 'float', split: 'fl[a]t', look: ['float', 'flap'], pic: '🥞', means: 'smooth, with no bumps' },
-    forest: { misread: 'for-EEST', split: 'f[o]r|[e]st', say: 'for|est', look: ['frost', 'first'], pic: '🌲🌳', means: 'lots of trees' },
+    forest: { misread: 'for-EEST', split: 'f[or]|[e]st', say: 'for|est', look: ['frost', 'first'], pic: '🌲🌳', means: 'lots of trees' },
     shallow: { misread: 'shay-low', split: 'sh[a]l|l[ow]', say: 'shal|lo', look: ['swallow', 'shadow'], pic: '🦶💧', means: 'not deep' },
     beneath: { misread: 'ben-eeth', split: 'b[e]|n[ea]th', say: 'bee|neeth', look: ['between', 'breath'], pic: '⬇️📦', means: 'under' },
     explore: { misread: 'ex-plor-ee', split: '[e]x|pl[ore]', say: 'ex|plor', look: ['explode', 'expert'], pic: '🧭🔍', means: 'look around a new place' },
@@ -723,7 +723,7 @@
     unique: { misread: 'un-ick-way', split: '[u]|n[ique]', say: 'you|neek', look: ['unite', 'antique'], pic: '🦄⭐', means: 'one of a kind',
       tricky: { mark: 'un[ique]', says: 'you-NEEK', note: '"ique" says eek.' } },
     tropical: { misread: 'troh-pee-cal', split: 'tr[o]p|[i]|c[al]', say: 'trop|ih|cull', look: ['topical', 'typical'], pic: '🌴☀️', means: 'hot and rainy' },
-    'coral reef': { misread: 'core-al riff', split: 'c[o]r|[a]l |r[ee]f', say: 'kor|ul|reef', look: ['carol reef', 'coral beef'], pic: '🪸🐠', means: 'ocean home made of coral' },
+    'coral reef': { misread: 'core-al riff', split: 'c[or]|[a]l |r[ee]f', say: 'kor|ul|reef', look: ['carol reef', 'coral beef'], pic: '🪸🐠', means: 'ocean home made of coral' },
     savannas: { misread: 'sav-an-nas', split: 's[a]|v[a]n|n[a]s', say: 'suh|van|uhz', look: ['bananas', 'savings'], pic: '🌾🌳🦒', means: 'grassy land, few trees' },
     cave: { misread: 'cav', split: 'c[a]v[e]', look: ['carve', 'have'], pic: '⛰️🕳️', means: 'a hole in a rocky hill' },
     valley: { misread: 'val-eye', split: 'v[a]l|l[ey]', say: 'val|lee', look: ['volley', 'alley'], pic: '🏞️', means: 'low land between hills',
@@ -734,7 +734,7 @@
     attic: { misread: 'at-ike', split: '[a]t|t[i]c', say: 'at|tick', look: ['attack', 'antic'], pic: '🏠⬆️', means: 'room under the roof' },
     palms: { misread: 'pal-ems', split: 'p[al]ms', look: ['plums', 'palace'], pic: '🌴', means: 'tall trees, big leaves',
       tricky: { mark: 'pa[l]ms', says: 'pahmz', note: 'The l is quiet.' } },
-    escaped: { misread: 'es-cap-ed', split: '[e]s|c[a]p[ed]', say: 'es|capt', look: ['escape', 'scraped'], pic: '🚪🏃', means: 'got out',
+    escaped: { misread: 'es-cap-ed', split: '[e]s|c[a]p[e]d', say: 'es|capt', look: ['escape', 'scraped'], pic: '🚪🏃', means: 'got out',
       tricky: { mark: 'escap[ed]', says: 'es-KAYPT', note: '"ed" says t here.' } },
     traveled: { misread: 'tra-veld', split: 'tr[a]v|[e]l[ed]', say: 'trav|eld', look: ['travels', 'tunneled'], pic: '🧳✈️', means: 'went on a trip',
       tricky: { mark: 'travel[ed]', says: 'TRAV-eld', note: '"ed" says d here.' } },
@@ -748,7 +748,7 @@
     domestic: { misread: 'dome-stick', split: 'd[o]|m[e]s|t[i]c', say: 'duh|mess|tick', look: ['dramatic', 'domino'], pic: '🐄🏡', means: 'tame, lives with people' },
     presence: { misread: 'pre-sence', split: 'pr[e]s|[e]n[ce]', say: 'prez|ence', look: ['present', 'prince'], pic: '👋', means: 'being there',
       tricky: { mark: 'pre[s]en[ce]', says: 'PREZ-ens', note: 's says z, and ce says s.' } },
-    swayed: { misread: 'sway-ed', split: 'sw[ay][ed]', look: ['stayed', 'sprayed'], pic: '🌴↔️', means: 'moved side to side',
+    swayed: { misread: 'sway-ed', split: 'sw[ay]ed', look: ['stayed', 'sprayed'], pic: '🌴↔️', means: 'moved side to side',
       tricky: { mark: 'sway[ed]', says: 'swayd', note: '"ed" just says d.' } },
     adapt: { misread: 'a-dap', split: '[a]|d[a]pt', say: 'uh|dapt', look: ['adopt', 'adult'], pic: '🦎🎨', means: 'change to fit in' },
     habitat: { misread: 'hab-it', split: 'h[a]b|[i]|t[a]t', say: 'hab|ih|tat', look: ['habit', 'hobbit'], pic: '🏡🌳', means: 'an animal\'s natural home' },

@@ -176,11 +176,12 @@
   }
   const plain = (w) => String(w).replace(/[\[\]|]/g, '');
   /* Render word markup: "|" = syllable split (alternating colors), [..] = pattern highlight.
-     With no [..], vowels are highlighted so open/closed syllables are visible. */
+     v2.7.1: with no [..], vowels are highlighted ONLY in open/closed-syllable lessons (opts.vowels, see vowelLesson()).
+     Before, every word without [..] lit its vowels, so "preview" on the pre-/mis- sort showed "e", "i", "e" instead of "pre". */
   function wordEl(markup, opts) {
     opts = opts || {};
     const wrap = el('span', 'w' + (opts.big ? ' w-big' : ''));
-    const hasBr = /\[/.test(markup);
+    const hasBr = /\[/.test(markup) || !opts.vowels;
     String(markup).split('|').forEach((syl, si) => {
       if (si > 0 && opts.gaps !== false) wrap.appendChild(el('span', 'w-gap', opts.dots ? '·' : ''));
       const sp = el('span', 'syl syl-' + (si % 3));
@@ -197,6 +198,12 @@
     wrap.setAttribute('aria-label', plain(markup));
     return wrap;
   }
+  /* An open/closed-syllable (short/long vowel) lesson: both sort bins are syllable types. Only there does a word with no
+     [..] light its vowels; every other lesson shows exactly its [..] pattern (prefix, suffix, vowel team, blend...). */
+  const SYL_BIN = /^(closed|open|short vowel|long vowel|starts open|starts closed)\b/i;
+  function vowelLesson(L) { L = L || (typeof P !== 'undefined' && P.L); const k = L && L.sort; return !!(k && SYL_BIN.test(k.a) && SYL_BIN.test(k.b)); }
+  /* The marked-up word for a sort item: the week's split (with the pattern in [..]) or the plain word. */
+  function sortMark(k, w) { return (k.split && k.split[w]) || w; }
   function btn(cls, txt, onClick) { const b = el('button', cls, txt); b.type = 'button'; if (onClick) b.addEventListener('click', onClick); return b; }
   function toast(msg, ms) { const t = $('toast'); t.textContent = fillName(msg); t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, ms || 1800); }
   const fmtDate = (d) => new Date(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
@@ -212,7 +219,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.7';
+  const SFX_VER = '2.7.1';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -229,13 +236,18 @@
     }));
     return sfx.ctx;
   }
+  /* iOS 17+/Safari 17+: an audio session of type "playback" lets Web Audio (sound effects, Soft/Loud voice routing,
+     word clips) play even when the iPhone's ring/silent switch is on silent, like the <audio> voice always did. */
+  function audioSessionPlayback() { try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (_) {} }
+  audioSessionPlayback();
   function sfxUnlock() {
+    audioSessionPlayback();
     const c = sfxCtx(); if (!c) return;
     if (c.state !== 'running') { try { const pr = c.resume(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {} }
     if (!sfx.unlocked) { sfx.unlocked = true; try { const s0 = c.createBufferSource(); s0.buffer = c.createBuffer(1, 1, 22050); s0.connect(c.destination); s0.start(0); } catch (_) {} }
   }
   /* The guide's voice ducks the sound effects (a sound that starts while she talks is quieter; one already playing dips). */
-  function voiceActive() { try { return !!(curAudio && !curAudio.paused && !curAudio.ended) || !!(window.speechSynthesis && speechSynthesis.speaking); } catch (_) { return false; } }
+  function voiceActive() { try { return !!(curAudio && !curAudio.paused && !curAudio.ended) || !!curSrcNode || !!(window.speechSynthesis && speechSynthesis.speaking); } catch (_) { return false; } }
   function sfxDuck() {
     const on = voiceActive(); if (on === sfx.duck) return; sfx.duck = on;
     if (sfx.bus) { try { sfx.bus.gain.setTargetAtTime(on ? 0.4 : 1, sfx.ctx.currentTime, 0.04); } catch (_) {} }
@@ -290,6 +302,9 @@
   function routeVoice(a) {
     const v = vol(); a.volume = Math.min(1, v);
     const c = sfx.ctx, eff = a.volume || 1, g = v / eff;
+    // v2.7.1: on an iPhone/iPad WITHOUT navigator.audioSession (iOS 16 and older), Web Audio is muted by the silent switch,
+    // so Soft/Loud routing made every word silent there. Those devices play the clip at full level instead.
+    if (IOS && !navigator.audioSession) return;
     if (c && c.state === 'running' && Math.abs(g - 1) > 0.02) { try { const n = c.createMediaElementSource(a), gn = c.createGain(); gn.gain.value = g; n.connect(gn).connect(voiceOut()); } catch (_) {} }
   }
   /* Guide chatter captions: with sound on, the guide's spoken bubble lines are heard, not shown (a small 🔁 stays).
@@ -353,9 +368,70 @@
     }
     return plan.length ? plan : null;
   }
-  let curAudio = null, sayToken = 0;
-  function stopVoice() { sayToken++; if (speakingWrap) speakingWrap.classList.remove('talking'); try { speechSynthesis.cancel(); } catch (_) {} if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; } sfxDuck(); }
-  /* Speak one thing. opts: {rate, slow, lang, word} ; returns a Promise that resolves when done (or after a safety timeout). */
+  /* v2.7.1 voice player (Sue: "the first part of the word isn't pronounced", "it goes too fast", "they freeze").
+     * Word clips (audio/w/) now start with 200 ms of silence and are spoken a little slower; "slow" plays a separate slow
+       clip (AUD['slow:<word>']) at normal rate instead of stretching the clip.
+     * iPhone/iPad (Safari 17+, navigator.audioSession): word clips play through Web Audio (decoded buffer on the already
+       running AudioContext), so iOS's <audio> start-up can never swallow the first sound, and the level (Soft/Loud) is a
+       gain that iOS honours. Everything else, and any clip that is not decoded within 1.5 s, uses <audio> as before.
+     * Never stuck: a clip that has not STARTED within 5 s, a play() that rejects, a load error, or a Web Audio failure ends
+       that clip (captions show); stopVoice() ends the current clip's promise at once (it used to wait for a 20 s guard).
+     * Nothing cuts a word: sayAfter() queues behind what is playing, and auto-advance waits for the voice to finish. */
+  let curAudio = null, curSrcNode = null, curFin = null, sayToken = 0;
+  let listTok = -1, listRunning = false, listDone = Promise.resolve();
+  const IOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const START_MS = 5000, WA_WAIT_MS = 1500;
+  function voicePath() {
+    try { const f = localStorage.getItem('pipsVoicePath'); if (f === 'wa' || f === 'el') return f; } catch (_) {} // test / support override
+    return navigator.audioSession ? 'wa' : 'el';
+  }
+  const wBufs = new Map();
+  function wBuf(src) {
+    let p = wBufs.get(src);
+    if (!p) {
+      const c = sfx.ctx;
+      p = fetch(src).then((r) => (r.ok ? r.arrayBuffer() : null)).then((ab) => (ab ? new Promise((res) => { try { const pr = c.decodeAudioData(ab, res, () => res(null)); if (pr && pr.then) pr.then(res, () => res(null)); } catch (_) { res(null); } }) : null)).catch(() => null);
+      p.then((b) => { if (!b) wBufs.delete(src); });
+      wBufs.set(src, p); if (wBufs.size > 160) wBufs.delete(wBufs.keys().next().value);
+    }
+    return p;
+  }
+  function voicePreload(words) { if (voicePath() !== 'wa' || !sfx.ctx) return; (words || []).forEach((w) => { const k = plain(String(w || '')).trim().toLowerCase(); if (AUD[k]) wBuf(AUD[k]); if (AUD['slow:' + k]) wBuf(AUD['slow:' + k]); }); }
+  function stopVoice() {
+    sayToken++; if (speakingWrap) speakingWrap.classList.remove('talking'); try { speechSynthesis.cancel(); } catch (_) {}
+    if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; }
+    if (curSrcNode) { const n = curSrcNode; curSrcNode = null; try { n.onended = null; n.stop(); } catch (_) {} }
+    const f = curFin; curFin = null; if (f) f();
+    sfxDuck();
+  }
+  /* true while a spoken list (or its pauses) is still going, or any voice is audible */
+  function voiceBusy() { return (listRunning && listTok === sayToken) || voiceActive(); }
+  function playEl(src, rate, alive, fin, setGuard) {
+    const a = new Audio(); a.preload = 'auto'; a.src = src; routeVoice(a); a.playbackRate = rate; try { a.preservesPitch = true; a.webkitPreservesPitch = true; } catch (_) {}
+    curAudio = a; let started = false;
+    setGuard(setTimeout(() => { if (!started) { if (window.__voiceStall) window.__voiceStall.push(src); voiceFailed(); fin(); } }, START_MS));
+    a.onplaying = () => { if (started || !alive()) return; started = true; voiceWorked(); sfxDuck(); const d = isFinite(a.duration) && a.duration > 0 ? a.duration : 8; setGuard(setTimeout(fin, (d * 1000) / rate + 1500)); };
+    a.onended = () => fin(); a.onerror = () => { voiceFailed(); fin(); };
+    try { const pr = a.play(); if (pr && pr.catch) pr.catch((er) => { if (!er || er.name !== 'AbortError') voiceFailed(); fin(); }); } catch (_) { voiceFailed(); fin(); }
+  }
+  function playWA(src, alive, fin, setGuard, fallback) {
+    const c = sfx.ctx; let state = 'wait';
+    const giveUp = () => { if (state !== 'wait' || !alive()) return; state = 'fell'; fallback(); };
+    setGuard(setTimeout(giveUp, WA_WAIT_MS));
+    wBuf(src).then((b) => {
+      if (state !== 'wait' || !alive()) return;
+      if (!b || !c || c.state !== 'running') return giveUp();
+      state = 'play';
+      try {
+        const n = c.createBufferSource(), g = c.createGain(), v = vol(); n.buffer = b; g.gain.value = v;
+        n.connect(g).connect(v > 1.02 ? voiceOut() : c.destination);
+        curSrcNode = n; n.onended = () => { if (curSrcNode === n) curSrcNode = null; fin(); };
+        n.start(); if (window.__waLog) window.__waLog.push(src); voiceWorked(); sfxDuck();
+        setGuard(setTimeout(() => { if (curSrcNode === n) { curSrcNode = null; try { n.stop(); } catch (_) {} } fin(); }, b.duration * 1000 + 1500));
+      } catch (_) { state = 'wait'; giveUp(); }
+    });
+  }
+  /* Speak one thing. opts: {rate, slow, lang, word} ; returns a Promise that resolves when done (always: see the guards). */
   function say1(text, opts) {
     opts = opts || {};
     const t = plain(gtext(String(text || ''))).trim();
@@ -366,19 +442,26 @@
     }
     return new Promise((res) => {
       if (!t || vol() === 0) return setTimeout(res, opts.word ? 350 : 60);
-      let done = false; const fin = () => { if (!done) { done = true; res(); setTimeout(sfxDuck, 0); } };
-      let guard = setTimeout(fin, opts.file ? 20000 : 900 + t.length * (opts.slow ? 130 : 95));
-      const src = opts.file || AUD[(opts.lang ? opts.lang + ':' : '') + t.toLowerCase()];
-      if (src && (opts.file || opts.word !== false)) {
-        try {
-          const a = new Audio(src); routeVoice(a); a.playbackRate = opts.slow ? 0.8 : (/audio\/l\//.test(src) ? LINE_RATE : 1); try { a.preservesPitch = true; a.webkitPreservesPitch = true; } catch (_) {} curAudio = a; a.onplaying = () => { voiceWorked(); sfxDuck(); };
-          a.onended = () => { clearTimeout(guard); fin(); }; a.onerror = () => { clearTimeout(guard); voiceFailed(); fin(); };
-          a.onloadedmetadata = () => { if (isFinite(a.duration) && a.duration > 0) { clearTimeout(guard); guard = setTimeout(fin, a.duration * 1000 / a.playbackRate + 1500); } };
-          const pr = a.play(); if (pr && pr.catch) pr.catch((er) => { clearTimeout(guard); if (!er || er.name !== 'AbortError') voiceFailed(); fin(); });
-          return;
-        } catch (_) {}
+      let done = false, guard = null;
+      const fin = () => { if (done) return; done = true; clearTimeout(guard); if (curFin === fin) curFin = null; res(); setTimeout(sfxDuck, 0); };
+      const alive = () => !done;
+      const setGuard = (g) => { clearTimeout(guard); guard = g; };
+      curFin = fin;
+      guard = setTimeout(fin, 900 + t.length * (opts.slow ? 130 : 95));
+      const key = (opts.lang ? opts.lang + ':' : '') + t.toLowerCase();
+      const src0 = opts.file || AUD[key];
+      if (src0 && (opts.file || opts.word !== false)) {
+        const slowSrc = opts.slow && !opts.file ? AUD['slow:' + key] : null;
+        const src = slowSrc || src0, isW = /audio\/w\//.test(src);
+        // slow: the slow clip at normal rate; a chunk (no slow clip; chunk clips are already made slowly) at normal rate
+        const rate = slowSrc || (opts.slow && isW) ? 1 : opts.slow ? 0.8 : (/audio\/l\//.test(src) ? LINE_RATE : 1);
+        if (window.__playLog) window.__playLog.push(src.split('audio/')[1]);
+        const el_ = () => { if (alive()) playEl(src, rate, alive, fin, setGuard); };
+        if (isW && rate === 1 && voicePath() === 'wa' && sfx.ctx && sfx.ctx.state === 'running') playWA(src, alive, fin, setGuard, el_);
+        else el_();
+        return;
       }
-      if (!canSpeak()) { clearTimeout(guard); voiceFailed(); return fin(); }
+      if (!canSpeak()) { voiceFailed(); return fin(); }
       try {
         if (window.__voiceMiss) window.__voiceMiss.push(t); // test hook: every time the device voice is used
         const u = new SpeechSynthesisUtterance(t);
@@ -386,22 +469,39 @@
         const V = GUIDES.voice || {};
         u.rate = opts.rate || (opts.slow ? 0.6 : (V.rate || 0.95) * (opts.word === false ? 1.1 : 1)); u.pitch = V.pitch || 1.0; u.volume = Math.min(1, vol());
         if (voice && opts.lang !== 'it') u.voice = voice;
-        u.onstart = () => { voiceWorked(); sfxDuck(); }; u.onend = () => { clearTimeout(guard); fin(); }; u.onerror = (ev) => { clearTimeout(guard); if (!ev || !/interrupt|cancel/.test(ev.error || '')) voiceFailed(); fin(); };
+        u.onstart = () => { voiceWorked(); sfxDuck(); }; u.onend = () => fin(); u.onerror = (ev) => { if (!ev || !/interrupt|cancel/.test(ev.error || '')) voiceFailed(); fin(); };
         speechSynthesis.speak(u);
-      } catch (_) { clearTimeout(guard); fin(); }
+      } catch (_) { fin(); }
     });
   }
-  /* Speak a list in order. items: [text | {text, ...opts, onStart}] */
-  async function sayList(items) {
-    stopVoice(); const my = sayToken;
-    for (const it of items) {
-      if (my !== sayToken) return false;
-      const o = typeof it === 'string' ? { text: it } : it;
-      if (o.onStart) o.onStart();
-      await say1(o.text, o);
-      if (o.pause) await new Promise((r) => setTimeout(r, Math.round(o.pause * 0.6)));
-    }
-    return my === sayToken;
+  /* Speak a list in order (stops whatever was playing). items: [text | {text, ...opts, onStart}] */
+  function sayList(items) {
+    stopVoice(); const my = sayToken; listTok = my; listRunning = true;
+    const run = (async () => {
+      try {
+        for (const it of items) {
+          if (my !== sayToken) return false;
+          const o = typeof it === 'string' ? { text: it } : it;
+          if (o.onStart) o.onStart();
+          await say1(o.text, o);
+          if (o.pause && my === sayToken) await new Promise((r) => setTimeout(r, Math.round(o.pause * 0.6)));
+        }
+        return my === sayToken;
+      } finally { if (listTok === my) listRunning = false; }
+    })();
+    listDone = run.then(() => {}, () => {});
+    return run;
+  }
+  /* Speak AFTER whatever is playing now (a word is never cut by a guide line or the next word). Dropped if something
+     else starts speaking or the card changes meanwhile. */
+  function sayAfter(items, maxWait) {
+    if (!voiceBusy()) return sayList(items);
+    const tok = sayToken;
+    return Promise.race([listDone, new Promise((r) => setTimeout(r, maxWait || 12000))]).then(() => {
+      if (sayToken !== tok) return false;
+      if (voiceBusy()) return new Promise((r) => setTimeout(r, 150)).then(() => (sayToken === tok ? sayList(items) : false));
+      return sayList(items);
+    });
   }
   function speak(text, rate) { sayList([{ text, word: true, rate: rate }]); }
   function hearBtn(text, label) { const b = btn('hear-btn', label || '🔊', (e) => { e.stopPropagation(); speak(text); }); b.setAttribute('aria-label', 'Hear it: ' + plain(text)); return b; }
@@ -711,8 +811,20 @@
     clearTimeout(advanceTimer);
     if (!(opts && opts.stay)) {
       const at = card.i;
-      advanceTimer = setTimeout(() => { if (P.idx === at && $('screenPlay').classList.contains('active')) goNext(); }, Math.min((opts && opts.delay) || AUTO_MS, (opts && opts.read) ? 2600 : MAX_DELAY));
+      advanceTimer = setTimeout(() => whenQuiet(() => { if (P.idx === at && $('screenPlay').classList.contains('active')) { if (window.__advLog) window.__advLog.push({ at, busy: voiceBusy(), t: Date.now() }); goNext(); } }), Math.min((opts && opts.delay) || AUTO_MS, (opts && opts.read) ? 2600 : MAX_DELAY));
     }
+  }
+  /* v2.7.1: the feed never moves on while the guide is talking or a word is playing. It waits for the voice to finish,
+     then a short beat (VOICE_BEAT) so the word is fully heard. advanceTimer is reused, so Skip / Pause / swipes still cancel. */
+  const VOICE_BEAT = 500, VOICE_WAIT_MAX = 15000;
+  function whenQuiet(fn) {
+    const t0 = Date.now(); let waited = false;
+    const tick = () => {
+      if (voiceBusy() && Date.now() - t0 < VOICE_WAIT_MAX) { waited = true; advanceTimer = setTimeout(tick, 100); return; }
+      if (waited) { waited = false; advanceTimer = setTimeout(tick, VOICE_BEAT); return; }
+      fn();
+    };
+    tick();
   }
   /* Skip (the button on each card, or a swipe up / Next on a card that is not finished): no penalty, not scored. */
   const NO_SKIP = ['mail', 'map', 'feed'];
@@ -783,7 +895,7 @@
     if (c) {
       const first = !c._shown; c._shown = true;
       // The guide says her line out loud (captions are in the bubble). Cards with their own audio set noAutoSay.
-      if (c.pip && !c.noAutoSay && first && !c.done) setTimeout(() => { if (P.cards[P.idx] === c) c.pip.speakNow(); }, 250);
+      if (c.pip && !c.noAutoSay && first && !c.done) setTimeout(() => { if (P.cards[P.idx] === c) c.pip.speakNow(true); }, 250);
       if (c.pip && c.pip.moveTo) requestAnimationFrame(() => { c.pip.moveTo(stopFrac(i, c.done), false); });
       if (c.onShow) c.onShow();
       if (!c.done) (c.idle || []).forEach((x) => idleTimers.push(setTimeout(() => { if (P.cards[P.idx] === c && !c.done) { x.fn(); if (c.pip) c.pip.say('Here is a clue! 💡'); } }, x.ms)));
@@ -869,7 +981,47 @@
     if (vis.parentElement && vis.parentElement.classList.contains('tall')) return;
     const k = card && card.spec && card.spec.k;
     const slot = P && P.mode === 'boss' ? (k === 'feed' ? 'bossWin' : 'boss') : k === 'italia' ? 'italia' : (k === 'spell' || k === 'type') ? 'spell' : base === 'think' ? 'think' : k === 'mail' ? 'mail' : (k === 'feed' || k === 'feedme' || k === 'hatchmo') ? '' : 'read';
-    if (slot) vis.appendChild(girlEl(slot, 'girl-side'));
+    if (!slot) return;
+    const g = girlEl(slot, 'girl-side'); vis.appendChild(g);
+    const again = () => requestAnimationFrame(() => { clearGirl(vis); const w = vis.querySelector('.pip-wrap'); if (w && w.fit) w.fit(); });
+    g.addEventListener('load', again); again();
+    if (window.MutationObserver) new MutationObserver(() => { if (!vis.__cgT) vis.__cgT = requestAnimationFrame(() => { vis.__cgT = 0; clearGirl(vis); }); }).observe(vis, { childList: true, subtree: true, characterData: true });
+  }
+  /* v2.7.1 (Sue: "her hair covers the m in mail"): the girl owns a column at the left of the picture area. The big
+     word, the word-picture stamp and the guide's speech bubble always stay to the right of her (or above her head),
+     never under her. Layout boxes (offsets), not screen boxes, so pop/fly animations do not fool it.
+     tests/avatar_overlap.py checks every card at phone and iPad sizes. */
+  function girlZone(vis) {
+    const g = vis && vis.querySelector('.girl-side');
+    if (!g || !g.offsetWidth || !g.isConnected || getComputedStyle(g).display === 'none') return null;
+    return { right: g.offsetLeft + g.offsetWidth, top: g.offsetTop, width: g.offsetWidth };
+  }
+  function fitHero(box) {
+    const w = box.querySelector('.w'); if (!w) return;
+    w.style.fontSize = '';
+    const avail = box.clientWidth - 12, have = w.offsetWidth;
+    if (avail > 0 && have > avail) w.style.fontSize = Math.max(18, Math.floor(parseFloat(getComputedStyle(w).fontSize) * avail / have)) + 'px';
+  }
+  function clearGirl(vis) {
+    if (!vis || !vis.isConnected) return;
+    const z = girlZone(vis);
+    vis.classList.toggle('has-girl', !!z);
+    if (!z) { vis.style.removeProperty('--girl-x'); return; }
+    vis.style.setProperty('--girl-x', Math.ceil(z.right + 10) + 'px');
+    vis.querySelectorAll('.model-hero, .sort-word').forEach(fitHero);
+    // the word-picture stamp (top-left): first let the girl stand a little smaller under it; only if that would make
+    // her much smaller, the stamp moves to the right of her instead
+    const g = vis.querySelector('.girl-side');
+    vis.querySelectorAll('.stamp').forEach((st) => {
+      st.classList.remove('by-girl'); g.style.maxHeight = '';
+      const cs = getComputedStyle(st); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < 0.05) return;
+      const zz = girlZone(vis); if (!zz) return;
+      const bottom = st.offsetTop + st.offsetHeight + (st.offsetParent && st.offsetParent !== vis ? st.offsetParent.offsetTop : 0);
+      if (st.offsetLeft >= zz.right + 10 || bottom + 10 <= zz.top) return;
+      const room = vis.clientHeight - 4 - bottom - 12, h = g.offsetHeight;
+      if (h && room >= h * 0.72) g.style.maxHeight = Math.floor(room) + 'px'; else st.classList.add('by-girl');
+    });
+    const z2 = girlZone(vis); if (z2) vis.style.setProperty('--girl-x', Math.ceil(z2.right + 10) + 'px');
   }
   function pipSay(vis, text, mood, content) {
     const card = BUILDING;
@@ -890,7 +1042,7 @@
     b.addEventListener('click', (e) => { if (e.target === rp) return; if (voiceActive()) stopVoice(); });
     sidekick(vis, card, base);
     w.text = text || '';
-    w.speakNow = () => { if (w.text) { speakingWrap = w; w.classList.remove('cap-fail'); sayList([{ text: fillName(w.text), word: false }]); } };
+    w.speakNow = (queue) => { if (w.text) { speakingWrap = w; w.classList.remove('cap-fail'); (queue ? sayAfter : sayList)([{ text: fillName(w.text), word: false }]); } };
     capMode(w);
     w.fit = () => fitBubble(w, b, vis);
     /* Progress meter: in each stop the guide starts at the far side and moves closer to the girl with every answer.
@@ -900,8 +1052,8 @@
       if (!w.isConnected || vis.parentElement && vis.parentElement.classList.contains('tall')) return;
       f = Math.max(w.frac, Math.min(1, f)); w.frac = f;
       const V = vis.getBoundingClientRect(), R = w.getBoundingClientRect(); if (!V.width) return;
-      const girl = vis.querySelector('.girl-side'); const gw = girl ? girl.getBoundingClientRect().width : 0;
-      const travel = Math.max(0, V.width - R.width - gw * 0.55 - 12);
+      const gz = girlZone(vis); const gw = gz ? gz.right : 0;
+      const travel = Math.max(0, V.width - R.width - gw - 12);   // v2.7.1: beside the girl, never on top of her
       w.classList.toggle('no-anim', !anim);
       w.style.setProperty('--gx', Math.round(-f * travel) + 'px');
       if (anim) w.act(f >= 1 ? 'spin' : 'hop');
@@ -926,11 +1078,24 @@
   function capText(t) { return fillName(t).replace(/ ([^\sA-Za-z0-9]{1,6})$/u, '\u00a0$1'); }
   /* Keep a speech bubble whole and inside the picture: if it would poke out of the top or sides, step the text down. */
   function fitBubble(w, b, vis) {
-    if (!w.isConnected || b.hidden) return;
-    w.classList.remove('squeeze', 'squeeze2');
+    if (!w.isConnected) return;
+    clearGirl(vis);
+    if (b.hidden) return;
+    w.classList.remove('squeeze', 'squeeze2'); b.style.maxWidth = '';
     const V = vis.getBoundingClientRect(); if (!V.height) return;
     const out = () => { const r = b.getBoundingClientRect(); return r.top < V.top + 2 || r.left < V.left + 2 || r.right > V.right + 1; };
     if (out()) { w.classList.add('squeeze'); if (out()) w.classList.add('squeeze2'); }
+    // v2.7.1: never over the girl. Where the bubble will be once the guide has finished moving (layout + --gx):
+    const z = girlZone(vis); if (!z || w.offsetParent !== vis) return;
+    const gx = parseFloat(w.style.getPropertyValue('--gx')) || 0;
+    const box = () => { const L = w.offsetLeft + gx + b.offsetLeft; return { left: L, right: L + b.offsetWidth, bottom: w.offsetTop + b.offsetTop + b.offsetHeight }; };
+    let r = box();
+    if (r.left < z.right + 8 && r.bottom > z.top - 2) {
+      b.style.maxWidth = Math.max(56, Math.floor(r.right - z.right - 10)) + 'px';
+      if (out()) { w.classList.add('squeeze'); if (out()) w.classList.add('squeeze2'); }
+      r = box();
+      if (r.left < z.right + 8 && r.bottom > z.top - 2 && !w.classList.contains('squeeze2')) { w.classList.add('squeeze', 'squeeze2'); }
+    }
   }
   function feedback(body) { const f = el('p', 'fb'); f.setAttribute('role', 'status'); f.setAttribute('aria-live', 'polite'); body.appendChild(f); return f; }
   function setFb(f, text, kind) { f.textContent = fillName(text); f.className = 'fb show ' + (kind || ''); }
@@ -1022,13 +1187,14 @@
   BUILD.model = (card, sec) => {
     const m = P.L.model;
     const { vis, body } = frame(sec, { kicker: '🧩 Pattern · tap a word to hear it', title: m.title });
-    const big = el('div', 'model-hero'); big.appendChild(wordEl(m.ex[0].w, { big: true })); vis.appendChild(big);
+    const VW = vowelLesson();
+    const big = el('div', 'model-hero'); big.appendChild(wordEl(m.ex[0].w, { big: true, vowels: VW })); vis.appendChild(big);
     pipSay(vis, 'These words follow the pattern. Which one is it?');
     m.lines.slice(0, 1).forEach((t) => body.appendChild(el('p', 'c-text sm', t)));
     const row = el('div', 'ex-row');
     m.ex.slice(0, 3).forEach((x) => {
-      const b = btn('ex', null, () => { big.replaceChildren(wordEl(x.w, { big: true })); big.classList.remove('pulse'); void big.offsetWidth; big.classList.add('pulse'); speak(plain(x.w)); });
-      b.append(wordEl(x.w), el('span', 'ex-tag', x.tag)); row.appendChild(b);
+      const b = btn('ex', null, () => { big.replaceChildren(wordEl(x.w, { big: true, vowels: VW })); big.classList.remove('pulse'); void big.offsetWidth; big.classList.add('pulse'); speak(plain(x.w)); });
+      b.append(wordEl(x.w, { vowels: VW }), el('span', 'ex-tag', x.tag)); row.appendChild(b);
     });
     body.appendChild(row);
     // the job: one tap. A pattern word vs the week's sneaky (rule-breaking) word.
@@ -1052,7 +1218,7 @@
     const st = el('div', 'stamp'); const inner = el('span', 'stamp-pic', pic || '✉️'); st.appendChild(inner);
     if (o.cap) st.appendChild(el('span', 'stamp-cap', o.cap));
     stage.appendChild(st);
-    stage.setPic = (e) => { const off = !e || GENERIC_PICS.has(e); st.classList.toggle('stamp-off', off); if (off) return; setPicText(inner, e); st.classList.remove('stamp-in'); void st.offsetWidth; st.classList.add('stamp-in'); };
+    stage.setPic = (e) => { const off = !e || GENERIC_PICS.has(e); st.classList.toggle('stamp-off', off); if (off) return; setPicText(inner, e); st.classList.remove('stamp-in'); void st.offsetWidth; st.classList.add('stamp-in'); clearGirl(stage.closest('.c-visual')); };
     if (!pic || GENERIC_PICS.has(pic)) st.classList.add('stamp-off');
     stage.stamp = st;
     return stage;
@@ -1089,8 +1255,7 @@
     let n = 0, mistakes = 0, hinted = false;
     const show = () => {
       const [w] = k.items[n];
-      stage.replaceChildren(wordEl((k.split && k.split[w]) && hinted ? k.split[w] : (hinted ? w : `${w}`), { big: true }));
-      if (!hinted) stage.querySelectorAll('.vow').forEach((v) => v.classList.add('plain'));
+      stage.replaceChildren(wordEl(hinted ? sortMark(k, w) : w, { big: true, vowels: hinted && vowelLesson() }));
       prog.textContent = `Word ${n + 1} of ${k.items.length}`;
       stage.classList.remove('pop'); void stage.offsetWidth; stage.classList.add('pop');
     };
@@ -1112,7 +1277,9 @@
     onIdle(() => { hinted = true; show(); setFb(fb, k.hint, 'hint'); });
     body.appendChild(fb);
     show();
-    card.onShow = () => speak(k.items[n] ? k.items[n][0] : '');
+    voicePreload(k.items.map((x) => x[0]));
+    // the guide asks first ("Where does this word go?"), then the word plays after her line (never on top of it)
+    card.onShow = () => { if (!card.done) setTimeout(() => { if (P.cards[P.idx] === card && k.items[n]) sayAfter([{ text: k.items[n][0], word: true }]); }, 320); };
   };
   BUILD.build = (card, sec) => {
     const k = P.L.build;
@@ -1134,7 +1301,7 @@
           sound('ok'); n++;
           tiles.querySelectorAll('.glow').forEach((g) => g.classList.remove('glow'));
           if (n >= parts.length) {
-            slots.replaceWith((() => { const d = el('div', 'slots done'); d.appendChild(wordEl(k.w, { big: true })); return d; })());
+            slots.replaceWith((() => { const d = el('div', 'slots done'); d.appendChild(wordEl(k.w, { big: true, vowels: vowelLesson() })); return d; })());
             setFb(fb, mistakes ? 'You built it! 🧱' : 'Built it on the first try! 🌟', 'good'); speak(plain(k.w));
             complete(card, { first: mistakes === 0, type: 'build' });
           }
@@ -1164,20 +1331,20 @@
     if (audioFirst) {
       tools.appendChild(hearBtn(k.w, '🔊 Hear it'));
       hintBtn(tools, '👀 Picture clue', showClue);
-      card.onShow = () => { if (!S.muted) setTimeout(() => speak(k.w), 350); };
+      card.onShow = () => { if (!S.muted) setTimeout(() => { if (P.cards[P.idx] === card && !card.done) sayAfter([{ text: k.w, word: true }]); }, 350); };
     } else {
       tools.appendChild(hearBtn(k.w, '🔊'));
     }
     body.append(tools, clueBox);
     choices(body, k.opts, k.w + type + P.key, (first) => {
       setFb(fb, first ? praise('first') : praise('retry'), 'good');
-      clueBox.replaceChildren(wordEl(k.split || k.w, { big: true })); clueBox.classList.add('show');
+      clueBox.replaceChildren(wordEl(k.split || k.w, { big: true, vowels: vowelLesson() })); clueBox.classList.add('show');
       complete(card, { first, type });
     }, (b, tries) => {
       recordMiss(k.split || k.w, type);
       pip.say(mishap(), 'oops');
       setFb(fb, 'Not yet! Look at each letter.', 'soft');
-      if (tries >= 1) { if (!audioFirst && !body.querySelector('.hint-btn')) hintBtn(tools, '💡 Need a clue?', () => { clueBox.replaceChildren(wordEl(k.split || k.w)); clueBox.firstChild.classList.add('ghost'); clueBox.classList.add('show'); }); }
+      if (tries >= 1) { if (!audioFirst && !body.querySelector('.hint-btn')) hintBtn(tools, '💡 Need a clue?', () => { clueBox.replaceChildren(wordEl(k.split || k.w, { vowels: vowelLesson() })); clueBox.firstChild.classList.add('ghost'); clueBox.classList.add('show'); }); }
     }, 'words');
     body.appendChild(fb);
   }
@@ -1380,7 +1547,7 @@
     tools.appendChild(hearBtn(k.w, '🔊 Hear it'));
     const peek = el('div', 'peek-word');
     let helped = false, tries = 0;
-    hintBtn(tools, '👀 Peek', () => { helped = true; peek.replaceChildren(wordEl(k.split, { big: true })); peek.classList.add('show'); setTimeout(() => peek.classList.remove('show'), 2600); });
+    hintBtn(tools, '👀 Peek', () => { helped = true; peek.replaceChildren(wordEl(k.split, { big: true, vowels: vowelLesson() })); peek.classList.add('show'); setTimeout(() => peek.classList.remove('show'), 2600); });
     body.append(tools, peek);
     const fb = feedback(body);
     form.addEventListener('submit', (e) => {
@@ -1394,7 +1561,7 @@
       } else {
         tries++; shake(inp); recordMiss(k.split, 'spell');
         pip.say('So close! Try again. 💪', 'oops');
-        if (tries >= 2) { peek.replaceChildren(wordEl(k.split, { big: true })); peek.classList.add('show'); setFb(fb, 'Here it is. Copy it letter by letter!', 'hint'); }
+        if (tries >= 2) { peek.replaceChildren(wordEl(k.split, { big: true, vowels: vowelLesson() })); peek.classList.add('show'); setFb(fb, 'Here it is. Copy it letter by letter!', 'hint'); }
         else setFb(fb, 'Almost! Check each sound.', 'soft');
       }
     });
@@ -1722,11 +1889,21 @@
      (no tapping, no recording, no scoring; a grown-up listens). 3) ONE tap (Next / swipe up) = next word.
      4) Every 3 words an earlier word comes back WITHOUT audio first; she reads it herself (audio after Next or a tap on it).
      5) "Help me" only if she taps it: slow, tricky part lit with its mouth cue, then normal speed. Chunks live only in Help me. ---- */
-  const TRICKY_ORDER = ['th', 'ph', 'sh', 'f', 'v', 'r', 'w', 'ow', 'ou', 'aw'];
+  /* v2.7.1: vowel teams (ow, ou, aw) are found before w, and a w that is part of ow/aw/ew is never marked as the /w/
+     sound (before, "down" lit the w of "ow" with the w lip cue). The marked letters are exactly the sound's letters. */
+  const TRICKY_ORDER = ['th', 'ph', 'sh', 'f', 'v', 'r', 'ow', 'ou', 'aw', 'w'];
+  function trickyIndex(w, key) {
+    for (let i = w.indexOf(key); i >= 0; i = w.indexOf(key, i + 1)) {
+      if (key === 'w' && /[aoe]/.test(w[i - 1] || '')) continue; // ow / aw / ew: a vowel team, not the /w/ sound
+      if (key === 'f' && w[i - 1] === 'p') continue;              // ph is its own key
+      return i;
+    }
+    return -1;
+  }
   function trickyOf(v) {
     if (v.tricky && v.tricky.mark) return { mark: v.tricky.mark, note: v.tricky.note || '', key: null };
     const w = v.w.toLowerCase();
-    for (const key of TRICKY_ORDER) { const i = w.indexOf(key); if (i >= 0 && MOUTH[key === 'ph' ? 'f' : key]) return { mark: v.w.slice(0, i) + '[' + v.w.slice(i, i + key.length) + ']' + v.w.slice(i + key.length), note: '', key: key === 'ph' ? 'f' : key }; }
+    for (const key of TRICKY_ORDER) { const i = trickyIndex(w, key); if (i >= 0 && MOUTH[key === 'ph' ? 'f' : key]) return { mark: v.w.slice(0, i) + '[' + v.w.slice(i, i + key.length) + ']' + v.w.slice(i + key.length), note: '', key: key === 'ph' ? 'f' : key }; }
     return null;
   }
   BUILD.wpractice = (card, sec) => {
@@ -1747,7 +1924,8 @@
     body.append(count, word, step, row, helpBox);
     const done = [], helpW = new Set(), reviewed = new Set();
     let n = -1, cur = null, played = false, busy = false;
-    const playWord = (slow) => { played = true; sayList([{ text: cur.v.w, word: true, slow: !!slow }]); if (cur.review) stage.setPic(cur.v.pic || '⭐'); };
+    const playWord = (slow) => { played = true; if (cur.review) stage.setPic(cur.v.pic || '⭐'); return sayList([{ text: cur.v.w, word: true, slow: !!slow }]); };
+    voicePreload(news.map((v) => v.w).concat(back.map((v) => v.w)));
     const pickReview = () => {
       const cand = [...helpW].map((w) => done.find((x) => x.w === w)).concat(back, done).filter((x) => x && !reviewed.has(x.w));
       return cand[0] || null;
@@ -1774,7 +1952,10 @@
     };
     const next = () => {
       if (busy || card.done) return true;
-      if (cur && cur.review && !played) { busy = true; playWord(); setTimeout(() => { busy = false; advance(); }, 900); return true; }
+      if (cur && cur.review && !played) { // she read it herself: now the word plays (all of it), then a beat, then the next word
+        busy = true; const at = n; const go = () => { if (!busy || n !== at) return; busy = false; if (P.cards[P.idx] === card && !card.done) advance(); };
+        playWord().then(() => setTimeout(go, 450)); setTimeout(go, 9000); return true;
+      }
       advance(); return true;
     };
     const advance = () => { n++; if (n >= seq.length) finish(); else show(); };
@@ -1800,7 +1981,15 @@
         helpBox.appendChild(tw);
       }
       played = true; if (cur.review) stage.setPic(cur.v.pic || '⭐');
-      sayList([{ text: cur.v.w, word: true, slow: true, pause: 450, onStart: () => lit && lit.classList.add('pulse') }, { text: cur.v.w, word: true, pause: 200 }]);
+      // v2.7.1: slow = each chunk on its own with a pause (its chunk lights up), then the whole word slowly, then at normal speed
+      const parts = String(cur.v.split || cur.v.w).split('|'), says = cur.v.say ? cur.v.say.split('|') : parts.map(plain);
+      const cbox = helpBox.querySelector('.dec-word'), syls = cbox ? [...cbox.querySelectorAll('.syl')] : [];
+      const on = (i) => () => syls.forEach((sy, j) => sy.classList.toggle('on', i < 0 || j === i));
+      const items = [];
+      if (parts.length > 1 && syls.length === parts.length) says.forEach((c, i) => items.push({ text: c, word: true, slow: true, onStart: on(i), pause: 600 }));
+      items.push({ text: cur.v.w, word: true, slow: true, pause: 750, onStart: () => { on(-1)(); if (lit) lit.classList.add('pulse'); } });
+      items.push({ text: cur.v.w, word: true, pause: 200, onStart: () => { if (lit) lit.classList.remove('pulse'); } });
+      sayList(items);
       pip.say('Listen slowly… now say it again with me!', null, true);
     };
     card.help = helpMe; card.onNext = () => next();
@@ -1961,7 +2150,7 @@
     const { vis, body } = frame(sec, { kicker: '🧺 Quick game · sort it', title: 'Where does this word go?' });
     vis.appendChild(picHero('🧺'));
     pipSay(vis, 'Read the word. Which side?');
-    const d = el('div', 'dec-word'); d.appendChild(wordEl((k.split && k.split[w]) || w, { big: true })); body.appendChild(d);
+    const d = el('div', 'dec-word'); d.appendChild(wordEl(sortMark(k, w), { big: true, vowels: vowelLesson() })); body.appendChild(d);
     const fb = feedback(body);
     const right = ans === 'a' ? k.a : k.b, wrong = ans === 'a' ? k.b : k.a; card.answer = right;
     const row = choices(body, [right, wrong], w + 'sort1', (first) => { setFb(fb, first ? 'Sorted! 🌟' : 'Sorted! 🎉', 'good'); complete(card, { first, type: 'sort' }); },
@@ -1981,7 +2170,7 @@
     const fb = feedback(body);
     const row = choices(body, sayR ? [mk(pr.r, pr.rp), mk(pr.w, pr.wp)] : [mk(pr.w, pr.wp), mk(pr.r, pr.rp)], target + P.key, (first) => {
       setFb(fb, `Yes! I said “${target}”. ${praise('listen')}`, 'good'); complete(card, { first, type: 'rpair' });
-    }, () => { setTimeout(() => sayList([{ text: target, word: true, slow: true }]), 400); }, 'pics two');
+    }, () => { setTimeout(() => sayAfter([{ text: target, word: true, slow: true }]), 400); }, 'pics two');
     body.insertBefore(row, fb);
     card.onShow = () => { if (!card.done) sayList([{ text: target, word: true }]); };
   };
@@ -2043,7 +2232,7 @@
       row.querySelectorAll('button').forEach((b) => { b.disabled = true; });
       const ch = chunkWord(v); wb.replaceWith(ch);
       setFb(fb, caught ? 'You caught my mistake! That is what great readers do! 🔎' : `Oops, I said it wrong! It is “${v.w}”. 🙃`, 'good');
-      sayList(chunkItems(v, ch));
+      sayAfter(chunkItems(v, ch));
       complete(card, { first: caught, type: 'teach' }, { delay: 1500 });
     };
     row.append(btn('big-btn soft', '✅ Yes', () => { pip.say(`Hmm, let me look again... Oh! It is not “${oops}”! Silly me! 😅 Can you read it to me?`, 'oops'); teachIt(false); }),
@@ -2062,7 +2251,7 @@
     const row = choices(body, [v.w].concat(v.look), v.w + 'says' + P.key, (first) => {
       setFb(fb, first ? praise('listen') : praise('retry'), 'good'); if (!first) markTry(v, false);
       complete(card, { first, type: 'says' });
-    }, () => { pip.say(mishap() + ' Listen again!', 'oops'); setTimeout(() => sayList([{ text: v.w, word: true, slow: true }]), 900); }, 'words');
+    }, () => { pip.say(mishap() + ' Listen again!', 'oops'); sayAfter([{ text: v.w, word: true, slow: true }]); }, 'words');
     body.insertBefore(row, fb);
   };
 
@@ -2150,7 +2339,7 @@
         help.appendChild(el('p', 'c-text', 'So close! This part needs a fix:'));
         const d = el('div', 'cmp-box'); d.appendChild(wordEl(diffMark(typed, it.w.toLowerCase()), { big: true })); help.appendChild(d);
         pip.say(mishap() + ' Listen again, then type it!', 'oops');
-        setTimeout(() => sayList([{ text: it.w, word: true, slow: true }]), 1200);
+        sayAfter([{ text: it.w, word: true, slow: true }]);
       }
       if (tries >= 2) {
         copy = true;
@@ -2189,7 +2378,7 @@
         const [w, wp, ans] = words[r]; card.answer = (ans === 'a' ? C.a : C.b)[0];
         pic.setPic(wp);
         pip.say('Listen! Which sound is in this word?');
-        setTimeout(() => sayList([{ text: w, word: true, slow: true }]), 250);
+        sayAfter([{ text: w, word: true, slow: true }]);
         const mk = (s) => { const d = el('span', 'snd-opt'); d.append(el('span', 'snd-pic', s[1]), el('strong', null, s[0]), el('span', 'snd-mouth', (MOUTH[s[0]] || ['', ''])[0]), el('span', 'snd-key', 'like ' + s[2])); return d; };
         const right = ans === 'a' ? C.a : C.b, wrong = ans === 'a' ? C.b : C.a;
         const tools = hearBtn(w, '🔊 Hear it again');
@@ -2230,7 +2419,7 @@
       const row = choices(body, opts, target + P.key, () => {
         setFb(fb, `Yes! I said “${target}”. ${praise('listen')}`, 'good');
         setTimeout(() => { row.remove(); tools.remove(); fb.className = 'fb'; r++; if (r < picks.length) round(); else complete(card, { first: true, type: 'rpair' }, { delay: 500 }); }, 1000);
-      }, () => { pip.say('Hmm, let me say it again!', 'oops'); setTimeout(() => sayList([{ text: target, word: true, slow: true }]), 900); }, 'pics two');
+      }, () => { pip.say('Hmm, let me say it again!', 'oops'); sayAfter([{ text: target, word: true, slow: true }]); }, 'pics two');
       body.insertBefore(row, fb);
     };
     card.onShow = () => { if (!card._started) { card._started = true; round(); } };
@@ -2259,13 +2448,13 @@
       const it = items[r]; const oops = it.oops || autoOops(it.w); card.answer = it.w;
       const other = list.find((x) => x.w !== it.w && x.pic !== it.pic) || { w: 'sun', pic: '☀️' };
       pic.setPic('🗣️');
-      pip.say(`Look! A “${oops}”!`, 'oops');
+      pip.say(`Look! A “${oops}”!`, 'oops', true);
       sayList([{ text: 'Look! A', word: false }, { text: oops, word: true }]);
       const mk = (x) => { const d = el('span', 'pic-word'); d.append(el('span', 'pic-opt', x.pic || '🔴'), wordEl(rMark(x.w))); return d; };
       body.insertBefore(el('p', 'c-q r-q', `Which one did ${G().name} mean?`), fb);
-      const fix = btn('big-btn soft', `Oops, say it right, ${G().name}! 🔁`, () => { fix.disabled = true; pip.say(`Oops! I meant “${it.w}”!`); sayList([{ text: 'Oops! I meant', word: false }, { text: it.w, word: true }]); });
+      const fix = btn('big-btn soft', `Oops, say it right, ${G().name}! 🔁`, () => { fix.disabled = true; pip.say(`Oops! I meant “${it.w}”!`, null, true); sayList([{ text: 'Oops! I meant', word: false }, { text: it.w, word: true }]); });
       const row = choices(body, [mk(it), mk(other)], it.w + P.key, () => {
-        pip.say(`Yes! I meant “${it.w}”! Thanks for catching me!`); sayList([{ text: 'Yes! I meant', word: false }, { text: it.w, word: true }]);
+        pip.say(`Yes! I meant “${it.w}”! Thanks for catching me!`, null, true); sayList([{ text: 'Yes! I meant', word: false }, { text: it.w, word: true }]);
         setTimeout(() => { body.querySelectorAll('.r-q').forEach((q) => q.remove()); row.remove(); fix.remove(); r++; if (r < items.length) round(); else done(); }, 1200);
       }, () => { pip.say('Hmm, listen again!', 'oops'); }, 'pics two');
       body.insertBefore(row, fb); body.insertBefore(fix, fb);
@@ -2550,9 +2739,11 @@
   function helpNow() {
     const c = P.cards[P.idx]; if (!c || c.done) return;
     S.helpTaps = (S.helpTaps || 0) + 1; P.res.helpTaps = (P.res.helpTaps || 0) + 1; save();
+    const busy0 = voiceBusy() ? sayToken : -1;
     if (c.help) c.help();
     (c.idle || []).forEach((x) => x.fn());
-    if (c.pip) { c.pip.say(c.pip.text || 'Here is a clue! 💡'); }
+    const helpSpoke = voiceBusy() && sayToken !== busy0; // the clue started its own audio: keep it, show the line as a caption
+    if (c.pip) { c.pip.say(c.pip.text || 'Here is a clue! 💡', null, helpSpoke); }
   }
   function showScreen(id) {
     ['screenHome', 'screenPlay', 'screenEnd', 'screenParent', 'screenName'].forEach((s) => { const e = $(s); const on = s === id; e.hidden = !on; e.classList.toggle('active', on); });
@@ -3004,15 +3195,17 @@
     if (S.guide) setTimeout(warmPoses, 4000);
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7') return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.7.1') return;
       const list = [...new Set(Object.values(AUD))];
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.7'); } catch (_) {}
+      try { localStorage.setItem('pipsAudioWarm', 'v2.7.1'); } catch (_) {}
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   // Small hook for automated tests (no effect on the child's experience).
-  window.PipApp = { skipCard: () => skipCard(P.cards[P.idx]), goNext, helpNow, pauseOpen, goBack, startSession, get words() { return S.words; }, soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; }, get posLog() { return POS_LOG; },
+  /* test hook (tests/audiofix_webkit.py): show one card spec in the running session, e.g. { k: 'sortone', n: 1 } */
+  function testCard(spec) { clearTimeout(advanceTimer); stopVoice(); P.specs = [spec, { k: 'feed' }]; P.cards = []; P.res = {}; $('feed').replaceChildren(); renderDots(); appendCard(0, false); P.idx = -1; scrollToIndex(0, false); }
+  window.PipApp = { testCard, sayItems: (items) => sayList(items), sayAfter, voiceBusy, voicePath, stopVoice, skipCard: () => skipCard(P.cards[P.idx]), goNext, helpNow, pauseOpen, goBack, startSession, get words() { return S.words; }, soundAlike, linePlan, sound, sfx, fillName, capsRefresh, applyTheme, volLevel, say: (t) => sayList([t]), get state() { return S; }, scoreSession, applyLevelRules, save, reload: () => { load(); }, goHome, openParent, get P() { return P; }, get posLog() { return POS_LOG; },
     /* test hooks: build a card off-screen (answer-position test) */
     _stop: (id) => stopSpecs(id), _plan: (first, left) => planAfterMap(first, left),
     _specs: () => { const V = W_().vocab || {}, w = Object.keys(V)[0]; return [].concat(stopSpecs('words'), stopSpecs('postcard'), stopSpecs('fly'), bonusSpecs(P.week, P.day, P.L), QUICK_GAMES.map((k, n) => ({ k, n })), [0, 1, 2].map((n) => ({ k: 'type', n })), W_().italia ? [{ k: 'italia' }] : [], w ? [{ k: 'decode', v: Object.assign({ w }, V[w]) }, { k: 'confirm', w }] : []).filter((x) => BUILD[x.k]); },

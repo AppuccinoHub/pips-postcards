@@ -929,3 +929,7 @@ html.theme-dark { --green-d: #86dc8d; }
   .evi-3 .evi-s { line-height: 1.5; font-size: .95em; }
   .evi.evi-3 { gap: 6px; }
 }
+/* v2.7.1: the girl keeps her own column; the big word and the word-picture stamp sit to the right of her (app.js clearGirl) */
+.c-visual.has-girl .model-hero, .c-visual.has-girl .sort-word { left: var(--girl-x, 0px); }
+.c-visual.has-girl .stamp.by-girl { left: var(--girl-x, 7%); }
+.model-hero .w, .sort-word .w { white-space: nowrap; }
