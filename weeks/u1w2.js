@@ -820,12 +820,12 @@
     shelter: { misread: 'shell-tur', split: 'sh[e]l|t[er]', say: 'shel|ter', look: ['shelf', 'shatter'], pic: '⛺', means: 'a safe, covered place' }
   };
   // Warm-up (easy wins first!): words she already knows from last week. Read the word, tap its picture.
-  // Swap in last week's real list any time: w = word, pic = its picture, other = a clearly different picture.
-  W.warmup = [
-    { w: 'cat', pic: '🐱', other: '🐟' }, { w: 'sun', pic: '☀️', other: '🌙' }, { w: 'bed', pic: '🛏️', other: '🚗' },
-    { w: 'dog', pic: '🐶', other: '🍎' }, { w: 'hat', pic: '🎩', other: '👟' }, { w: 'bus', pic: '🚌', other: '🌳' },
-    { w: 'fish', pic: '🐟', other: '🏠' }, { w: 'cup', pic: '🥤', other: '⭐' }, { w: 'jam', pic: '🍓', other: '⚽' },
-    { w: 'pig', pic: '🐷', other: '🚀' }, { w: 'box', pic: '📦', other: '🌸' }, { w: 'duck', pic: '🦆', other: '🍕' }
+  // Swap in a new list any time: w = word, pic = its picture, other = a clearly different picture.
+  W.warmup = [  // Week 1 spelling list from her teacher
+    { w: 'box', pic: '📦', other: '🌸' }, { w: 'this', pic: '👉', other: '🍕' }, { w: 'chest', pic: '🧰', other: '🐸' },
+    { w: 'wet', pic: '💦', other: '🔥' }, { w: 'flag', pic: '🚩', other: '🍪' }, { w: 'him', pic: '👦', other: '🌳' },
+    { w: 'jump', pic: '🦘', other: '🛏️' }, { w: 'run', pic: '🏃', other: '🪑' }, { w: 'shop', pic: '🏪', other: '🐟' },
+    { w: 'stand', pic: '🧍', other: '🛌' }
   ];
   // "Type the word you hear": this week's spelling words + sight words. Pip says the word, then the sentence.
   // The caption shows the sentence with a blank (never the word), plus the picture, so it never depends on audio alone.
