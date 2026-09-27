@@ -10,9 +10,10 @@
   id: 'u1w2',
   unit: 1, week: 2,
   title: 'Habitats · Week 2',
+  dates: { start: '2026-09-28', end: '2026-10-02' }, // v2.8.2: the class is on Unit 1 Week 2 the week of Sep 28 (teacher's newsletter; spelling test Fri Oct 2)
   unitTitle: 'Plants and Animals in Their Habitats',
   school: {
-    spelling: ['go', 'we', 'den', 'no', 'she', 'napkin', 'dentist', 'problem', 'open', 'silent'],
+    spelling: ['go', 'we', 'den', 'no', 'she', 'hi', 'napkin', 'dentist', 'problem', 'open', 'silent'], // 'hi' from the teacher's list; den kept (used on the cards)
     hf: ['have', 'is', 'jump', 'my', 'one', 'put', 'the', 'want', 'what', 'you'],
     phonics: 'Closed and open syllables · three-letter blends (spr, str, scr, spl, thr, shr, squ) · short vowel review',
     nextSpelling: ['April', 'play', 'blame', 'stay', 'cake', 'mail', 'chain', 'paint', 'break', 'great'],
@@ -29,7 +30,7 @@
   /* ======================= MONDAY ======================= */
   {
     day: 1, name: 'Monday', place: 'Antarctica', flag: '🇦🇶', scene: 'img/mon_antarctica.webp',
-    qtype: 'Key details & main topic', atype: 'Pip made a mistake',
+    qtype: 'What is it mostly about?', atype: 'Pip made a mistake',
     arrive: 'Pip landed on the ice in Antarctica!',
     wiggle: { emoji: '🐧', text: 'Waddle like a penguin to the door and back!', sub: 'Tiny steps. Flippers out. Go!' },
     route: {
@@ -139,7 +140,7 @@
   /* ======================= TUESDAY ======================= */
   {
     day: 2, name: 'Tuesday', place: 'Bracken Cave, Texas', flag: '🇺🇸', scene: 'img/tue_batcave.webp',
-    qtype: 'Word meaning from context', atype: 'Odd one out, and why',
+    qtype: 'Figure out a word', atype: 'Odd one out, and why',
     arrive: 'Pip found a giant bat cave in Texas!',
     wiggle: { emoji: '🦇', text: 'Flap like a bat 5 times!', sub: 'Big wings... 1, 2, 3, 4, 5!' },
     route: {

@@ -1,5 +1,5 @@
 /* Pip's Postcards · Unit 2 Week 2 · Characters Facing Challenges  (STAGED DRAFT, not live)
-   School week: Mon Oct 12 – Fri Oct 16, 2026 (ESTIMATE; Oct 12 may be a holiday). Schema = site/weeks/u1w2.js.
+   School week: Mon Oct 19 – Fri Oct 23, 2026 (v2.8.2: schedule moved back one week). Schema = site/weeks/u1w2.js.
    Correct answer FIRST in every option list. "|" = syllables, [ ] = pattern letters.
    District source: 1-Grade2-ELA.txt, Unit 2, LEARNING ACTIVITIES Week 2 (long e + plural endings; inferences;
    central message / moral; character responses; shades of meaning). District texts: "Yeh-Shen", "Bee and Daisy",
@@ -11,7 +11,7 @@
   unit: 2, week: 2,
   title: 'Challenges · Week 2',
   unitTitle: 'Characters Facing Challenges',
-  dates: { start: '2026-10-12', end: '2026-10-16', estimated: true, note: 'Oct 12 may be a school holiday (Columbus Day / Indigenous Peoples\' Day).' },
+  dates: { start: '2026-10-19', end: '2026-10-23', estimated: true },
   school: {
     /* SWAP IN THE TEACHER'S LIST: replace `spelling` (and W.typeWords.ground) with her weekly sheet. */
     spelling: ['these', 'clean', 'happy', 'key', 'queen', 'leaf', 'funny', 'piece', 'thief', 'need'],
@@ -32,7 +32,7 @@
   {
     day: 1, name: 'Monday', place: 'Boulders Beach, South Africa', flag: '🇿🇦', scene: 'img/u2w2_mon_penguins.webp',
     sceneBrief: 'Sunny white-sand beach with huge round granite boulders and turquoise water. African penguins (black and white, pink patch above the eye). One young penguin (Kiki) with a crooked flipper peeks from behind a boulder; another (Dee) waddles toward her smiling. Pip on a boulder.',
-    qtype: 'Character response & feelings', atype: 'How did the character feel?',
+    qtype: 'How did they feel?', atype: 'How did the character feel?',
     arrive: 'Pip flew all the way to a penguin beach in South Africa!',
     wiggle: { emoji: '🐧', text: 'Penguin waddle!', sub: 'Keep your arms at your sides and waddle across the room. Now wave one flipper to a friend!' },
     route: {
@@ -101,7 +101,7 @@
         title: 'The Strength of Kindness',
         targets: ['kindness', 'unkindness', 'sadness', 'gentleness', 'clumsiness', 'endangered', 'hesitantly', 'unexpected', 'advantage', 'protected'],
         model: {
-          title: 'Suffix: -ness',
+          title: 'The ending -ness',
           lines: ['-ness turns a describing word into a thing: kind → kindness.', 'If the word ends in y, change y to i first: clumsy → clumsiness.'],
           ex: [{ w: 'kind|[ness]', tag: 'being kind' }, { w: 'sad|[ness]', tag: 'being sad' }, { w: 'gen|tle|[ness]', tag: 'being gentle' }, { w: 'clum|si|[ness]', tag: 'y → i + ness' }]
         },
@@ -109,7 +109,7 @@
         build: { w: 'un|kind|ness', tiles: ['un', 'kind', 'ness', 'nes'], pic: '💔', clue: 'Being mean instead of kind.' },
         pick: { w: 'gentleness', opts: ['gentleness', 'gentelness', 'gentlness'], pic: '🪶', clue: 'Being soft and careful.', split: 'gen|tle|[ness]' },
         hear: { w: 'endangered', opts: ['endangered', 'endangerd', 'indangered'], pic: '⚠️', clue: 'In danger of disappearing forever.', split: 'en|dan|gered' },
-        rebel: { words: ['harness', 'kindness', 'sadness', 'gentleness'], why: '"harness" ends in -ness, but "har" is not a word. It is not a suffix here!' },
+        rebel: { words: ['harness', 'kindness', 'sadness', 'gentleness'], why: '"harness" ends in -ness, but take it off and "har" is not a word!' },
         chunks: [
           { s: ['Greetings from Boulders Beach near Cape Town, South Africa, one of the only places on Earth where you can stroll along the sand beside wild African penguins.', 'Sadly, these penguins are endangered, so the beach is carefully protected.'], pic: '🐧', focus: '50% 60%', check: ['🐧🏖️🪨', '🐧🌲', '🐧🏙️'] },
           { s: ['Here I met Kiki, a young penguin born with a crooked flipper that made her waddle unevenly.', 'A group of older penguins mocked her clumsiness, and their unkindness made her retreat behind a boulder.'], pic: '🪨', focus: '35% 50%', check: ['🐧😢🪨', '🐧😂', '🐧😴'] },
@@ -118,7 +118,7 @@
           { s: ['Underwater, Kiki\'s flipper turned out to be an unexpected advantage, because it helped her make lightning-fast turns.', 'She returned with more fish than anyone, but she shared them with Dee first.'], pic: '🐟', focus: '70% 70%', check: ['🐧💨🐟', '🐧🛏️', '🐧🎂'] },
           { s: ['Kiki\'s story shows that kindness is a kind of strength.', 'Dee did not know the flipper would be useful; she was simply being a good friend, and that made all the difference.'], pic: '💛', focus: '50% 50%', check: ['🐧💛🐧', '🐧🥇', '🐧🍕'] }
         ],
-        question: { pre: { q: 'Cause and effect: What caused Kiki to hide?', opts: ['😞 The older penguins\' unkindness', '🌊 A big wave', '🦈 A shark'], mishap: 'Look for the word "made" in the postcard.' },
+        question: { pre: { q: 'Why did Kiki hide?', opts: ['😞 The older penguins\' unkindness', '🌊 A big wave', '🦈 A shark'], mishap: 'Look for the word "made" in the postcard.' },
           q: 'Tap the sentence that tells the cause.', a: 'their unkindness made her retreat', mishap: 'Oops! I hid behind a boulder too, and a penguin sat on me! 🐧 Try again!' },
         advisor: { type: 'mistake', pip: 'Dee was kind because she knew the flipper would help Kiki catch fish.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'Dee did not know the flipper would be useful', mishap: 'That sentence does not tell what Dee knew. Try another, advisor!' },
         fill: { kind: 'word', sent: 'Then a penguin named Dee approached Kiki with surprising ___.', opts: ['gentleness', 'sadness', 'clumsiness'] },
@@ -130,7 +130,7 @@
   {
     day: 2, name: 'Tuesday', place: 'Sonoran Desert, Mexico', flag: '🇲🇽', scene: 'img/u2w2_tue_bat.webp',
     sceneBrief: 'Desert at night under a bright moon, tall saguaro cactuses with big white flowers on top. A small brown long-nosed bat (Benny) hovers with its nose in a flower, yellow pollen on its face. Pip perched on a cactus arm (careful of spines!).',
-    qtype: 'Key details: how characters help', atype: 'Odd one out, and why',
+    qtype: 'How did they help?', atype: 'Odd one out, and why',
     arrive: 'Pip flew to a desert full of giant cactus plants in Mexico!',
     wiggle: { emoji: '🦇', text: 'Bat flutter!', sub: 'Flutter your arms like bat wings, then hang your head down low and count to 5 (upside-down bat style!).' },
     route: {
@@ -201,7 +201,7 @@
         title: 'Partners in the Moonlight',
         targets: ['helpful', 'useless', 'helpless', 'thankful', 'grateful', 'mutualism', 'partnership', 'transfers', 'benefit', 'migrates'],
         model: {
-          title: 'Suffixes: -ful and -less',
+          title: 'The endings -ful and -less',
           lines: ['-ful means "full of": help → helpful.', '-less means "without": help → helpless.'],
           ex: [{ w: 'help|[ful]', tag: 'full of help' }, { w: 'help|[less]', tag: 'without help' }, { w: 'thank|[ful]', tag: 'full of thanks' }, { w: 'use|[less]', tag: 'without use' }]
         },
@@ -209,7 +209,7 @@
         build: { w: 'mu|tu|al|ism', tiles: ['mu', 'tu', 'al', 'ism', 'izm'], pic: '🤝', clue: 'When two living things both help each other.' },
         pick: { w: 'partnership', opts: ['partnership', 'partnershipp', 'partnurship'], pic: '🤝', clue: 'Working together as partners.', split: 'part|ner|[ship]' },
         hear: { w: 'benefit', opts: ['benefit', 'benifit', 'benafit'], pic: '👍🎁', clue: 'Something good you get.', split: 'ben|e|fit' },
-        rebel: { words: ['bless', 'helpless', 'useless', 'careless'], why: '"bless" ends in -less, but "b" is not a base word!' },
+        rebel: { words: ['bless', 'helpless', 'useless', 'careless'], why: '"bless" ends in -less, but take it off and only "b" is left!' },
         chunks: [
           { s: ['Greetings from the Sonoran Desert, where saguaro cactuses can grow taller than a four-story building and live for more than one hundred fifty years.', 'Tonight, I observed a remarkable partnership between a plant and an animal.'], pic: '🌵', focus: '50% 50%', check: ['🌵🏜️', '🌲❄️', '🌊🐠'] },
           { s: ['The lesser long-nosed bat is a nectar-drinking bat that migrates north from Mexico each spring, following a trail of blooming flowers.', 'Its long snout and brushy tongue are perfectly shaped for reaching deep inside a blossom.'], pic: '🦇', focus: '40% 30%', check: ['🦇👅🌼', '🦇☀️🏖️', '🦇🎂'] },
@@ -230,7 +230,7 @@
   {
     day: 3, name: 'Wednesday', place: 'Sichuan, China', flag: '🇨🇳', scene: 'img/u2w2_wed_redpanda.webp',
     sceneBrief: 'Misty green bamboo forest on a mountain at night, a big round full moon, paper lanterns hanging from branches. A red panda cub (Mei) on a wide branch hands a round mooncake to a young monkey; an old red panda sits beside them. Pip holding a tiny lantern.',
-    qtype: 'Character response & change', atype: 'How did the character feel?',
+    qtype: 'How did she change?', atype: 'How did the character feel?',
     arrive: 'Pip flew to the misty mountains of China!',
     wiggle: { emoji: '🥮', text: 'Share the moon!', sub: 'Pretend to break a big mooncake into pieces. Hand one piece to everyone in the room (even a stuffed animal)!' },
     route: {
@@ -259,8 +259,8 @@
           { s: ['Today I am in the green hills of China.', 'I met a red panda named Mei in a bamboo field.'], pic: '🎋', focus: '50% 50%', check: ['🎋⛰️', '🌵🏜️', '🌊🐠'] },
           { s: ['Tonight is a festival for the big, round moon.', 'Mei had a sweet treat, a piece of mooncake.'], pic: '🥮', focus: '50% 40%', check: ['🌕🥮', '🌧️🍕', '☀️🍦'] },
           { s: ['A little monkey peeked at her treat.', '"Are you a thief?" Mei asked.', '"No," he said.'], pic: '🐒', focus: '65% 45%', check: ['🐒👀🥮', '🐒⚽', '🐒🚗'] },
-          { s: ['"I am just hungry, and I have no treat."', 'Mei did not need the whole cake.', 'So she broke off a big piece and gave it to the monkey.'], pic: '🤲', focus: '55% 50%', check: ['🐼🤲🐒', '🐼😠', '🐼😴'] },
-          { s: ['They sat under the moon and ate their treats.', 'The key to a happy festival is sharing!'], pic: '🌕', focus: '50% 20%', check: ['🐼🐒🌕', '🐼🏖️', '🐼🎸'] }
+          { s: ['"I am just hungry, and I have no treat."', 'Mei did not need the whole cake.', 'So she broke off a big piece and gave it to the monkey.'], pic: '🤲', focus: '55% 50%', check: ['img:redpanda🤲🐒', 'img:redpanda😠', 'img:redpanda😴'] },
+          { s: ['They sat under the moon and ate their treats.', 'The key to a happy festival is sharing!'], pic: '🌕', focus: '50% 20%', check: ['img:redpanda🐒🌕', 'img:redpanda🏖️', 'img:redpanda🎸'] }
         ],
         question: { pre: { q: 'Why did Mei share her mooncake?', opts: ['🙂 She did not need it all, and the monkey was hungry', '😠 The monkey took it', '🎁 It was his birthday'], mishap: 'Hmm, read what Mei thought about the cake.' },
           q: 'Tap the sentence that shows Mei did not need it all.', a: 'did not need the whole cake', mishap: 'Oops! I tried to eat a whole mooncake. My tummy is so full! 🥮 Try again!' },
@@ -283,10 +283,10 @@
         rebel: { words: ['give', 'time', 'pile', 'smile'], why: '"give" has i and a magic e, but the i is short! Heart word ❤️.' },
         chunks: [
           { s: ['Greetings from the misty mountains of Sichuan, China, where I spent the night in a bamboo forest.', 'It was time for the Mid-Autumn Festival, when families gather to admire the full moon.'], pic: '🎋', focus: '50% 50%', check: ['🎋🌕', '🌵🏜️', '🌊🐠'] },
-          { s: ['A red panda cub named Mei had a pile of five mooncakes, round and golden like tiny moons.', 'She planned to eat every bite by herself.'], pic: '🥮', focus: '50% 40%', check: ['🐼🥮🥮🥮', '🐼🍕', '🐼🍦'] },
-          { s: ['Then she noticed an old panda sitting alone on a branch, and a young monkey with nothing to eat.', 'Mei looked at her pile, and she looked at their faces.'], pic: '🐒', focus: '65% 45%', check: ['🐼👀🐒', '🐼⚽', '🐼🚗'] },
-          { s: ['Slowly, a smile spread across her face.', 'She gave a mooncake to the old panda, a mooncake to the monkey, and one to me!'], pic: '🤲', focus: '55% 50%', check: ['🐼🤲🐒', '🐼😠', '🐼😴'] },
-          { s: ['We all sat together under the full moon, sharing stories and nibbling our cakes.', 'Mei had fewer cakes, but she felt much richer than before.'], pic: '🌕', focus: '50% 20%', check: ['🐼🐒🌕', '🐼🏖️', '🐼🎸'] },
+          { s: ['A red panda cub named Mei had a pile of five mooncakes, round and golden like tiny moons.', 'She planned to eat every bite by herself.'], pic: '🥮', focus: '50% 40%', check: ['img:redpanda🥮🥮🥮', 'img:redpanda🍕', 'img:redpanda🍦'] },
+          { s: ['Then she noticed an old panda sitting alone on a branch, and a young monkey with nothing to eat.', 'Mei looked at her pile, and she looked at their faces.'], pic: '🐒', focus: '65% 45%', check: ['img:redpanda👀🐒', 'img:redpanda⚽', 'img:redpanda🚗'] },
+          { s: ['Slowly, a smile spread across her face.', 'She gave a mooncake to the old panda, a mooncake to the monkey, and one to me!'], pic: '🤲', focus: '55% 50%', check: ['img:redpanda🤲🐒', 'img:redpanda😠', 'img:redpanda😴'] },
+          { s: ['We all sat together under the full moon, sharing stories and nibbling our cakes.', 'Mei had fewer cakes, but she felt much richer than before.'], pic: '🌕', focus: '50% 20%', check: ['img:redpanda🐒🌕', 'img:redpanda🏖️', 'img:redpanda🎸'] },
           { s: ['The lesson: sharing makes a festival shine.', 'I will save some of my seeds to share with you!'], pic: '💛', focus: '50% 50%', check: ['🐦💛', '🐦😡', '🐦😴'] }
         ],
         question: { pre: { q: 'What was Mei\'s plan at first?', opts: ['🥮 Eat every bite by herself', '🎁 Give all her cakes away', '🏃 Run a race'], mishap: 'Look for the word "planned."' },
@@ -299,24 +299,24 @@
         title: 'The Unselfish Red Panda',
         targets: ['unselfish', 'unkindly', 'uncomfortable', 'discouraged', 'dislike', 'reconsidered', 'rethink', 'renewed', 'selfishness', 'responsible'],
         model: {
-          title: 'Prefixes: un-, dis-, re-',
+          title: 'Beginnings that change the word: un-, dis-, re-',
           lines: ['un- and dis- mean "not": unkind, dislike.', 're- means "again": rethink, renew.'],
           ex: [{ w: '[un]|self|ish', tag: 'not selfish' }, { w: '[dis]|like', tag: 'not like' }, { w: '[re]|think', tag: 'think again' }, { w: '[re]|new|ed', tag: 'made new again' }]
         },
-        sort: { a: 'not (un-, dis-) 🚫', b: 'again (re-) 🔁', items: [['unselfish', 'a'], ['rethink', 'b'], ['dislike', 'a'], ['renewed', 'b']], hint: 'Cover the base word. Which prefix is left?', split: { unselfish: '[un]selfish', rethink: '[re]think', dislike: '[dis]like', renewed: '[re]newed' } },
+        sort: { a: 'not (un-, dis-) 🚫', b: 'again (re-) 🔁', items: [['unselfish', 'a'], ['rethink', 'b'], ['dislike', 'a'], ['renewed', 'b']], hint: 'Look at the very start of the word.', split: { unselfish: '[un]selfish', rethink: '[re]think', dislike: '[dis]like', renewed: '[re]newed' } },
         build: { w: 'un|com|fort|a|ble', tiles: ['un', 'com', 'fort', 'a', 'ble', 'bul'], pic: '😣', clue: 'Not cozy. Not feeling right.' },
         pick: { w: 'discouraged', opts: ['discouraged', 'discuraged', 'discouradged'], pic: '😞', clue: 'Feeling like giving up.', split: '[dis]|cour|aged' },
         hear: { w: 'reconsidered', opts: ['reconsidered', 'reconsiderd', 'recunsidered'], pic: '🤔', clue: 'Thought about it again.', split: '[re]|con|sid|ered' },
-        rebel: { words: ['uncle', 'unkind', 'unselfish', 'unhappy'], why: '"uncle" starts with un, but "cle" is not a word. It is not a prefix here!' },
+        rebel: { words: ['uncle', 'unkind', 'unselfish', 'unhappy'], why: '"uncle" starts with un, but take it off and "cle" is not a word!' },
         chunks: [
           { s: ['Greetings from the misty bamboo forests of Sichuan Province, China, home of the red panda, a shy, tree-climbing mammal with a fluffy, ringed tail.', 'Despite its name, the red panda is not a close relative of the giant panda.'], pic: '🎋', focus: '50% 50%', check: ['🎋🌕', '🌵🏜️', '🌊🐠'] },
-          { s: ['I arrived during the Mid-Autumn Festival, a celebration of the harvest moon, when families share round pastries called mooncakes.', 'A red panda cub named Mei had collected a stack of them, and she was determined not to share a single crumb.'], pic: '🥮', focus: '50% 40%', check: ['🐼🥮🥮🥮', '🐼🍕', '🐼🍦'] },
-          { s: ['"These are mine, and I am not responsible for anyone else," she declared, somewhat unkindly.', 'But as the moon rose, she noticed an elderly panda shivering alone and a monkey who seemed discouraged and hungry.'], pic: '🐒', focus: '65% 45%', check: ['🐼👀🐒', '🐼⚽', '🐼🚗'] },
-          { s: ['Mei felt an uncomfortable twinge in her chest; she was beginning to dislike her own selfishness.', 'She reconsidered her plan, divided her mooncakes, and invited everyone to join her on a wide branch.'], pic: '🤲', focus: '55% 50%', check: ['🐼🤲🐒', '🐼😠', '🐼😴'] },
-          { s: ['By the end of the night, the lonely panda was laughing and the monkey was licking crumbs off his fingers.', 'Mei discovered that being unselfish felt far better than having the biggest pile.'], pic: '🌕', focus: '50% 20%', check: ['🐼🐒🌕', '🐼🏖️', '🐼🎸'] },
-          { s: ['Prefixes helped me understand her change: un- and dis- mean "not," and re- means "again."', 'Mei did not just rethink her plan; she renewed her whole heart.'], pic: '💛', focus: '50% 50%', check: ['🐦💛', '🐦😡', '🐦😴'] }
+          { s: ['I arrived during the Mid-Autumn Festival, a celebration of the harvest moon, when families share round pastries called mooncakes.', 'A red panda cub named Mei had collected a stack of them, and she was determined not to share a single crumb.'], pic: '🥮', focus: '50% 40%', check: ['img:redpanda🥮🥮🥮', 'img:redpanda🍕', 'img:redpanda🍦'] },
+          { s: ['"These are mine, and I am not responsible for anyone else," she declared, somewhat unkindly.', 'But as the moon rose, she noticed an elderly panda shivering alone and a monkey who seemed discouraged and hungry.'], pic: '🐒', focus: '65% 45%', check: ['img:redpanda👀🐒', 'img:redpanda⚽', 'img:redpanda🚗'] },
+          { s: ['Mei felt an uncomfortable twinge in her chest; she was beginning to dislike her own selfishness.', 'She reconsidered her plan, divided her mooncakes, and invited everyone to join her on a wide branch.'], pic: '🤲', focus: '55% 50%', check: ['img:redpanda🤲🐒', 'img:redpanda😠', 'img:redpanda😴'] },
+          { s: ['By the end of the night, the lonely panda was laughing and the monkey was licking crumbs off his fingers.', 'Mei discovered that being unselfish felt far better than having the biggest pile.'], pic: '🌕', focus: '50% 20%', check: ['img:redpanda🐒🌕', 'img:redpanda🏖️', 'img:redpanda🎸'] },
+          { s: ['Word beginnings helped me understand her change: un- and dis- mean "not," and re- means "again."', 'Mei did not just rethink her plan; she renewed her whole heart.'], pic: '💛', focus: '50% 50%', check: ['🐦💛', '🐦😡', '🐦😴'] }
         ],
-        question: { pre: { q: 'Character change: What made Mei change her mind?', opts: ['👀 She noticed others who were cold, lonely, and hungry', '🌧️ It started raining', '🍰 She was too full'], mishap: 'Look for what Mei noticed as the moon rose.' },
+        question: { pre: { q: 'What made Mei change her mind?', opts: ['👀 She noticed others who were cold, lonely, and hungry', '🌧️ It started raining', '🍰 She was too full'], mishap: 'Look for what Mei noticed as the moon rose.' },
           q: 'Tap the sentence that tells what she noticed.', a: 'noticed an elderly panda shivering alone', mishap: 'Oops! I noticed a lantern and thought it was the moon. 🏮 Try again!' },
         advisor: { type: 'mistake', pip: 'Red pandas are close cousins of giant pandas.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'not a close relative of the giant panda', mishap: 'That sentence does not compare the pandas. Try another, advisor!' },
         fill: { kind: 'word', sent: 'Mei discovered that being ___ felt far better than having the biggest pile.', opts: ['unselfish', 'unhappy', 'unlucky'] },
@@ -328,7 +328,7 @@
   {
     day: 4, name: 'Thursday', place: 'Svalbard, Norway', flag: '🇳🇴', scene: 'img/u2w2_thu_arcticfox.webp',
     sceneBrief: 'Snowy shoreline in the Arctic at twilight, pink-purple sky, icebergs in dark water. A white arctic fox (Frost) buries a fish in the snow; a big round gull, too full to fly, sits on a rock with fish tails sticking out of its beak. Pip in three scarves.',
-    qtype: 'Central message (lesson)', atype: 'Would you rather? (with a reason)',
+    qtype: 'The lesson', atype: 'Would you rather? (with a reason)',
     arrive: 'Pip flew to icy islands near the North Pole!',
     wiggle: { emoji: '🦊', text: 'Arctic fox pounce!', sub: 'Listen... listen... then POUNCE into the snow (a pillow)! Do it 3 times.' },
     route: {
@@ -344,7 +344,7 @@
         title: 'Take Only What You Need',
         targets: ['these', 'sea', 'feed', 'week', 'three', 'need', 'foxes', 'birds', 'bears', 'she'],
         model: {
-          title: 'Plurals: -s and -es',
+          title: 'More than one: -s and -es',
           lines: ['Add -s to most words: bird → birds.', 'Add -es after s, x, sh, or ch: fox → foxes.'],
           ex: [{ w: 'bird|[s]', tag: '+ s' }, { w: 'bear|[s]', tag: '+ s' }, { w: 'fox|[es]', tag: '+ es' }, { w: 'dish|[es]', tag: '+ es' }]
         },
@@ -403,24 +403,24 @@
         title: 'Enough for Everyone',
         targets: ['archipelago', 'resourceful', 'plentiful', 'deliberately', 'generous', 'sensible', 'exhausted', 'calculated', 'required', 'greed'],
         model: {
-          title: 'Character traits',
-          lines: ['A trait describes what a character is like inside.', 'Look at actions: What does the character DO, and why?'],
+          title: 'What is Frost like?',
+          lines: ['Some words tell what someone is like inside.', 'Look at actions: What does the character DO, and why?'],
           ex: [{ w: 're|source|ful', tag: 'finds clever ways' }, { w: 'gen|er|ous', tag: 'likes to share' }, { w: 'sen|si|ble', tag: 'makes wise choices' }, { w: 'greed|y', tag: 'wants too much' }]
         },
         sort: { a: 'Frost 🦊', b: 'The gull 🐦', items: [['generous', 'a'], ['greedy', 'b'], ['sensible', 'a'], ['wasteful', 'b']], hint: 'Think about what each character DID.' },
         build: { w: 'ar|chi|pel|a|go', tiles: ['ar', 'chi', 'pel', 'a', 'go', 'ki'], pic: '🏝️🏝️', clue: 'A group of islands.' },
         pick: { w: 'resourceful', opts: ['resourceful', 'resorceful', 'resourcefull'], pic: '🧠', clue: 'Good at finding clever ways to solve problems.', split: 're|source|[ful]' },
         hear: { w: 'deliberately', opts: ['deliberately', 'deliberatly', 'delibrately'], pic: '🧠👉', clue: 'On purpose.', split: 'de|lib|er|ate|ly' },
-        rebel: { words: ['greedy', 'generous', 'sensible', 'resourceful'], why: '"greedy" is the only trait that does NOT describe Frost!' },
+        rebel: { words: ['greedy', 'generous', 'sensible', 'resourceful'], why: '"greedy" is the only word that does NOT describe Frost!' },
         chunks: [
           { s: ['Greetings from Svalbard, an Arctic archipelago, or group of islands, located about halfway between Norway and the North Pole.', 'During the polar night, the sun does not rise at all for about three months.'], pic: '❄️', focus: '50% 40%', check: ['❄️🌑🏝️', '☀️🏖️', '🌵🏜️'] },
           { s: ['Arctic foxes survive here by being resourceful.', 'In summer, when food is plentiful, they bury extra eggs and fish in the frozen ground, creating secret pantries for winter.'], pic: '🥚', focus: '40% 75%', check: ['🦊🥚❄️', '🦊🏠', '🦊🍦'] },
           { s: ['I watched a fox named Frost discover a heap of fish on the shore.', 'She calculated what her family required, took five, and deliberately left the rest for other hungry animals.'], pic: '🐟', focus: '45% 70%', check: ['🦊🐟🐟', '🦊🍕', '🦊🚗'] },
           { s: ['Moments later, a glaucous gull, one of the largest gulls in the Arctic, gobbled so many fish that it could barely take off.', 'Its greed seemed impressive at first, but by midwinter, the gull was exhausted and starving.'], pic: '🐦', focus: '70% 50%', check: ['🐦🐟🐟😵', '🐦😴', '🐦🎸'] },
           { s: ['When the gull staggered back, Frost could have ignored it.', 'Instead, she dug up one of her hidden fish and offered it, proving that she was both sensible and generous.'], pic: '🤲', focus: '50% 50%', check: ['🦊🐟🐦', '🦊😡', '🦊😴'] },
-          { s: ['From the gull\'s point of view, Frost must have seemed like a hero.', 'The message is clear: when everyone takes only what they need, there is enough to go around.', 'Tomorrow I fly home to Cape May to watch thousands of orange butterflies.'], pic: '🦋', focus: '50% 50%', check: ['🐦🦋', '🐦🧊', '🐦🍕'] }
+          { s: ['To the gull, Frost must have seemed like a hero.', 'The message is clear: when everyone takes only what they need, there is enough to go around.', 'Tomorrow I fly home to Cape May to watch thousands of orange butterflies.'], pic: '🦋', focus: '50% 50%', check: ['🐦🦋', '🐦🧊', '🐦🍕'] }
         ],
-        question: { pre: { q: 'Which trait describes Frost?', opts: ['🤲 Generous', '🤑 Greedy', '😴 Lazy'], mishap: 'Think about what Frost did for the gull.' },
+        question: { pre: { q: 'Which word describes Frost?', opts: ['🤲 Generous', '🤑 Greedy', '😴 Lazy'], mishap: 'Think about what Frost did for the gull.' },
           q: 'Tap the sentence that proves it.', a: 'both sensible and generous', mishap: 'Oops! I tried to bury my seeds in the snow and forgot where! ❄️ Try again!' },
         advisor: { type: 'predict', q: 'Where will Pip go tomorrow?', opts: ['🦋 To see butterflies in Cape May', '🐧 To see penguins', '🌋 To a volcano'], evQ: 'Tap the clue in the postcard.', a: ['orange butterflies'], mishap: 'Look for a clue about tomorrow!' },
         fill: { kind: 'word', sent: 'Arctic foxes survive here by being ___.', opts: ['resourceful', 'restful', 'respectful'] },
@@ -432,7 +432,7 @@
   {
     day: 5, name: 'Friday', place: 'Cape May, New Jersey', flag: '🏠', scene: 'img/u2w2_fri_monarchs.webp',
     sceneBrief: 'Sunny fall dunes at Cape May, NJ, the lighthouse behind. Bright yellow seaside goldenrod covered with orange-and-black monarch butterflies; one monarch (Queenie) waves a wing to tired butterflies on a pine branch. Pip at a radio microphone in the dune grass.',
-    qtype: 'Compare two stories', atype: 'Pip made a mistake',
+    qtype: 'Two stories', atype: 'Pip made a mistake',
     arrive: 'Pip flew home to Cape May, New Jersey!',
     compareWith: 1,
     wiggle: { emoji: '🦋', text: 'Butterfly flutter!', sub: 'Hook your thumbs together and flutter your fingers like wings. Fly your butterfly all around the room!' },
@@ -471,7 +471,7 @@
         title: 'The Queen\'s Feast',
         targets: ['see', 'eat', 'feast', 'leaves', 'she', 'me', 'being', 'Queenie', 'Dee', 'need'],
         model: {
-          title: 'Plurals: f → ves',
+          title: 'More than one: f → ves',
           lines: ['Some words that end in f change f to v and add -es.', 'leaf → leaves, wolf → wolves, half → halves'],
           ex: [{ w: 'lea[ves]', tag: 'leaf → leaves' }, { w: 'wol[ves]', tag: 'wolf → wolves' }, { w: 'hal[ves]', tag: 'half → halves' }, { w: 'el[ves]', tag: 'elf → elves' }]
         },
@@ -524,21 +524,21 @@
         title: 'A Feast for Travelers',
         targets: ['peninsula', 'migrating', 'generosity', 'immediately', 'exhausted', 'resembled', 'befriended', 'multiplies', 'situation', 'expression'],
         model: {
-          title: 'Theme across stories',
-          lines: ['A theme is a big lesson that can show up in many stories.', 'Different characters + different problems + the same lesson = a shared theme.'],
-          ex: [{ w: 'theme', tag: 'the big lesson' }, { w: 'gen|er|os|i|ty', tag: 'being giving' }, { w: 'be|friend|ed', tag: 'became a friend to' }, { w: 'mul|ti|plies', tag: 'grows more and more' }]
+          title: 'The same big lesson',
+          lines: ['A big lesson can show up in many stories.', 'Different characters, different problems, the same lesson.'],
+          ex: [{ w: 'gen|er|os|i|ty', tag: 'being giving' }, { w: 'be|friend|ed', tag: 'became a friend to' }, { w: 'mul|ti|plies', tag: 'grows more and more' }]
         },
-        sort: { a: 'Simile (like/as) 🟢', b: 'Not a simile 🔵', items: [['like a guard at a castle gate', 'a'], ['she announced', 'b'], ['like a funnel', 'a'], ['a pine branch', 'b']], hint: 'Does it compare two things using "like" or "as"?' },
+        sort: { a: 'Compares with like or as 🟢', b: 'Does not compare 🔵', items: [['like a guard at a castle gate', 'a'], ['she announced', 'b'], ['like a funnel', 'a'], ['a pine branch', 'b']], hint: 'Does it compare two things using "like" or "as"?' },
         build: { w: 'pe|nin|su|la', tiles: ['pe', 'nin', 'su', 'la', 'lah'], pic: '🗺️', clue: 'Land with water on three sides.' },
         pick: { w: 'immediately', opts: ['immediately', 'immediatly', 'imediately'], pic: '⚡', clue: 'Right away.', split: 'im|me|di|ate|ly' },
         hear: { w: 'resembled', opts: ['resembled', 'resembeld', 'rezembled'], pic: '👯', clue: 'Looked like.', split: 're|sem|bled' },
-        rebel: { words: ['monkeys', 'multiplies', 'cries', 'butterflies'], why: '"monkeys" just adds -s, because a vowel comes before the y. The others change y to i and add -es.' },
+        rebel: { words: ['monkeys', 'multiplies', 'cries', 'butterflies'], why: '"monkeys" just adds -s. The others change y to i and add -es.' },
         chunks: [
           { s: ['Greetings from Cape May, New Jersey, a peninsula that works like a funnel for migrating animals.', 'Every autumn, monarch butterflies traveling south gather here before they cross Delaware Bay.'], pic: '🦋', focus: '50% 40%', check: ['🦋🦋🗺️', '🐝🍯', '🐞🍃'] },
           { s: ['Some of these monarchs will fly nearly three thousand miles to the mountains of central Mexico, a journey none of them has made before.', 'To survive, they must fuel up on nectar from seaside goldenrod, a bright yellow wildflower that blooms along the dunes.'], pic: '🌼', focus: '45% 70%', check: ['🦋🌼🌼', '🦋🍕', '🦋🚗'] },
           { s: ['This morning, a monarch I nicknamed Queenie discovered an enormous patch of goldenrod and immediately claimed it.', '"Finders keepers!" she announced, spreading her wings like a guard at a castle gate.'], pic: '🏰', focus: '50% 60%', check: ['🦋🏰', '🦋😠', '🦋🧊'] },
           { s: ['But when she noticed a cluster of exhausted butterflies clinging to a pine branch, her expression softened.', 'She fluttered over and guided them to the flowers, and soon the goldenrod resembled a quilt of orange and black.'], pic: '🌲', focus: '75% 40%', check: ['🦋😴🌲', '🦋⚽', '🦋🎸'] },
-          { s: ['This week I met several characters who chose generosity: Dee befriended Kiki, Benny and the cactus helped each other, Mei shared her mooncakes, Frost fed the gull, and Queenie shared her feast.', 'Each character faced a different situation, yet each one discovered the same truth.'], pic: '📚', focus: '50% 50%', check: ['🐧🦇🐼🦊🦋', '🐧🏔️', '🐧🍦'] },
+          { s: ['This week I met several characters who chose generosity: Dee befriended Kiki, Benny and the cactus helped each other, Mei shared her mooncakes, Frost fed the gull, and Queenie shared her feast.', 'Each character faced a different situation, yet each one discovered the same truth.'], pic: '📚', focus: '50% 50%', check: ['🐧🦇img:redpanda🦊🦋', '🐧🏔️', '🐧🍦'] },
           { s: ['Kindness is not like a mooncake that disappears when you share it; instead, it multiplies.', 'That might be the most important lesson my travels have taught me so far.'], pic: '💛', focus: '50% 50%', check: ['🐦💛', '🐦😡', '🐦😴'] }
         ],
         question: { pre: { q: 'Compare: What did ALL the characters this week have in common?', opts: ['🤲 They chose to be generous', '🏊 They could all swim', '🌙 They all lived in the desert'], mishap: 'Look for the sentence that lists all the characters.' },
@@ -646,7 +646,7 @@
   };
   // R practice (listening only; never grades her speech).
   W.rPairs = [
-    { r: 'rake', rp: '🍂', w: 'wake', wp: '⏰' }, { r: 'rink', rp: '⛸️', w: 'wink', wp: '😉' }, { r: 'ring', rp: '💍', w: 'wing', wp: '🪽' },
+    { r: 'rake', rp: '🍂', w: 'wake', wp: '⏰' }, { r: 'rink', rp: '⛸️', w: 'wink', wp: '😉' }, { r: 'ring', rp: '💍', w: 'wing', wp: 'img:wing' },
     { r: 'rise', rp: '🌅', w: 'wise', wp: '🦉' }, { r: 'rest', rp: '😴', w: 'west', wp: '🧭' }
   ];
   W.rWords = [

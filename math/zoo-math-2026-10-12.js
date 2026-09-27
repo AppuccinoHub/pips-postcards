@@ -7,12 +7,12 @@ window.PIP_MATH['2026-10-12'] = {
  "estimated": true,
  "notes": "Topic 3 strategies; test est. Oct 15-19.",
  "topic1": "DONE: Topic 1 test already given (per Sue). Topic 1 facts are warm-up wins only.",
- "holiday": "Mon Oct 12 may be a school holiday (district calendar).",
+ "holiday": null,
  "days": [
   {
    "day": 1,
    "name": "Monday",
-   "focus": "Open number line",
+   "focus": "Hop on the number line",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [
@@ -434,7 +434,7 @@ window.PIP_MATH['2026-10-12'] = {
      "input": "pick"
     }
    ],
-   "note": "Oct 12 may be a holiday; this session can move to any day."
+   "note": ""
   },
   {
    "day": 2,
@@ -874,7 +874,7 @@ window.PIP_MATH['2026-10-12'] = {
   {
    "day": 3,
    "name": "Wednesday",
-   "focus": "Compensation: friendly tens",
+   "focus": "Make it friendly: get to a ten",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [
@@ -1300,7 +1300,7 @@ window.PIP_MATH['2026-10-12'] = {
   {
    "day": 4,
    "name": "Thursday",
-   "focus": "Two-step zoo problems",
+   "focus": "Zoo stories with two parts",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [
@@ -1730,7 +1730,7 @@ window.PIP_MATH['2026-10-12'] = {
   {
    "day": 5,
    "name": "Friday",
-   "focus": "Topic 3 mixed review",
+   "focus": "A little of everything",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [

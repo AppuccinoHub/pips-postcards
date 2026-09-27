@@ -41,7 +41,11 @@ Full design notes are kept with the project in `ux-audit.md` (outside this repo)
 
 The app picks the week whose `dates.start` is the latest one on or before today. A grown-up can pin a week in the parent area ("📅 Auto" = follow the calendar). Tests can pass `?today=YYYY-MM-DD`.
 
-Live in v2.8: u1w2 (until Sun Sep 27) and **u1w3 from Mon Sep 28** (Sue confirmed the date), plus Zoo Math for the week of Sep 28 (Topic 2: equal groups). The later weeks (u2w1 Oct 5, u2w2 Oct 12, u2w3 Oct 19, all estimated) and their Zoo Math files are drafts in `weeks/` and `math/`. They are not loaded yet: add them to `weeks/index.js` and `index.html` when they are ready (`art/bump.py` only adds files that index.html loads to the offline list).
+Live in v2.8.2 (Sue, Sep 27: match the class, per the teacher's newsletter): **u1w2 for the week of Sep 28** (spelling test Fri Oct 2; "hi" added to its list) and **u1w3 from Mon Oct 5**, plus Zoo Math for the week of Sep 28 (Topic 2: Equal Groups; math follows the calendar on its own). The staged weeks moved back one week too: u2w1 Oct 12, u2w2 Oct 19, u2w3 Oct 26 (estimated; drafts in `weeks/` and `math/`, not loaded; `art/stage_p2.py` adds them).
+
+A week's ✅ days are the plays from this run of it: following the calendar, plays from before the week's start date stay in her history (fish, stickers) but don't tick the new week (so u1w2 starts fresh on Sep 28). A half-done day is parked per week (`S.parked`) when the week changes and comes back when she returns to it. A device pinned to u1w3 by the old app goes back to the calendar once (`S.sched282`).
+
+**Grown-ups → 📅 Go to a week** (v2.8.2): "⏭️ Skip to next week" (when this week is too easy), every loaded week by name and date ("Week of Sep 28: Habitats, Week 2"), and "↩️ Back to this week (school calendar)". One tap; fish, the zoo and all saved progress stay. Only loaded weeks are listed, so it never lands on a staged draft. `tests/week282.py` checks all of this.
 
 **Keep it simple (Sue, for all Sept–Oct content):** this is a light preview of each week's key words, spelling pattern and story idea, not the full curriculum. Every card is one tap, and help comes the moment she pauses or misses (v2.8.1, everywhere): the pause clock starts when the guide has finished talking and restarts whenever she taps or types.
 * Multiple choice (all word, postcard and math cards): about 5 s = the right answer glows (one other choice left); about 10 s = only the answer is left, glowing, for an easy tap.
@@ -52,6 +56,11 @@ Live in v2.8: u1w2 (until Sun Sep 27) and **u1w3 from Mon Sep 28** (Sue confirme
 * Postcard reading checks start the clock after her reading time (6–9 s, when "Hear it read" appears), so the answer is never given away before she has read.
 * Space level: no grammar terms on her cards (endings "that change the word", "words that compare", "tells why").
 Shown answers count as helped, never as failed. Timings: `PAUSE_1` / `PAUSE_2` in app.js.
+
+**Staged, not live (Sep 26):** u2w1–u2w3 are simplified the same way (no idiom / prefix / suffix / trait / theme / simile / metaphor / personification / stanza on her cards; kid-friendly question labels; the Oct 19 poem postcard lost its teaching part, like the Sep 28 one: `minWords: 140` tells `tests/validate.js` that's on purpose). Zoo Math day labels are plain too ("Make it friendly: get to a ten", "Tens first, then ones").
+* Try it: `rm -rf /workspace/pips-stage && cp -a next /workspace/pips-stage && python3 art/stage_p2.py /workspace/pips-stage`, serve it on 8874, open `?today=2026-10-21`; `tests/matrix28_p2.sh` runs the regression matrix on it.
+* Go live (when Sue says so; dates since v2.8.2: u2w1 Oct 12, u2w2 Oct 19, u2w3 Oct 26): `python3 art/stage_p2.py next` (or `--weeks u2w1` for one week), then the normal deploy (`art/bump.py <ver>` adds the files to sw.js).
+* Pictures in emoji strings: `'img:redpanda🥮🥮🥮'` draws `img/pics/redpanda.svg` next to the emoji (setPicText, also in answer buttons).
 
 ## Word practice (v2.6, Sue's spec)
 

@@ -12,7 +12,7 @@ window.PIP_MATH['2026-10-26'] = {
   {
    "day": 1,
    "name": "Monday",
-   "focus": "Partial sums with regrouping",
+   "focus": "Tens, ones, and a new ten",
    "topic": "Topic 4: Fluently Add Within 100",
    "est": true,
    "warmups": [
@@ -1264,7 +1264,7 @@ window.PIP_MATH['2026-10-26'] = {
   {
    "day": 4,
    "name": "Thursday",
-   "focus": "Zoo word problems to 100",
+   "focus": "Zoo stories up to 100",
    "topic": "Topic 4: Fluently Add Within 100",
    "est": true,
    "warmups": [
@@ -1687,7 +1687,7 @@ window.PIP_MATH['2026-10-26'] = {
   {
    "day": 5,
    "name": "Friday",
-   "focus": "Topic 4 mixed review",
+   "focus": "A little of everything",
    "topic": "Topic 4: Fluently Add Within 100",
    "est": true,
    "warmups": [

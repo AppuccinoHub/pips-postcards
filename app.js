@@ -5,12 +5,14 @@
   const $ = (id) => document.getElementById(id);
   const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) setPicText(e, txt); return e; };
   /* v2.5.1 pictures: "img:napkin" = a drawn picture (img/pics/napkin.svg) for words with no clear emoji. */
+  const picImg = (t) => { const im = document.createElement('img'); im.className = 'pic-img'; im.src = `img/pics/${t.slice(4)}.svg`; im.alt = t.slice(4); im.dataset.pic = t; im.draggable = false; return im; };
   function setPicText(e, txt) {
     const t = String(txt);
-    if (/^img:[a-z0-9-]+$/.test(t)) { const im = document.createElement('img'); im.className = 'pic-img'; im.src = `img/pics/${t.slice(4)}.svg`; im.alt = t.slice(4); im.dataset.pic = t; im.draggable = false; e.replaceChildren(im); }
+    if (/^img:[a-z0-9-]+$/.test(t)) e.replaceChildren(picImg(t));
+    else if (/img:[a-z0-9-]+/.test(t)) e.replaceChildren(...t.split(/(img:[a-z0-9-]+)/).filter(Boolean).map((x) => (/^img:[a-z0-9-]+$/.test(x) ? picImg(x) : document.createTextNode(gtext(x))))); // mixed: 'img:redpanda🥮🥮'
     else e.textContent = gtext(t);
   }
-  const picTxt = (p) => (/^img:/.test(String(p || '')) ? '' : (p || ''));
+  const picTxt = (p) => String(p || '').replace(/img:[a-z0-9-]+/g, '').trim();
   /* ---- the guide (picked + named by the child on the first screen; config in guide.js) ---- */
   const GUIDES = window.PIP_GUIDES || { kinds: {}, order: [], names: [], generic: { mishaps: [], landing: [], landBtn: [] }, voice: {} };
   const G = () => {
@@ -154,25 +156,41 @@
   if (S.chick && PARROTS[S.chick.kind]) S.chick.kind = 'pigeon';
   (S.family || []).forEach((f) => { if (PARROTS[f.kind]) f.kind = 'pigeon'; });
   delete S.showParrots;
+  // v2.8.2 (Sue, Sep 27): reading moved back one week to match the class (u1w2 = Sep 28, u1w3 = Oct 5). A device pinned to
+  // u1w3 goes back to the school calendar once, so it lands on u1w2 on Sep 28. Nothing else is touched (fish, zoo, sessions).
+  if (!S.sched282) { if (S.weekId === 'u1w3') S.weekId = null; S.sched282 = 1; }
 
   const weekList = () => (window.PIP_WEEK_LIST || Object.keys(window.PIP_WEEKS || {})).filter((id) => window.PIP_WEEKS && window.PIP_WEEKS[id]);
   /* The week follows the school calendar: each week file has dates.start (a Monday). Weekends keep the week just finished.
      The grown-up area can pin a week (S.weekId); "Auto (by date)" clears the pin. */
-  const WEEK_START_FALLBACK = { u1w2: '2026-09-14' };
-  const weekStart = (id) => ((window.PIP_WEEKS[id] || {}).dates || {}).start || WEEK_START_FALLBACK[id] || '0000-01-01';
+  const weekStart = (id) => ((window.PIP_WEEKS[id] || {}).dates || {}).start || '0000-01-01';
   const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   function todayYmd() { try { const q = new URLSearchParams(location.search).get('today'); if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) return q; } catch (_) {} return ymd(new Date()); }
+  function calWeek() { // the school-calendar week (ignores a grown-up's pin)
+    const l = weekList(); const t = todayYmd(); const started = l.filter((id) => weekStart(id) <= t);
+    return started.length ? started[started.length - 1] : l[0];
+  }
   function pickWeek() {
     const l = weekList();
-    if (S.weekId && l.includes(S.weekId)) return S.weekId;
-    const t = todayYmd(); const started = l.filter((id) => weekStart(id) <= t);
-    return started.length ? started[started.length - 1] : l[0];
+    if (S.weekId && l.includes(S.weekId)) return S.weekId;   // only loaded weeks (staged drafts are never in weekList)
+    return calWeek();
   }
   const currentWeek = () => {
     const id = pickWeek();
-    if (S.lastWeek !== id) { if (S.lastWeek && S.progress && S.progress.week !== id) S.progress = null; S.lastWeek = id; try { save(); } catch (_) {} }
+    if (S.lastWeek !== id) {
+      // v2.8.2: switching weeks never loses a half-done day: it is parked per week and comes back when she returns to that week
+      if (S.progress && S.progress.week && S.progress.week !== id) { S.parked = Object.assign({}, S.parked, { [S.progress.week]: S.progress }); S.progress = null; }
+      if (!S.progress && S.parked && S.parked[id]) { S.progress = S.parked[id]; const pk = Object.assign({}, S.parked); delete pk[id]; S.parked = pk; }
+      S.lastWeek = id; try { save(); } catch (_) {}
+    }
     return window.PIP_WEEKS[id];
   };
+  /* v2.8.2: a week's ✅ days are the ones played in this run of it. Following the calendar, plays from BEFORE the week's
+     start date (e.g. u1w2 played in September testing, before the class got to it on Sep 28) are kept (fish, stickers,
+     history) but do not tick this week's days. A pinned week counts every play. */
+  const sessYmd = (x) => x.ymd || ymd(new Date(x.date || 0));
+  const inRun = (x, week, st) => { const s0 = week && week.dates && week.dates.start; return !!(st || S).weekId || !s0 || todayYmd() < s0 || sessYmd(x) >= s0; };
+  const weekLabel = (W0) => { const d = W0.dates && W0.dates.start ? new Date(W0.dates.start + 'T12:00:00') : null; return (d ? `Week of ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ` : '') + String(W0.title || W0.id).replace(' · ', ', '); };
   const chickName = () => S.chick.name || 'Baby';
   const shownDay = (d) => d;
   const fillName = (t) => gtext(String(t).replace(/\{chick\}/g, chickName()));
@@ -246,7 +264,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.8.1';
+  const SFX_VER = '2.8.2';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -1174,7 +1192,7 @@
           }
         }
       });
-      if (o instanceof Node) b.appendChild(o); else b.textContent = fillName(o);
+      if (o instanceof Node) b.appendChild(o); else if (/img:[a-z0-9-]+/.test(String(o))) setPicText(b, fillName(o)); else b.textContent = fillName(o); // 'img:redpanda🥮' = drawn picture + emoji
       btns.push({ b, i });
       row.appendChild(b);
     });
@@ -2836,7 +2854,7 @@
     if (P.mode) {  // Boss postcard / Italian bonus: bonus only, never changes the level
       if (P.mode === 'bonus') S.chick.fish += 0;
       if (P.mode === 'boss') { S.chick.fish += 5; S.bossDone = Object.assign({}, S.bossDone, { [P.key]: Date.now() }); }
-      S.sessions.push({ id: 's' + Date.now(), week: P.week.id, day: P.mode, dayName: P.mode === 'boss' ? `Boss postcard (${P.day.name})` : P.mode === 'bonus' ? `Bonus round (${P.day.name})` : 'Bonus Postcard from Italia', level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish, bonus: P.mode,
+      S.sessions.push({ id: 's' + Date.now(), ymd: todayYmd(), week: P.week.id, day: P.mode, dayName: P.mode === 'boss' ? `Boss postcard (${P.day.name})` : P.mode === 'bonus' ? `Bonus round (${P.day.name})` : 'Bonus Postcard from Italia', level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish, bonus: P.mode,
         wordFirst: sc.wordFirst, wordTotal: sc.wordTotal, evidence: sc.evidence, advisor: sc.advisor, checksFirst: sc.checksFirst, checksTotal: sc.checksTotal, byType: sc.byType });
       S.progress = null; save(); refreshThenNow();
       return showEnd(sc, { change: null }, P.mode === 'boss' ? '👑 Boss postcard done! +5 bonus!' : P.mode === 'bonus' ? '⭐ Bonus round done!' : '🇮🇹 Bravissima! Bonus done!');
@@ -2844,7 +2862,7 @@
     const rule = applyLevelRules(sc, P.lv);
     S.sessionsDone++;
     (P.res.missed || []).forEach((m) => { if (!S.review.find((r) => r.w === m.w)) S.review.push({ w: m.w, split: m.split, due: S.sessionsDone + 2, from: `${P.day.name} (${LEVEL_INFO[P.lv].name})` }); });
-    S.sessions.push({ id: 's' + Date.now(), week: P.week.id, day: P.day.day, dayName: P.day.name, level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish,
+    S.sessions.push({ id: 's' + Date.now(), ymd: todayYmd(), week: P.week.id, day: P.day.day, dayName: P.day.name, level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish,
       wordFirst: sc.wordFirst, wordTotal: sc.wordTotal, evidence: sc.evidence, advisor: sc.advisor, checksFirst: sc.checksFirst, checksTotal: sc.checksTotal, byType: sc.byType,
       alt: !!P.alt, missed: (P.res.missed || []).map((m) => m.w), route: P.res.route || '', good: rule.good, rough: rule.rough,
       practiced: wlog.practiced, known: wlog.known, help: wlog.help, moved: wlog.moved, helped: Object.values(P.res).filter((r) => r && r.helped).length, skipped: Object.values(P.res).filter((r) => r && r.skipped).length, cards: P.specs.length });
@@ -2870,7 +2888,7 @@
       }
     }
     const MW = (window.PIP_MATH || {})[sp.mw]; const md = MW && MW.days[sp.md];
-    S.sessions.push({ id: 's' + Date.now(), track: 'math', week: P.week.id, mathWeek: sp.mw, mathDay: sp.md, day: 'math', dayName: `Zoo Math (${md ? md.name : ''})`, level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish,
+    S.sessions.push({ id: 's' + Date.now(), ymd: todayYmd(), track: 'math', week: P.week.id, mathWeek: sp.mw, mathDay: sp.md, day: 'math', dayName: `Zoo Math (${md ? md.name : ''})`, level: P.lv, date: Date.now(), mins: Math.round((Date.now() - P.started) / 60000), fish: P.fish,
       bonus: 'math', mainFirst: mf, mainTotal: mt, warmFirst: P.specs.filter((x, i) => x.part === 'warm' && P.res[i] && P.res[i].first).length, byType: sc.byType, hearTaps: P.res.hearTaps || 0, typed: P.res.typed || 0,
       helped: Object.values(P.res).filter((r) => r && r.helped).length, skipped: Object.values(P.res).filter((r) => r && r.skipped).length, wordFirst: 0, wordTotal: 0, good, rough });
     S.progress = null; save();
@@ -2917,7 +2935,7 @@
   }
   function dayStatus(week) {
     const st = {};
-    S.sessions.filter((s) => s.week === week.id).forEach((s) => { st[s.day] = s; });
+    S.sessions.filter((s) => s.week === week.id && inRun(s, week)).forEach((s) => { st[s.day] = s; });
     return st;
   }
   let grownBtn = null;
@@ -3292,7 +3310,7 @@
   function soDayPlan(st, week) {
     const pr = st.progress;
     const live = pr && pr.v === PLAN_V && pr.week === week.id && !pr.mode && week.days.some((d) => d.day === pr.day) ? pr : null; // a Zoo Math / boss / bonus in progress is not "today"
-    const normal = (x) => x.week === week.id && typeof x.day === 'number' && !x.bonus;
+    const normal = (x) => x.week === week.id && typeof x.day === 'number' && !x.bonus && inRun(x, week, st);
     let dayId = live ? live.day : null;
     if (dayId == null) { const last = (st.sessions || []).filter(normal).sort((a, b) => b.date - a.date)[0]; if (last) dayId = last.day; }
     if (dayId == null) return null;
@@ -3305,7 +3323,7 @@
   function soRedoDay(st, week) {
     const plan = soDayPlan(st, week); if (!plan) return null;
     st.chick.fish = Math.max(0, (st.chick.fish || 0) - plan.fedFish);
-    st.sessions = (st.sessions || []).filter((x) => !(x.week === week.id && x.day === plan.day && !x.bonus));
+    st.sessions = (st.sessions || []).filter((x) => !(x.week === week.id && x.day === plan.day && !x.bonus && inRun(x, week, st)));
     if (plan.live) st.progress = null;
     return plan;
   }
@@ -3420,7 +3438,7 @@
     wc.appendChild(el('p', null, '🗣️ Practiced: ' + (wmap.map(([w, m]) => `${w} ×${m.practiced}`).join(', ') || '—')));
     const hw = wmap.filter(([, m]) => m.help).sort((a, b) => b[1].help - a[1].help);
     wc.appendChild(el('p', null, '🙋 Asked for help: ' + (hw.map(([w, m]) => `${w} (${m.help}×)`).join(', ') || '—')));
-    const wkS = S.sessions.filter((x) => x.week === week.id);
+    const wkS = S.sessions.filter((x) => x.week === week.id && inRun(x, week));
     wc.appendChild(el('p', 'pa-small', `🙋 Help button taps (all time): ${S.helpTaps || 0} · answers shown by the guide after 2 misses this week: ${wkS.reduce((a, x) => a + (x.helped || 0), 0)} · cards skipped this week: ${wkS.reduce((a, x) => a + (x.skipped || 0), 0)}.`));
     const ta = sec('Reading practice: words to practice again');
     ta.appendChild(el('p', 'pa-small', 'Help words she has not read on the first try yet come back in later sessions until she gets them right twice. Her word recordings (if she taps 🎙️) are in Recordings below.'));
@@ -3496,12 +3514,20 @@
     krow.append(ks, btn('pa-btn', 'Switch animal (keeps growth)', () => { S.chick.kind = ks.value; save(); toast('Switched ✓'); }));
     st.appendChild(krow);
     if ((S.family || []).length) st.appendChild(el('p', 'pa-note', 'In the zoo (safe forever): ' + S.family.map((f) => `${PETS[f.kind] ? PETS[f.kind].icon : ''} ${f.name}`).join(', ')));
-    if (weekList().length > 1) {
-      const wrow = el('div', 'pa-row'); const ws = el('select');
-      { const o = el('option', null, '📅 Auto (follows the school calendar)'); o.value = ''; if (!S.weekId) o.selected = true; ws.appendChild(o); }
-      weekList().forEach((id) => { const W0 = window.PIP_WEEKS[id]; const o = el('option', null, `${W0.title}${W0.dates ? ' · from ' + W0.dates.start.slice(5).replace('-', '/') : ''}`); o.value = id; if (S.weekId && id === week.id) o.selected = true; ws.appendChild(o); });
-      wrow.append(ws, btn('pa-btn', 'Use this week', () => { S.weekId = ws.value || null; S.progress = null; save(); toast(S.weekId ? 'Week changed ✓' : 'Week follows the calendar ✓'); openParent(); }));
-      st.appendChild(wrow);
+    if (weekList().length > 1) { // v2.8.2 (Sue): skip a week that is too easy, or go to any week; one tap; fish, zoo and progress stay
+      const gw = sec('📅 Go to a week'); gw.id = 'paWeeks';
+      const l = weekList(), cal = calWeek(), cur = week.id, ni = l.indexOf(cur) + 1;
+      const go = (id, msg) => { S.weekId = id === cal ? null : id; save(); toast(msg); openParent(); };
+      if (ni > 0 && ni < l.length) gw.appendChild(btn('pa-btn wk-skip', `⏭️ Skip to next week (${weekLabel(window.PIP_WEEKS[l[ni]]).split(':')[0]})`, () => go(l[ni], 'Skipped to the next week ✓')));
+      else gw.appendChild(el('p', 'pa-small', 'This is the newest week in the app, so there is no week to skip to yet.'));
+      const list = el('div', 'wk-list');
+      l.forEach((id) => {
+        const b = btn('pa-btn wk-go' + (id === cur ? ' on' : ''), (id === cur ? '✓ ' : '') + weekLabel(window.PIP_WEEKS[id]) + (id === cal ? ' (school calendar)' : ''), () => { if (id !== cur) go(id, 'Week changed ✓'); });
+        b.dataset.week = id; b.setAttribute('aria-pressed', id === cur ? 'true' : 'false'); list.appendChild(b);
+      });
+      gw.appendChild(list);
+      if (S.weekId) gw.appendChild(btn('pa-btn wk-back', '↩️ Back to this week (school calendar)', () => { S.weekId = null; save(); toast('Week follows the school calendar ✓'); openParent(); }));
+      gw.appendChild(el('p', 'pa-small', S.weekId ? `She is on a week you picked. Today's school week is ${weekLabel(window.PIP_WEEKS[cal])}.` : 'Follows the school calendar. Fish, the zoo and every finished day are kept when you switch.'));
     }
     st.appendChild(el('p', 'pa-small', 'To let her pick a new mail carrier herself (picture cards), use Start over below.'));
 
@@ -3609,7 +3635,7 @@
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
       const wid = (() => { try { return ':' + currentWeek().id; } catch (_) { return ''; } })();
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.1' + wid) return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.2' + wid) return;
       // v2.8: five weeks of clips (~21 MB) would be a lot to fetch at once, so warm this week's words (+ names and other
       // words no week uses); another week's clips are fetched when it starts (and cached as they play).
       let list;
@@ -3618,7 +3644,7 @@
         list = [...new Set(Object.keys(AUD).filter((k) => { const b = k.replace(/^slow:/, ''); return cur.includes(b) || !all.some((t) => t.includes(b)); }).map((k) => AUD[k]))];
       } catch (_) { list = [...new Set(Object.values(AUD))]; }
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.8.1' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
+      try { localStorage.setItem('pipsAudioWarm', 'v2.8.2' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

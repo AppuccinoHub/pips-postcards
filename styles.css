@@ -1047,3 +1047,10 @@ html.theme-dark { --green-d: #86dc8d; }
 .mk.del { background: #fff3e0; }
 @keyframes pulse { 50% { transform: scale(1.18); } }
 @media (max-width: 500px) { .math-card .math-q { font-size: 1.45rem; } .opts.nums .opt { min-height: 54px; font-size: 1.6rem; } .math-card .math-badge { font-size: 2.4rem; } }
+/* v2.8.2 grown-ups: Go to a week */
+#paWeeks .wk-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+#paWeeks .wk-go { text-align: left; width: 100%; }
+#paWeeks .wk-go.on { outline: 3px solid #4caf50; font-weight: 700; }
+#paWeeks .wk-skip { width: 100%; font-weight: 700; }
+#paWeeks .wk-back { width: 100%; }
+#paWeeks .wk-go:not(.on) { background: #f0f0f0; color: #333; }

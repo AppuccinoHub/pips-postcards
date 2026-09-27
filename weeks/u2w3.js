@@ -1,5 +1,5 @@
 /* Pip's Postcards · Unit 2 Week 3 · Characters Facing Challenges  (STAGED DRAFT, not live)
-   School week: Mon Oct 19 – Fri Oct 23, 2026 (ESTIMATE; was Oct 26 before u1w3 moved to Sep 28). Halloween is Sat Oct 31 (school parties often land on Fri).
+   School week: Mon Oct 26 – Fri Oct 30, 2026 (v2.8.2: schedule moved back one week). Halloween is Sat Oct 31 (school parties often land on Fri).
    Schema = site/weeks/u1w2.js. Correct answer FIRST in every option list. "|" = syllables, [ ] = pattern letters.
    District source: 1-Grade2-ELA.txt, Unit 2, LEARNING ACTIVITIES Week 3 (long i; review long e; multisyllable
    long i; central message; character responses; poetry & figurative language; shades of meaning). District texts:
@@ -11,7 +11,7 @@
   unit: 2, week: 3,
   title: 'Challenges · Week 3',
   unitTitle: 'Characters Facing Challenges',
-  dates: { start: '2026-10-19', end: '2026-10-23', estimated: true },
+  dates: { start: '2026-10-26', end: '2026-10-30', estimated: true },
   school: {
     /* SWAP IN THE TEACHER'S LIST: replace `spelling` (and W.typeWords.ground) with her weekly sheet. */
     spelling: ['pie', 'tie', 'child', 'kind', 'sky', 'dry', 'high', 'lime', 'light', 'bright'],
@@ -33,7 +33,7 @@
   {
     day: 1, name: 'Monday', place: 'Austin, Texas', flag: '🇺🇸', scene: 'img/u2w3_mon_bats.webp',
     sceneBrief: 'Sunset over a river and a long concrete city bridge in Austin, a dark ribbon of bats streaming out from under it into an orange-purple sky; people on blankets on the grassy bank. One tiny bat pup (Bitsy) wobbles next to an older bat (Grandma) with a coach whistle. Pip on a lamppost.',
-    qtype: 'Character response to a challenge', atype: 'How did the character feel?',
+    qtype: 'What did she do?', atype: 'How did the character feel?',
     arrive: 'Pip flew to a big bat bridge in Texas!',
     wiggle: { emoji: '🦇', text: 'Practice flaps!', sub: 'Flap slowly 5 times, then fast 5 times, then glide with your arms out. Practice makes progress!' },
     route: {
@@ -119,7 +119,7 @@
           { s: ['Bitsy was persistent: she practiced every evening, even when the wind was wild and her wings ached.', 'Gradually, her awkward flapping became smooth, confident flight.'], pic: '💪', focus: '40% 60%', check: ['🦇🔁💪', '🦇🛏️', '🦇🎮'] },
           { s: ['By the end of the season, the pup who had been left behind was leading a group of younger bats.', 'Her story reminds me that talent is not only something you are born with; it is something you build.'], pic: '🌃', focus: '50% 30%', check: ['🦇🦇🦇➡️', '🦇🏖️', '🦇🎂'] }
         ],
-        question: { pre: { q: 'Character trait: Which word best describes Bitsy?', opts: ['💪 Persistent', '😴 Lazy', '😠 Mean'], mishap: 'Think about what Bitsy did every evening.' },
+        question: { pre: { q: 'Which word best describes Bitsy?', opts: ['💪 Persistent', '😴 Lazy', '😠 Mean'], mishap: 'Think about what Bitsy did every evening.' },
           q: 'Tap the sentence that proves it.', a: 'Bitsy was persistent', mishap: 'Oops! I tried to practice flying at night and bumped into a lamppost. 💡 Try again!' },
         advisor: { type: 'mistake', pip: 'Talent is only something you are born with.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'it is something you build', mishap: 'That sentence does not talk about talent. Try another, advisor!' },
         fill: { kind: 'word', sent: 'Fortunately, her grandmother was a patient, kind-hearted ___.', opts: ['mentor', 'meteor', 'monitor'] },
@@ -131,7 +131,7 @@
   {
     day: 2, name: 'Tuesday', place: 'Flanders, Belgium', flag: '🇧🇪', scene: 'img/u2w3_tue_pigeons.webp',
     sceneBrief: 'A small Belgian village with brick houses and a church tower under stormy gray clouds. A wooden pigeon loft on a rooftop. Two racing pigeons fly side by side through wind and rain: a sleek fast one (Zip) and a smaller one with a white spot (Dot). Pip holding a tiny umbrella.',
-    qtype: 'Character traits', atype: 'Odd one out, and why',
+    qtype: 'What are they like?', atype: 'Odd one out, and why',
     arrive: 'Pip flew to a pigeon racing town in Belgium!',
     wiggle: { emoji: '🕊️', text: 'Fly in formation!', sub: 'Stand side by side with your grown-up. Flap your wings together, turn together, and land together!' },
     route: {
@@ -191,7 +191,7 @@
           { s: ['Dot noticed he was missing, so she turned around to rescue him and found him on a rooftop, wet and scared.', '"Follow me," she said, "and we will fly home together."'], pic: '🏠', focus: '60% 60%', check: ['🕊️🕊️🏠', '🕊️🏖️', '🕊️🎈'] },
           { s: ['They reached the loft last, but Zip did not care about losing anymore.', 'He knew that a good teammate is worth more than a trophy.'], pic: '🏆', focus: '50% 50%', check: ['🕊️🤝🕊️', '🕊️😡', '🕊️😴'] }
         ],
-        question: { pre: { q: 'Character traits: How were Zip and Dot DIFFERENT?', opts: ['⚖️ Zip was selfish, and Dot was generous', '🏃 Zip was slow, and Dot was fast', '🌧️ Zip liked rain, and Dot did not'], mishap: 'Look for the trait words in the postcard.' },
+        question: { pre: { q: 'How were Zip and Dot DIFFERENT?', opts: ['⚖️ Zip was selfish, and Dot was generous', '🏃 Zip was slow, and Dot was fast', '🌧️ Zip liked rain, and Dot did not'], mishap: 'Look for the words that tell what they were like.' },
           q: 'Tap the sentence that tells what Dot was like.', a: 'she was generous and kind', mishap: 'Oops! I shared my seeds and a pigeon took ALL of them. 🌾 Try again!' },
         advisor: { type: 'odd', q: 'Which one did Dot NOT do?', opts: ['🏆 Win the race', '🌾 Share her seeds', '⏳ Wait for slower birds', '🔍 Look for Zip'],
           whyQ: 'Why not? Pick the reason from the postcard.', whys: ['They reached the loft last, so Dot did not win.', 'Dot did not like trophies.'], mishap: 'Look back at the postcard. Who got to the loft last?' },
@@ -202,15 +202,15 @@
         title: 'The Show-Off and the Guide',
         targets: ['selfish', 'show-offish', 'reliable', 'generous', 'thoughtful', 'stragglers', 'ferocious', 'abandoned', 'transformed', 'stubbornness'],
         model: {
-          title: 'Suffix -ish, and trait words',
-          lines: ['-ish can mean "like" or "kind of": child → childish, self → selfish.', 'Trait words describe what a character is like inside.'],
+          title: 'The ending -ish',
+          lines: ['-ish can mean "like" or "kind of": child → childish, self → selfish.', 'Some words tell what someone is like inside.'],
           ex: [{ w: 'self|[ish]', tag: 'only thinks of self' }, { w: 'child|[ish]', tag: 'acting like a small child' }, { w: 're|li|[able]', tag: 'can be counted on' }, { w: 'thought|[ful]', tag: 'thinks of others' }]
         },
         sort: { a: 'Zip at first 🏎️', b: 'Dot 🧭', items: [['selfish', 'a'], ['generous', 'b'], ['stubborn', 'a'], ['reliable', 'b']], hint: 'Think about what each pigeon DID.' },
         build: { w: 'trans|formed', tiles: ['trans', 'formed', 'fromed'], pic: '🦋', clue: 'Changed completely.' },
         pick: { w: 'ferocious', opts: ['ferocious', 'ferocius', 'ferosious'], pic: '⛈️', clue: 'Very fierce and wild.', split: 'fe|ro|[cious]' },
         hear: { w: 'reliable', opts: ['reliable', 'relyable', 'reliabel'], pic: '🤝👍', clue: 'You can count on it.', split: 're|li|[able]' },
-        rebel: { words: ['fish', 'selfish', 'childish', 'foolish'], why: '"fish" ends in -ish, but "f" is not a base word!' },
+        rebel: { words: ['fish', 'selfish', 'childish', 'foolish'], why: '"fish" ends in -ish, but take it off and only "f" is left!' },
         chunks: [
           { s: ['Greetings from Flanders, Belgium, a region where pigeon racing has been a beloved tradition for about two hundred years.', 'Racing pigeons are homing pigeons, which means they have a remarkable instinct for returning to their loft.'], pic: '🕊️', focus: '50% 40%', check: ['🕊️🏁🏠', '🕊️🍕', '🕊️🌋'] },
           { s: ['Scientists believe they navigate using several clues, including the sun, Earth\'s magnetic field, and familiar landmarks.', 'Some can fly five hundred miles in a single day!'], pic: '🧭', focus: '50% 30%', check: ['🕊️🧭☀️', '🕊️🛏️', '🕊️🎸'] },
@@ -231,7 +231,7 @@
   {
     day: 3, name: 'Wednesday', place: 'Galápagos Islands, Ecuador', flag: '🇪🇨', scene: 'img/u2w3_wed_galapagos.webp',
     sceneBrief: 'Black volcanic rocks and bright blue water on a sunny Galápagos shore, a sea lion lounging. Small penguins wobble on the rocks; underwater (split view) one penguin (Pico) zooms gracefully and helps a smaller penguin out of a tangle of seaweed. Pip in swim goggles.',
-    qtype: 'Characters: two sides', atype: 'How did the character feel?',
+    qtype: 'Two sides', atype: 'How did the character feel?',
     arrive: 'Pip flew to the Galápagos Islands near the middle of the Earth!',
     wiggle: { emoji: '🐧', text: 'Clumsy, then graceful!', sub: 'Wobble like a penguin on rocks... now "swim" smoothly with your arms like a penguin underwater!' },
     route: {
@@ -300,8 +300,8 @@
         title: 'Awkward and Elegant',
         targets: ['awkward', 'ungainly', 'agile', 'elegant', 'clumsiness', 'competitor', 'equator', 'withdrew', 'astonishing', 'define'],
         model: {
-          title: 'Antonyms and similes',
-          lines: ['Antonyms are opposites: awkward ↔ elegant, clumsy ↔ graceful.', 'Similes compare with like or as: "like silver arrows."'],
+          title: 'Opposites and "like" words',
+          lines: ['Some words are opposites: awkward ↔ elegant, clumsy ↔ graceful.', 'Some words compare with like or as: "like silver arrows."'],
           ex: [{ w: 'awk|ward', tag: 'clumsy' }, { w: 'el|e|gant', tag: 'graceful' }, { w: 'ag|ile', tag: 'moves quickly and easily' }, { w: 'un|gain|ly', tag: 'clumsy-looking' }]
         },
         sort: { a: 'On land 🪨', b: 'In water 🌊', items: [['awkward', 'a'], ['agile', 'b'], ['ungainly', 'a'], ['elegant', 'b']], hint: 'Is it a clumsy word or a graceful word?' },
@@ -315,10 +315,10 @@
           { s: ['On land, they are awkward and ungainly, hopping from rock to rock like wind-up toys.', 'In water, they are agile and elegant, darting after fish like silver arrows.'], pic: '🏹', focus: '60% 80%', check: ['🐧🪨➡️🌊', '🐧🛏️', '🐧🎮'] },
           { s: ['Today, the young penguins competed in a swimming contest.', 'Pico, who is famously clumsy on shore, assumed he had no chance, and he almost withdrew.'], pic: '😟', focus: '55% 55%', check: ['🐧😟🏁', '🐧🎸', '🐧⚽'] },
           { s: ['But the moment he plunged into the waves, his clumsiness vanished.', 'He swam with astonishing speed, and he even paused to untangle a younger competitor from seaweed before racing on to finish second.'], pic: '🌿', focus: '40% 80%', check: ['🐧🌿🐧', '🐧😠', '🐧🧊'] },
-          { s: ['Pico\'s story shows that a single trait does not define a character.', 'The same penguin can be clumsy and graceful, nervous and brave, all in one afternoon.'], pic: '⚖️', focus: '50% 50%', check: ['🐧⚖️', '🐧😢', '🐧😴'] }
+          { s: ['Pico\'s story shows that one thing about you does not define who you are.', 'The same penguin can be clumsy and graceful, nervous and brave, all in one afternoon.'], pic: '⚖️', focus: '50% 50%', check: ['🐧⚖️', '🐧😢', '🐧😴'] }
         ],
-        question: { pre: { q: 'Similes: What does "like silver arrows" help you picture?', opts: ['🏹 Penguins zooming fast and straight', '🎯 Penguins playing darts', '🥈 Penguins wearing medals'], mishap: 'A simile compares. How do arrows move?' },
-          q: 'Tap the sentence with that simile.', a: 'like silver arrows', mishap: 'Oops! I tried to swim like an arrow and went in a circle. 🌀 Try again!' },
+        question: { pre: { q: 'What does "like silver arrows" help you picture?', opts: ['🏹 Penguins zooming fast and straight', '🎯 Penguins playing darts', '🥈 Penguins wearing medals'], mishap: 'The penguins are compared to arrows. How do arrows move?' },
+          q: 'Tap the sentence with that comparison.', a: 'like silver arrows', mishap: 'Oops! I tried to swim like an arrow and went in a circle. 🌀 Try again!' },
         advisor: { type: 'mistake', pip: 'Galápagos penguins are the biggest penguins in the world.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'among the smallest penguins', mishap: 'That sentence does not tell their size. Try another, advisor!' },
         fill: { kind: 'word', sent: 'On land, they are awkward and ___, hopping from rock to rock like wind-up toys.', opts: ['ungainly', 'unkind', 'untrue'] },
         spell: { w: 'elegant', sent: 'In water, they are agile and ___.', split: 'el|e|gant', pic: '🩰' }
@@ -329,7 +329,7 @@
   {
     day: 4, name: 'Thursday', place: 'Vieques, Puerto Rico', flag: '🇵🇷', scene: 'img/u2w3_thu_glowbay.webp',
     sceneBrief: 'A calm dark bay at night surrounded by mangrove trees, a starry sky. Where a kayak paddle and a child\'s hand touch the water, it glows bright blue-green; little fish leave glowing trails. Pip in a kayak, one wing trailing glowing sparkles.',
-    qtype: 'Poetry: rhymes and pictures', atype: 'Would you rather? (with a reason)',
+    qtype: 'Rhymes and pictures', atype: 'Would you rather? (with a reason)',
     arrive: 'Pip paddled into a glowing bay in Puerto Rico!',
     wiggle: { emoji: '🌟', text: 'Sparkle splash!', sub: 'Pretend to splash glowing water: wiggle your fingers high, low, and all around. Sparkle, sparkle!' },
     route: {
@@ -391,8 +391,8 @@
           { s: ['Fish zip by in trails of light, like shooting stars that swim at night.', 'I used my wing to write your name, but it sparkled and swam away!'], pic: '🐟', focus: '60% 75%', check: ['🐟🌟🌠', '🐟🍕', '🐟🚗'] },
           { s: ['When morning comes, the glow will hide, but I will keep the memory inside.', 'Tomorrow I fly home to a fall festival with a talent contest!'], pic: '🎃', focus: '50% 50%', check: ['🐦🎃🎤', '🐦🧊', '🐦🌋'] }
         ],
-        question: { pre: { q: 'Figurative language: What does "like shooting stars that swim" help you picture?', opts: ['🌟 Fish leaving glowing trails', '⭐ Real stars falling into the sea', '🐟 Fish flying in the sky'], mishap: 'A simile compares. The stars are not real!' },
-          q: 'Tap the line with that simile.', a: 'like shooting stars that swim at night', mishap: 'Oops! I tried to catch a shooting star with my beak. 🌠 Try again!' },
+        question: { pre: { q: 'Figurative language: What does "like shooting stars that swim" help you picture?', opts: ['🌟 Fish leaving glowing trails', '⭐ Real stars falling into the sea', '🐟 Fish flying in the sky'], mishap: 'It is a comparison. The stars are not real!' },
+          q: 'Tap the line with that comparison.', a: 'like shooting stars that swim at night', mishap: 'Oops! I tried to catch a shooting star with my beak. 🌠 Try again!' },
         advisor: { type: 'rather', q: 'Would you rather paddle in the glowing bay or watch the fish?', choices: [
           { label: '🛶 Paddle', q: 'Pick a reason from the poem:', reasons: ['I could watch the water start to glow.', 'I could paddle to the moon.'] },
           { label: '🐟 Watch the fish', q: 'Pick a reason from the poem:', reasons: ['I could see them zip by in trails of light.', 'I could teach them to sing.'] }
@@ -401,31 +401,30 @@
         spell: { w: 'music', sent: 'Each splash is like a burst of ___.', split: 'm[u]|sic', pic: '🎵' }
       },
       space: {
-        title: 'Ode to the Glowing Bay',
-        targets: ['bioluminescent', 'microscopic', 'organisms', 'personification', 'metaphors', 'whispers', 'celebrating', 'predators', 'composed', 'stanza'],
+        title: 'Ode to the Glowing Bay', minWords: 140,
+        targets: ['bioluminescent', 'microscopic', 'organisms', 'whispers', 'celebrating', 'predators', 'composed', 'comets'],
         model: {
-          title: 'Personification and metaphor',
-          lines: ['Personification gives human actions to things that are not human: the water whispers.', 'A metaphor says one thing IS another: the bay is a sleeping giant.'],
-          ex: [{ w: 'per|son|i|fi|ca|tion', tag: 'human actions for things' }, { w: 'met|a|phor', tag: 'says one thing IS another' }, { w: 'stan|za', tag: 'a group of lines in a poem' }]
+          title: 'Poems that pretend',
+          lines: ['Poets can make a thing act like a person: the water whispers.', 'Poets can say one thing IS another: the bay is a sleeping giant.'],
+          ex: [{ w: 'whis|pers', tag: 'talks very softly' }, { w: 'com|ets', tag: 'bright space rocks with tails' }, { w: 'cel|e|brat|ing', tag: 'having a party' }]
         },
-        sort: { a: 'Personification 🗣️', b: 'Metaphor 🟣', items: [['the water whispers', 'a'], ['the bay is a sleeping giant', 'b'], ['the bay opens its eyes', 'a'], ['fish become comets', 'b']], hint: 'Is a thing doing something only people do? That is personification.' },
+        sort: { a: 'Acts like a person 🗣️', b: 'Says it IS something 🟣', items: [['the water whispers', 'a'], ['the bay is a sleeping giant', 'b'], ['the bay opens its eyes', 'a'], ['fish become comets', 'b']], hint: 'Is a thing doing something only people do?' },
         build: { w: 'bi|o|lu|mi|nes|cent', tiles: ['bi', 'o', 'lu', 'mi', 'nes', 'cent', 'sent'], pic: '🌟', clue: 'Able to make its own light.' },
         pick: { w: 'microscopic', opts: ['microscopic', 'microskopic', 'micrescopic'], pic: '🔬', clue: 'So tiny you need a microscope.', split: 'mi|cro|scop|ic' },
         hear: { w: 'organisms', opts: ['organisms', 'organizms', 'organisims'], pic: '🦠', clue: 'Living things.', split: 'or|gan|isms' },
         rebel: { words: ['glows', 'whispers', 'celebrates', 'sleeps'], why: '"glows" is something water can really do here. Whispering, celebrating, and sleeping are human actions!' },
         chunks: [
           { s: ['I composed a free-verse poem in Mosquito Bay on the island of Vieques, Puerto Rico, one of the brightest bioluminescent bays in the world.', 'Bioluminescent means able to make its own light, and here the light comes from microscopic organisms called dinoflagellates.'], pic: '🔬', focus: '50% 40%', check: ['🔬🌟🌊', '☀️🏖️', '❄️⛷️'] },
-          { s: ['Stanza one: The bay is a sleeping giant, dark and still beneath the moon, until my wingtip wakes it.', 'Then it opens a thousand sparkling eyes.'], pic: '👀', focus: '50% 70%', check: ['🌊👀🌟', '🌊🔥', '🌊🍕'] },
-          { s: ['Stanza two: The water whispers in blue-green light, painting every ripple with glitter.', 'Fish become comets, and each paddle stroke leaves a trail of stars behind it.'], pic: '☄️', focus: '60% 75%', check: ['🐟☄️', '🐟🍦', '🐟🛏️'] },
-          { s: ['Stanza three: Scientists explain that the glow is a defense, a sudden flash that may startle predators.', 'But to me, it looks like the ocean is celebrating.'], pic: '🎉', focus: '45% 75%', check: ['🌊🎉', '🌊😴', '🌊🚗'] },
-          { s: ['This poem uses personification, which gives human actions to things that are not human, like water that whispers.', 'It also uses metaphors, such as "fish become comets," which compare without using like or as.'], pic: '🗣️', focus: '50% 50%', check: ['🗣️🌊', '🗣️🍕', '🗣️🚗'] },
+          { s: ['Part one: The bay is a sleeping giant, dark and still beneath the moon, until my wingtip wakes it.', 'Then it opens a thousand sparkling eyes.'], pic: '👀', focus: '50% 70%', check: ['🌊👀🌟', '🌊🔥', '🌊🍕'] },
+          { s: ['Part two: The water whispers in blue-green light, painting every ripple with glitter.', 'Fish become comets, and each paddle stroke leaves a trail of stars behind it.'], pic: '☄️', focus: '60% 75%', check: ['🐟☄️', '🐟🍦', '🐟🛏️'] },
+          { s: ['Part three: Scientists explain that the glow is a defense, a sudden flash that may startle predators.', 'But to me, it looks like the ocean is celebrating.'], pic: '🎉', focus: '45% 75%', check: ['🌊🎉', '🌊😴', '🌊🚗'] },
           { s: ['Tomorrow I am flying home to a fall festival in New Jersey, where there is going to be a talent contest.', 'I wonder who will be brave enough to perform!'], pic: '🎤', focus: '50% 50%', check: ['🐦🎤🎃', '🐦🧊', '🐦🌋'] }
         ],
-        question: { pre: { q: 'Cause and effect: WHY might the tiny organisms glow?', opts: ['⚡ To startle predators', '🎉 To have a party', '💡 To light up houses'], mishap: 'Look for what scientists explain in stanza three.' },
+        question: { pre: { q: 'WHY might the tiny organisms glow?', opts: ['⚡ To startle predators', '🎉 To have a party', '💡 To light up houses'], mishap: 'Look for what scientists explain in part three.' },
           q: 'Tap the sentence that tells the reason.', a: 'may startle predators', mishap: 'Oops! I tried to startle a fish by glowing. I cannot glow! 🐦 Try again!' },
         advisor: { type: 'predict', q: 'What will Pip see tomorrow?', opts: ['🎤 A talent contest at a fall festival', '🐧 Penguins on ice', '🌋 A volcano'], evQ: 'Tap the clue in the postcard.', a: ['talent contest'], mishap: 'Look for a clue about tomorrow!' },
-        fill: { kind: 'word', sent: 'Stanza two: The water ___ in blue-green light, painting every ripple with glitter.', opts: ['whispers', 'whistles', 'wishes'] },
-        spell: { w: 'stanza', sent: 'Here is ___ one of my poem.', split: 'stan|za', pic: '📜' }
+        fill: { kind: 'word', sent: 'Part two: The water ___ in blue-green light, painting every ripple with glitter.', opts: ['whispers', 'whistles', 'wishes'] },
+        spell: { w: 'comets', sent: 'Fish become ___.', split: 'com|ets', pic: '☄️' }
       }
     }
   },
@@ -433,7 +432,7 @@
   {
     day: 5, name: 'Friday', place: 'A fall festival in New Jersey', flag: '🏠', scene: 'img/u2w3_fri_festival.webp',
     sceneBrief: 'A cozy New Jersey fall festival at dusk: hay bales, pumpkins, string lights, a small wooden stage. On stage: a bat pup doing a loop, a penguin sliding on its belly, two pigeons flying side by side. Pip with a microphone and a host bow tie.',
-    qtype: 'Compare two postcards', atype: 'Pip made a mistake',
+    qtype: 'Two postcards', atype: 'Pip made a mistake',
     arrive: 'Pip flew home to a fall festival in New Jersey!',
     compareWith: 1,
     wiggle: { emoji: '🎤', text: 'Talent show!', sub: 'Show your grown-up one silly talent: a spin, a funny face, or a bat flap. Take a bow!' },
@@ -561,7 +560,7 @@
   const W = window.PIP_WEEKS['u2w3'];
   W.vocab = {
     // Ground (district U2W3)
-    practiced: { misread: 'prac-tiked', split: 'pr[a]c|t[i]c[ed]', say: 'prac|tist', look: ['practice', 'protected'], pic: '🎯🔁', means: 'did it again and again',
+    practiced: { misread: 'prac-tiked', split: 'pr[a]c|t[i]c[ed]', say: 'prac|tist', look: ['practice', 'protected'], pic: '🔁', means: 'did it again and again',
       tricky: { mark: 'practi[ced]', says: 'PRAC-tist', note: '"ced" says st.' } },
     clumsy: { misread: 'clum-sigh', split: 'cl[u]m|s[y]', say: 'clum|zee', look: ['clumps', 'crumbs'], pic: '🙃💥', means: 'bumps and trips a lot' },
     coach: { misread: 'cotch', split: 'c[oa]ch', look: ['couch', 'coat'], pic: '📣🧢', means: 'a person who trains a team' },
@@ -613,6 +612,7 @@
     competitor: { misread: 'com-pete-it-or', split: 'c[o]m|p[e]t|[i]|t[or]', say: 'kum|pet|ih|ter', look: ['competition', 'computer'], pic: '🏊', means: 'someone in a contest' },
     bioluminescent: { misread: 'bio-loo-min-es-ent', split: 'b[i]|[o]|l[u]|m[i]|n[e]s|c[e]nt', say: 'by|o|loo|mih|ness|ent', look: ['luminous', 'biology'], pic: '🌟🌊', means: 'able to make its own light' },
     microscopic: { misread: 'micro-scope-ic', split: 'm[i]|cr[o]|sc[o]p|[i]c', say: 'my|kruh|skop|ik', look: ['microscope', 'microphone'], pic: '🔬', means: 'too tiny to see without a microscope' },
+    predators: { misread: 'pred-a-tors', split: 'pr[e]d|[a]|t[or]s', say: 'pred|uh|terz', look: ['predict', 'editors'], pic: '🦈🐟', means: 'animals that hunt other animals' },
     personification: { misread: 'person-if-i-kay-shun', split: 'p[er]|s[o]n|[i]|f[i]|c[a]|t[io]n', say: 'per|son|ih|fih|kay|shun', look: ['personality', 'personalization'], pic: '🗣️🌊', means: 'giving human actions to things' },
     synchronized: { misread: 'sin-chron-ized', split: 's[y]n|chr[o]|n[i]z[ed]', say: 'sin|kruh|nized', look: ['synthesized', 'sympathized'], pic: '🕊️🕊️', means: 'moving at exactly the same time',
       tricky: { mark: 'syn[ch]ronized', says: 'SIN-kruh-nized', note: '"ch" says k.' } },
@@ -650,12 +650,12 @@
   };
   // R practice (listening only; never grades her speech).
   W.rPairs = [
-    { r: 'right', rp: '➡️', w: 'white', wp: '⬜' }, { r: 'ride', rp: '🚲', w: 'wide', wp: '↔️' }, { r: 'ripe', rp: '🍌', w: 'wipe', wp: '🧻' },
+    { r: 'right', rp: '➡️', w: 'white', wp: '🤍' }, { r: 'ride', rp: '🚲', w: 'wide', wp: '↔️' }, { r: 'ripe', rp: '🍌', w: 'wipe', wp: '🧻' },
     { r: 'rise', rp: '🌅', w: 'wise', wp: '🦉' }, { r: 'rag', rp: '🧽', w: 'wag', wp: '🐕' }
   ];
   W.rWords = [
     { w: 'bright', pic: '☀️', oops: 'bwight' }, { w: 'dry', pic: '🏜️', oops: 'dwy' }, { w: 'right', pic: '✅', oops: 'wight' },
-    { w: 'practiced', pic: '🎯', oops: 'pwacticed' }, { w: 'graceful', pic: '🩰', oops: 'gwaceful' }, { w: 'accurate', pic: '🎯', oops: 'accuwate' },
+    { w: 'practiced', pic: '🔁', oops: 'pwacticed' }, { w: 'graceful', pic: '🩰', oops: 'gwaceful' }, { w: 'accurate', pic: '🎯', oops: 'accuwate' },
     { w: 'grouchy', pic: '😠', oops: 'gwouchy' }, { w: 'trained', pic: '🏋️', oops: 'twained' }, { w: 'strength', pic: '💪', oops: 'stwength' },
     { w: 'rescue', pic: '🛟', oops: 'wescue' }, { w: 'race', pic: '🏁', oops: 'wace' }, { w: 'frog', pic: '🐸', oops: 'fwog' }
   ];
@@ -685,7 +685,7 @@
     1: { ground: ['practiced', 'clumsy', 'coach'], sky: ['trained', 'strength', 'team'], space: ['persistent', 'humiliated', 'mentor'] },
     2: { ground: ['teams', 'teammate', 'selfish'], sky: ['spotted', 'steered', 'gear'], space: ['reliable', 'ferocious', 'stubbornness'] },
     3: { ground: ['contest', 'graceful', 'players'], sky: ['equipment', 'padded', 'fireproof'], space: ['equator', 'agile', 'competitor'] },
-    4: { ground: ['flat', 'elder', 'accurate'], sky: ['sketch', 'fabric', 'symbol'], space: ['bioluminescent', 'microscopic', 'personification'] },
+    4: { ground: ['flat', 'elder', 'accurate'], sky: ['sketch', 'fabric', 'symbol'], space: ['bioluminescent', 'microscopic', 'predators'] },
     5: { ground: ['tournament', 'uniforms', 'generous'], sky: ['amazed', 'proudly', 'parachute'], space: ['synchronized', 'persistence', 'reflexive'] }
   };
   const apply = (day, plan) => ['ground', 'sky', 'space'].forEach((lv) => {

@@ -1,5 +1,5 @@
 /* Pip's Postcards · Unit 1 Week 3 · Plants and Animals in Their Habitats  (live from v2.8)
-   School week: Mon Sep 28 – Fri Oct 2, 2026 (confirmed by Sue, 2026-09-26).
+   School week: Mon Oct 5 – Fri Oct 9, 2026 (v2.8.2, Sue 2026-09-27: moved back one week; the class does Unit 1 Week 2 the week of Sep 28).
    Schema = site/weeks/u1w2.js.
    Authoring rules (same as u1w2.js):
    - In EVERY option list, write the correct answer FIRST. The app shuffles them.
@@ -15,7 +15,7 @@
   unit: 1, week: 3,
   title: 'Habitats · Week 3',
   unitTitle: 'Plants and Animals in Their Habitats',
-  dates: { start: '2026-09-28', end: '2026-10-02' },
+  dates: { start: '2026-10-05', end: '2026-10-09' }, // v2.8.2: moved back one week to match the class
   school: {
     /* SWAP IN THE TEACHER'S LIST: she sends her own (easier) weekly list. Replace `spelling` (and the matching
        W.typeWords.ground words below) with her sheet when it comes home. District list shown here. */
@@ -37,7 +37,7 @@
   {
     day: 1, name: 'Monday', place: 'Gulf of Maine', flag: '🇺🇸', scene: 'img/u1w3_mon_puffins.webp',
     sceneBrief: 'Gray-blue open ocean off Maine in fall. A few Atlantic puffins bob on the waves, bills duller orange (winter look). A small rocky island far behind, empty. Pip flying above with a mail bag.',
-    qtype: 'Key details & main topic', atype: 'Pip made a mistake',
+    qtype: 'What is it mostly about?', atype: 'Pip made a mistake',
     arrive: 'Pip flew far out over the sea near Maine!',
     wiggle: { emoji: '🐦', text: 'Flap like a puffin, super fast! 10 flaps!', sub: 'Puffins flap their wings about 400 times a minute. Go, go, go!' },
     route: {
@@ -131,7 +131,7 @@
   {
     day: 2, name: 'Tuesday', place: 'Monterey Bay, California', flag: '🇺🇸', scene: 'img/u1w3_tue_otters.webp',
     sceneBrief: 'A kelp forest from the surface: tall brown kelp swaying in green water. A mother sea otter floats on her back with a fluffy pup on her chest; a second otter cracks a clam on a flat stone on her belly. Pip on a kelp float.',
-    qtype: 'Word meaning from context', atype: 'Odd one out, and why',
+    qtype: 'Figure out a word', atype: 'Odd one out, and why',
     arrive: 'Pip splashed down in a kelp forest in California!',
     wiggle: { emoji: '🦦', text: 'Float like a sea otter!', sub: 'Lie on your back, hold your paws on your tummy, and count to 10.' },
     route: {
@@ -229,7 +229,7 @@
   {
     day: 3, name: 'Wednesday', place: 'Sahara Desert, Morocco', flag: '🇲🇦', scene: 'img/u1w3_wed_fennec.webp',
     sceneBrief: 'Golden sand dunes at sunset, sky orange and pink. A tiny cream-colored fennec fox with HUGE ears peeks out of a burrow at the bottom of a dune. Pip standing on one foot on the hot sand.',
-    qtype: 'Picture it (mental images)', atype: 'Pip made a mistake',
+    qtype: 'Picture it', atype: 'Pip made a mistake',
     arrive: 'Pip landed on a hot sand dune in the Sahara!',
     wiggle: { emoji: '🦊', text: 'Fennec fox ears!', sub: 'Cup your hands behind your ears. Can you hear a tiny sound? Now dig like a fox for 5 seconds!' },
     route: {
@@ -325,7 +325,7 @@
   {
     day: 4, name: 'Thursday', place: 'New York City', flag: '🇺🇸', scene: 'img/u1w3_thu_pigeons.webp',
     sceneBrief: 'A busy New York City sidewalk in fall: tall buildings, a yellow taxi, a subway entrance, a bench. Gray pigeons with shiny green-purple necks peck crumbs; two sit on a window ledge high up. Pip holding a poem on a scroll.',
-    qtype: 'Poetry: rhymes and pictures', atype: 'Would you rather? (with a reason)',
+    qtype: 'Rhymes and pictures', atype: 'Would you rather? (with a reason)',
     arrive: 'Pip flew to the tall buildings of New York City!',
     wiggle: { emoji: '🕊️', text: 'Pigeon strut!', sub: 'Walk across the room bobbing your head like a pigeon. Coo, coo!' },
     route: {
@@ -395,7 +395,7 @@
         spell: { w: 'alone', sent: 'A pigeon struts down the street ___.', split: 'a|l[o]n[e]', pic: '🧍' }
       },
       space: {
-        title: 'A Poem for a City Pigeon',
+        title: 'A Poem for a City Pigeon', minWords: 140,
         targets: ['ancestors', 'navigator', 'presence', 'determined', 'magnificent', 'ordinary', 'enjoyable'],
         model: {
           title: 'Words that compare',
@@ -426,7 +426,7 @@
   {
     day: 5, name: 'Friday', place: 'A beach in Florida', flag: '🇺🇸', scene: 'img/u1w3_fri_hatchlings.webp',
     sceneBrief: 'A dark sandy beach at night under a bright full moon. Tiny loggerhead sea turtle hatchlings scramble from a nest toward moonlit waves. Far behind, dark houses with lights turned off. Pip wearing a little red headlamp that is switched OFF.',
-    qtype: 'Compare two postcards', atype: 'Pip made a mistake',
+    qtype: 'Two postcards', atype: 'Pip made a mistake',
     arrive: 'Pip flew to a moonlit beach in Florida!',
     compareWith: 1,
     wiggle: { emoji: '🐢', text: 'Hatchling dash!', sub: 'Crawl like a baby turtle across the floor to the "ocean" (a pillow). Go, go, go!' },
@@ -637,7 +637,7 @@
       { w: 'great', pic: '👍', sent: 'You did a great job!' }, { w: 'mail', pic: '✉️', sent: 'Pip brings the mail.' }, { w: 'how', pic: '🤔', sent: 'How old are you?' },
       { w: 'break', pic: '🍪', sent: 'Break the cookie in half.' }, { w: 'cake', pic: '🎂', sent: 'We ate cake.' }, { w: 'then', pic: '➡️', sent: 'First we eat, then we play.' },
       { w: 'down', pic: '⬇️', sent: 'Sit down, please.' }, { w: 'chain', pic: '⛓️', sent: 'The bike has a chain.' }, { w: 'stay', pic: '🏠', sent: 'Stay with me.' },
-      { w: 'blame', pic: '🐶', sent: 'Do not blame the dog.' }, { w: 'with', pic: '🤝', sent: 'Come with me.' }, { w: 'april', pic: '🌷', sent: 'Flowers bloom in April.', cap: 'April' },
+      { w: 'blame', pic: '👉🐶', sent: 'Do not blame the dog.' }, { w: 'with', pic: '🤝', sent: 'Come with me.' }, { w: 'april', pic: '🌷', sent: 'Flowers bloom in April.', cap: 'April' },
       { w: 'little', pic: '🐭', sent: 'A mouse is little.' }, { w: 'of', pic: '🥛', sent: 'I want a cup of milk.' }, { w: 'saw', pic: '👀', sent: 'I saw a fox.' }
     ],
     sky: [
@@ -656,7 +656,7 @@
   // R practice (listening only; never grades her speech).
   W.rPairs = [
     { r: 'ray', rp: '☀️', w: 'way', wp: '➡️' }, { r: 'rail', rp: '🛤️', w: 'whale', wp: '🐋' }, { r: 'rag', rp: '🧽', w: 'wag', wp: '🐕' },
-    { r: 'reed', rp: '🌾', w: 'weed', wp: '🌱' }, { r: 'ride', rp: '🚲', w: 'wide', wp: '↔️' }, { r: 'rest', rp: '😴', w: 'west', wp: '🧭' }
+    { r: 'run', rp: '🏃', w: 'won', wp: '🏆' }, { r: 'ride', rp: '🚲', w: 'wide', wp: '↔️' }, { r: 'rest', rp: '😴', w: 'west', wp: '🧭' }
   ];
   W.rWords = [
     { w: 'April', pic: '🌷', oops: 'Apwil' }, { w: 'break', pic: '🍪', oops: 'bweak' }, { w: 'great', pic: '👍', oops: 'gweat' },

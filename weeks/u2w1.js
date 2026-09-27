@@ -1,7 +1,5 @@
 /* Pip's Postcards · Unit 2 Week 1 · Characters Facing Challenges  (STAGED DRAFT, not live)
-   School week: Mon Oct 5 – Fri Oct 9, 2026 (ESTIMATE; u1w3 = Sep 28 per Sue). Earlier estimate (Oct 12 week, Columbus Day):
-   many NJ districts close. If school is closed, Monday's postcard still works as a home day, or the grown-up
-   can let it roll into Tuesday. Check the district calendar.
+   School week: Mon Oct 12 – Fri Oct 16, 2026 (v2.8.2: schedule moved back one week, Sue 2026-09-27; u1w2 = Sep 28, u1w3 = Oct 5).
    Schema = site/weeks/u1w2.js. Correct answer FIRST in every option list. "|" = syllables, [ ] = pattern.
    District source: 1-Grade2-ELA.txt, Unit 2 "Characters Facing Challenges", LEARNING ACTIVITIES Week 1
    (long o; fables; central message; shades of meaning in verbs; character responses). District texts this week:
@@ -13,7 +11,7 @@
   unit: 2, week: 1,
   title: 'Challenges · Week 1',
   unitTitle: 'Characters Facing Challenges',
-  dates: { start: '2026-10-05', end: '2026-10-09', estimated: true },
+  dates: { start: '2026-10-12', end: '2026-10-16', estimated: true },
   school: {
     /* SWAP IN THE TEACHER'S LIST: replace `spelling` (and W.typeWords.ground) with her weekly sheet. */
     spelling: ['float', 'toe', 'roast', 'broke', 'globe', 'going', 'both', 'grow', 'bowl', 'throw'],
@@ -34,7 +32,7 @@
   {
     day: 1, name: 'Monday', place: 'Kachemak Bay, Alaska', flag: '🇺🇸', scene: 'img/u2w1_mon_otter.webp',
     sceneBrief: 'Cold blue bay in Alaska with snowy mountains behind. A young sea otter floats on her back, a wooden bowl of clams balanced on her tummy, with a daydream bubble above her head showing a boat, a coat and a globe. Pip on a floating log, listening.',
-    qtype: 'Recount a fable', atype: 'How did the character feel?',
+    qtype: 'Tell what happened', atype: 'How did the character feel?',
     arrive: 'Pip flew north to a cold bay in Alaska!',
     wiggle: { emoji: '🦦', text: 'Otter spin!', sub: 'Spin around slowly 3 times like an otter rolling in the water. Then freeze!' },
     route: {
@@ -100,7 +98,7 @@
       },
       space: {
         title: 'Counting Clams Before They Are Cracked',
-        targets: ['almost', 'host', 'told', 'most', 'boldly', 'golden', 'hold', 'cold', 'consequences', 'impatient', 'official', 'idiom'],
+        targets: ['almost', 'host', 'told', 'most', 'boldly', 'golden', 'hold', 'cold', 'consequences', 'impatient', 'official'],
         model: {
           title: 'Long o families: -old and -ost',
           lines: ['In -old and -ost, the o says its name, even with no magic e!', 'gold, told, hold · most, host, almost'],
@@ -116,12 +114,12 @@
           { s: ['Long ago, a young otter named Ollie was the most impatient creature in the bay.', 'One morning, she discovered three enormous clams, and she boldly declared that she would become rich.'], pic: '🐚', focus: '50% 55%', check: ['🦦🐚🐚🐚', '🦦🚲', '🦦🎂'] },
           { s: ['"I will trade these clams for a golden shell, then trade the shell for a warm den, and everyone will call me the official queen of the bay!" she announced.', 'While she was busy daydreaming, she forgot to hold on to her clams.'], pic: '💭', focus: '60% 25%', check: ['💭👑🦦', '💭🚗', '💭🐶'] },
           { s: ['They slid off her belly and tumbled into the deep, cold water, far below where she could reach.', 'Ollie learned about consequences the hard way: she lost everything because she was thinking about the future instead of the present.'], pic: '💦', focus: '50% 60%', check: ['🐚⬇️🌊', '🦦😴', '🦦🎸'] },
-          { s: ['The old otter explained that this fable is like the saying, "Don\'t count your chickens before they hatch."', 'That saying is an idiom, a phrase that means something different from its exact words.'], pic: '🐣', focus: '50% 50%', check: ['🐣💬', '🐣🏈', '🐣🎸'] },
+          { s: ['The old otter explained that this fable is like the saying, "Don\'t count your chickens before they hatch."', 'That saying means something different from its exact words.'], pic: '🐣', focus: '50% 50%', check: ['🐣💬', '🐣🏈', '🐣🎸'] },
           { s: ['It means that you should not depend on something good until it actually happens.', 'I admit that I sometimes count my snacks before I have them, so this fable was a golden lesson for me.'], pic: '🍪', focus: '50% 50%', check: ['🐦🍪🤔', '🐦😡', '🐦🏊'] }
         ],
         question: { pre: { q: 'Character motivation: WHY did Ollie drop her clams?', opts: ['💭 She was busy daydreaming', '🦈 A shark scared her', '😴 She fell asleep'], mishap: 'Look for what Ollie was doing when she forgot to hold on.' },
           q: 'Tap the sentence that tells why.', a: 'busy daydreaming', mishap: 'Oops! I tried to hold three clams and a pencil. Everything fell! ✏️ Try again!' },
-        advisor: { type: 'mistake', pip: 'An idiom means exactly what its words say.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'means something different', mishap: 'That sentence does not explain idioms. Try another, advisor!' },
+        advisor: { type: 'mistake', pip: 'That saying means exactly what its words say.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'means something different', mishap: 'That sentence does not explain the saying. Try another, advisor!' },
         fill: { kind: 'word', sent: 'While she was busy daydreaming, she forgot to ___ on to her clams.', opts: ['hold', 'hole', 'hood'] },
         spell: { w: 'almost', sent: 'The water was so cold that I ___ froze.', split: 'al|m[o]st', pic: '🥶' }
       }
@@ -131,7 +129,7 @@
   {
     day: 2, name: 'Tuesday', place: 'Tortuguero, Costa Rica', flag: '🇨🇷', scene: 'img/u2w1_tue_hatchlings.webp',
     sceneBrief: 'A dark volcanic-sand beach in Costa Rica at night, jungle behind. Two tiny green sea turtle hatchlings: one (Tess) racing toward the waves, one (Toby) stopped, staring up at the moon and a crab. A frigatebird shadow high in the sky. Pip cheering from a driftwood log.',
-    qtype: 'Shades of meaning in verbs', atype: 'Odd one out, and why',
+    qtype: 'Words that are almost the same', atype: 'Odd one out, and why',
     arrive: 'Pip landed on a turtle beach in Costa Rica!',
     wiggle: { emoji: '🐢', text: 'Stroll, jog, dash!', sub: 'Stroll in place slowly... now jog... now DASH super fast! Then freeze like a turtle in its shell.' },
     route: {
@@ -202,8 +200,8 @@
         title: 'The Sprinter Who Stopped to Stare',
         targets: ['amble', 'stroll', 'bolted', 'meandered', 'sprinted', 'tremendous', 'determination', 'championship', 'curious', 'emerged'],
         model: {
-          title: 'Shades of meaning: verbs',
-          lines: ['Some verbs mean almost the same thing, but show a different speed or feeling.', 'amble → stroll → jog → dash → sprint → bolt'],
+          title: 'Words that are almost the same',
+          lines: ['Some action words mean almost the same thing, but show a different speed or feeling.', 'amble → stroll → jog → dash → sprint → bolt'],
           ex: [{ w: 'am|ble', tag: 'slow and relaxed' }, { w: 'me|an|der', tag: 'wander in curves' }, { w: 'sprint', tag: 'run very fast' }, { w: 'bolt', tag: 'rush off suddenly' }]
         },
         sort: { a: 'Slow 🐌', b: 'Fast 💨', items: [['amble', 'a'], ['sprint', 'b'], ['stroll', 'a'], ['bolt', 'b']], hint: 'Picture someone doing it. Are they relaxed or rushing?' },
@@ -217,10 +215,10 @@
           { s: ['Her brother Toby, however, was a daydreamer.', 'He meandered across the sand, pausing to admire the moonlight, examine a seashell, and chat with a curious crab.'], pic: '🦀', focus: '40% 40%', check: ['🐢🌙🦀', '🐢🚗', '🐢🎂'] },
           { s: ['High above, a frigatebird was scanning the beach for an easy meal.', 'When its shadow crossed the moon, Toby finally understood the danger, and he sprinted to the water faster than he had ever moved.'], pic: '🦅', focus: '60% 20%', check: ['🐢💨🦅', '🐢😴', '🐢🎸'] },
           { s: ['He slipped beneath a wave just in time, gasping but safe.', 'Toby\'s mistake reminded me of anyone who loses focus in a big race, whether it is a turtle on a beach or a runner in a championship.'], pic: '🌊', focus: '70% 50%', check: ['🐢🌊😮‍💨', '🐢🏔️', '🐢🍦'] },
-          { s: ['Authors choose verbs carefully, because "stroll" feels relaxed while "bolt" feels urgent.', 'Can you find the other verbs that show how the turtles moved?'], pic: '✏️', focus: '50% 50%', check: ['✏️🔍', '✏️🍕', '✏️🚗'] }
+          { s: ['Authors choose action words carefully, because "stroll" feels relaxed while "bolt" feels urgent.', 'Can you find the other words that show how the turtles moved?'], pic: '✏️', focus: '50% 50%', check: ['✏️🔍', '✏️🍕', '✏️🚗'] }
         ],
-        question: { pre: { q: 'Shades of meaning: Which verb shows Toby moving slowly and wandering?', opts: ['🌀 meandered', '💨 bolted', '🏃 sprinted'], mishap: 'Bolted and sprinted are fast. Which verb means wandering slowly?' },
-          q: 'Tap the sentence with that verb.', a: 'meandered across the sand', mishap: 'Oops! I meandered so much that I got lost. 🗺️ Try again!' },
+        question: { pre: { q: 'Which word shows Toby moving slowly and wandering?', opts: ['🌀 meandered', '💨 bolted', '🏃 sprinted'], mishap: 'Bolted and sprinted are fast. Which word means wandering slowly?' },
+          q: 'Tap the sentence with that word.', a: 'meandered across the sand', mishap: 'Oops! I meandered so much that I got lost. 🗺️ Try again!' },
         advisor: { type: 'mistake', pip: 'Toby raced to the sea as soon as he hatched.', q: 'Pip made a mistake! Tap the sentence that proves Pip is wrong.', a: 'was a daydreamer', mishap: 'That sentence does not tell what Toby did at first. Try another, advisor!' },
         fill: { kind: 'word', sent: 'He slipped beneath a wave just in time, gasping but ___.', opts: ['safe', 'soft', 'sad'] },
         spell: { w: 'curious', sent: 'Toby chatted with a ___ crab.', split: 'cu|ri|ous', pic: '🦀' }
@@ -231,7 +229,7 @@
   {
     day: 3, name: 'Wednesday', place: 'Sahara Desert, Morocco', flag: '🇲🇦', scene: 'img/u2w1_wed_goldfox.webp',
     sceneBrief: 'A burrow at the foot of a sand dune under a starry sky. A young fennec fox (Fenna) stares in dismay at a golden bowl of water, golden beetles and a golden bone around her. Her little brother peeks from the burrow. Pip on a rock, wings over beak.',
-    qtype: 'Central message (lesson)', atype: 'How did the character feel?',
+    qtype: 'The lesson', atype: 'How did the character feel?',
     arrive: 'Pip flew back to the desert in Morocco!',
     wiggle: { emoji: '🌟', text: 'Golden statue freeze!', sub: 'Dance! When your grown-up says "gold," freeze like a golden statue. Do it 3 times.' },
     route: {
@@ -299,13 +297,13 @@
       },
       space: {
         title: 'Worth Its Weight in Gold',
-        targets: ['boldly', 'most', 'told', 'golden', 'generosity', 'precious', 'desperate', 'hoarded', 'idioms', 'overjoyed'],
+        targets: ['boldly', 'most', 'told', 'golden', 'generosity', 'precious', 'desperate', 'hoarded', 'overjoyed'],
         model: {
-          title: 'Idioms',
-          lines: ['An idiom is a saying that means something different from its words.', '"Heart of gold" means very kind. "Worth its weight in gold" means very valuable.'],
-          ex: [{ w: 'id|i|om', tag: 'a special saying' }, { w: 'gold|en', tag: '-old family' }, { w: 'bold|ly', tag: '-old family' }, { w: 'most', tag: '-ost family' }]
+          title: 'Sayings',
+          lines: ['Some sayings mean something different from their words.', '"Heart of gold" means very kind. "Worth its weight in gold" means very valuable.'],
+          ex: [{ w: 'gold|en', tag: '-old family' }, { w: 'bold|ly', tag: '-old family' }, { w: 'most', tag: '-ost family' }]
         },
-        sort: { a: 'Idiom 💬', b: 'Means what it says 📏', items: [['heart of gold', 'a'], ['a gold coin', 'b'], ['worth its weight in gold', 'a'], ['a heavy rock', 'b']], hint: 'Could it happen for real, word for word? Then it means what it says.' },
+        sort: { a: 'A saying 💬', b: 'Means what it says 📏', items: [['heart of gold', 'a'], ['a gold coin', 'b'], ['worth its weight in gold', 'a'], ['a heavy rock', 'b']], hint: 'Could it happen for real, word for word? Then it means what it says.' },
         build: { w: 'gen|er|os|i|ty', tiles: ['gen', 'er', 'os', 'i', 'ty', 'tee'], pic: '🤲', clue: 'Being happy to give and share.' },
         pick: { w: 'precious', opts: ['precious', 'preshus', 'precius'], pic: '💎', clue: 'Very special and valuable.', split: 'pre|[cious]' },
         hear: { w: 'desperate', opts: ['desperate', 'desprate', 'desperit'], pic: '😰', clue: 'Needing help very badly.', split: 'des|per|ate' },
@@ -316,7 +314,7 @@
           { s: ['At first, Fenna was overjoyed, because her burrow soon glittered like a treasure chest.', 'However, when she tried to eat, her beetles became golden lumps, and her water turned to glittering dust.'], pic: '🪲', focus: '55% 70%', check: ['🪲🥇💧', '🪲🍦', '🪲🎸'] },
           { s: ['The most painful moment came when her younger brother bounded toward her for a hug.', 'Fenna leaped away, realizing that her precious wish could turn him into a cold statue.'], pic: '🦊', focus: '45% 65%', check: ['🦊🦊😨', '🦊🎉', '🦊😴'] },
           { s: ['Desperate, she begged the spirit to reverse the wish, and she promised to share what she had.', 'From then on, she was known for her generosity instead of her greed.'], pic: '🤲', focus: '50% 50%', check: ['🦊🤲🦊', '🦊🥇🥇', '🦊🚀'] },
-          { s: ['Fenna\'s story contains two idioms, or sayings that do not mean exactly what they say.', 'Water in the desert is "worth its weight in gold," and a kind friend has a "heart of gold," but neither one is actually made of metal!'], pic: '💬', focus: '50% 50%', check: ['💬💛', '💬🍕', '💬🚗'] }
+          { s: ['Fenna\'s story has two sayings that do not mean exactly what they say.', 'Water in the desert is "worth its weight in gold," and a kind friend has a "heart of gold," but neither one is actually made of metal!'], pic: '💬', focus: '50% 50%', check: ['💬💛', '💬🍕', '💬🚗'] }
         ],
         question: { pre: { q: 'Character change: How did Fenna change?', opts: ['🤲 From greedy to generous', '😴 From awake to sleepy', '🏃 From slow to fast'], mishap: 'Compare how Fenna acts at the start and at the end.' },
           q: 'Tap the sentence that shows how she ended up.', a: 'known for her generosity', mishap: 'Oops! I tried to share my gold, but I only had a gold crayon. 🖍️ Try again!' },
@@ -330,7 +328,7 @@
   {
     day: 4, name: 'Thursday', place: 'Skomer Island, Wales', flag: '🇬🇧', scene: 'img/u2w1_thu_puffling.webp',
     sceneBrief: 'A green grassy clifftop on Skomer Island at dusk, burrow holes everywhere, sea far below. A fluffy gray puffling (Poppy) peeks nervously from a burrow; an adult puffin with a bright bill stands beside her flapping to show how. Pip giving a wing thumbs-up.',
-    qtype: 'Character response to a challenge', atype: 'Would you rather? (with a reason)',
+    qtype: 'What did they do?', atype: 'Would you rather? (with a reason)',
     arrive: 'Pip flew to a puffin island in Wales!',
     wiggle: { emoji: '🐣', text: 'Try, try again!', sub: 'Stand on one foot and count to 5. Wobble? Try again! Now the other foot.' },
     route: {
@@ -434,7 +432,7 @@
   {
     day: 5, name: 'Friday', place: 'The Jersey Shore, New Jersey', flag: '🏠', scene: 'img/u2w1_fri_slowrace.webp',
     sceneBrief: 'A quiet New Jersey beach in fall with dunes and beach grass, a lighthouse far away. Storybook style: a fennec fox snoozing under beach grass while a sea turtle plods past toward a big stone finish line. Pip at a little radio microphone on a beach chair.',
-    qtype: 'Compare two fables', atype: 'Pip made a mistake',
+    qtype: 'Two stories', atype: 'Pip made a mistake',
     arrive: 'Pip flew home to the Jersey Shore!',
     compareWith: 1,
     wiggle: { emoji: '🐢', text: 'Slow and steady!', sub: 'Walk across the room in super slow motion. Then zoom back like a fox!' },
@@ -499,7 +497,7 @@
         title: 'Slow and Steady at the Shore',
         targets: ['beach', 'sea', 'breeze', 'speedy', 'tease', 'seen', 'eat', 'treat', 'creature', 'being'],
         model: {
-          title: 'Plural endings: -s and -es',
+          title: 'More than one: -s and -es',
           lines: ['Add -s to most words: dune → dunes, treat → treats.', 'Add -es after s, x, sh, or ch: beach → beaches, fox → foxes.'],
           ex: [{ w: 'dune|[s]', tag: '+ s' }, { w: 'treat|[s]', tag: '+ s' }, { w: 'beach|[es]', tag: '+ es' }, { w: 'fox|[es]', tag: '+ es' }]
         },
@@ -525,22 +523,22 @@
         title: 'Two Fables, Two Morals',
         targets: ['boastful', 'overconfident', 'patient', 'plodded', 'motivations', 'compare', 'celebrated', 'impatient', 'admired', 'narrated'],
         model: {
-          title: 'Compare and contrast',
-          lines: ['Compare = how things are alike. Contrast = how they are different.', 'Clue words: both, same, however, while, different.'],
-          ex: [{ w: 'com|pare', tag: 'find what is alike' }, { w: 'con|trast', tag: 'find what is different' }, { w: 'how|ev|er', tag: 'a contrast clue' }, { w: 'boast|ful', tag: 'full of bragging' }]
+          title: 'Same and different',
+          lines: ['Some words tell how things are the same: both, same, alike.', 'Some words tell how they are different: however, while, different.'],
+          ex: [{ w: 'com|pare', tag: 'find what is the same' }, { w: 'how|ev|er', tag: 'shows a difference' }, { w: 'boast|ful', tag: 'full of bragging' }]
         },
         sort: { a: 'Alike clue 🤝', b: 'Different clue ↔️', items: [['both', 'a'], ['however', 'b'], ['same', 'a'], ['while', 'b']], hint: 'Does the word show things are alike or different?' },
         build: { w: 'o|ver|con|fi|dent', tiles: ['o', 'ver', 'con', 'fi', 'dent', 'dant'], pic: '😎', clue: 'Too sure you will win.' },
         pick: { w: 'patient', opts: ['patient', 'pashent', 'patiant'], pic: '⏳', clue: 'Able to wait calmly.', split: 'pa|[tient]' },
         hear: { w: 'narrated', opts: ['narrated', 'narated', 'narrateded'], pic: '🎙️', clue: 'Told a story out loud.', split: 'nar|rat|[ed]' },
-        rebel: { words: ['patient', 'impatient', 'impossible', 'imperfect'], why: '"patient" has no prefix. In the others, im- means "not."' },
+        rebel: { words: ['patient', 'impatient', 'impossible', 'imperfect'], why: 'In "impatient," "impossible" and "imperfect," im- means "not." But "patient" is just a word by itself!' },
         chunks: [
           { s: ['Greetings from Island Beach State Park on the Jersey Shore, where the ocean breeze is growing chilly as autumn arrives.', 'I have finally flown home, and I want to compare two fables from my travels.'], pic: '🏖️', focus: '50% 60%', check: ['🐦🏖️🍂', '🐦❄️', '🐦🌋'] },
           { s: ['This afternoon, I narrated a fable about Fen, a boastful fennec fox, and Shelly, a patient sea turtle.', 'Fen bragged that he was the fastest animal in the world, so Shelly calmly challenged him to a race.'], pic: '🎙️', focus: '40% 60%', check: ['🦊🐢🎙️', '🦊😢', '🦊😴'] },
           { s: ['Fen was so overconfident that he paused for a snack and then a nap, certain that he could never lose.', 'Meanwhile, Shelly plodded along without stopping, and she crossed the finish line while Fen was still snoring.'], pic: '🏁', focus: '70% 40%', check: ['🐢🏁🦊😴', '🐢🏊', '🐢🎸'] },
           { s: ['On Monday, Ollie the otter lost her clams because she was dreaming about the future.', 'Both characters made the same basic mistake: they celebrated before the job was done.'], pic: '🎉', focus: '50% 50%', check: ['🦦🦊🎉', '🦦🏔️', '🦦🍦'] },
           { s: ['However, their motivations were different.', 'Ollie was impatient and wanted to be admired, while Fen was proud and wanted to show off.'], pic: '↔️', focus: '50% 50%', check: ['🦦↔️🦊', '🦦🎂', '🦦🚀'] },
-          { s: ['Ollie\'s fable teaches, "Don\'t count your chickens before they hatch," and Shelly\'s fable teaches, "Slow and steady wins the race."', 'Which moral would you choose to remember?'], pic: '🤔', focus: '50% 50%', check: ['🐦🤔📖', '🐦😡', '🐦🏊'] }
+          { s: ['Ollie\'s fable teaches, "Don\'t count your chickens before they hatch," and Shelly\'s fable teaches, "Slow and steady wins the race."', 'Which lesson would you choose to remember?'], pic: '🤔', focus: '50% 50%', check: ['🐦🤔📖', '🐦😡', '🐦🏊'] }
         ],
         question: { pre: { q: 'Compare: What mistake did BOTH Ollie and Fen make?', opts: ['🎉 They celebrated before the job was done', '🏊 They could not swim', '📚 They forgot to read'], mishap: 'Look for the word "Both" in the postcard.' },
           q: 'Tap the sentence that tells their shared mistake.', a: 'celebrated before the job was done', mishap: 'Oops! I celebrated before I finished my postcard. Now it is blank! 📭 Try again!' },
