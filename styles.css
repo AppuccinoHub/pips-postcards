@@ -1054,3 +1054,12 @@ html.theme-dark { --green-d: #86dc8d; }
 #paWeeks .wk-skip { width: 100%; font-weight: 700; }
 #paWeeks .wk-back { width: 100%; }
 #paWeeks .wk-go:not(.on) { background: #f0f0f0; color: #333; }
+/* v2.8.3 quiet Zoo Math: a soft glow after a long pause (no voice), the even/odd number, lit picture models (no step text) */
+.opt.glow.soft { animation: glowSoft 2.2s ease-in-out infinite; border-color: #f3d98a; }
+@keyframes glowSoft { 50% { box-shadow: 0 0 0 5px rgba(255, 207, 58, .35), 0 4px 0 #e5c56a; } }
+.mv-eo-n { font-family: var(--read); font-size: 2.1rem; font-weight: 700; color: #1c4f8a; line-height: 1; }
+.math-q.math-eo { font-size: 1.5rem; }
+.opts.eo-row .opt { font-size: 1.5rem; min-height: 64px; }
+.mviz.lit .arr-row { background: #fff7d6; }
+.mviz.lit .grp { border-color: #2f9e5b; background: #eefaf1; }
+.mviz.lit .b10, .mviz.lit .mm { border-color: #2f9e5b; box-shadow: 0 0 0 3px #bfe8cc; }

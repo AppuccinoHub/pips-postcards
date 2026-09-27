@@ -264,7 +264,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.8.2';
+  const SFX_VER = '2.8.3';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -443,6 +443,7 @@
   }
   function voicePreload(words) { if (voicePath() !== 'wa' || !sfx.ctx) return; (words || []).forEach((w) => { const k = plain(String(w || '')).trim().toLowerCase(); if (AUD[k]) wBuf(AUD[k]); if (AUD['slow:' + k]) wBuf(AUD['slow:' + k]); }); }
   function stopVoice() {
+    if (window.__stopLog && voiceActive()) window.__stopLog.push({ t: Date.now(), idx: P.idx, why: window.__stopWhy ? String(new Error().stack).split('\n').slice(2, 6).join(' / ') : '' }); // test hook: a clip was cut off
     sayToken++; if (speakingWrap) speakingWrap.classList.remove('talking'); try { speechSynthesis.cancel(); } catch (_) {}
     if (curAudio) { try { curAudio.pause(); } catch (_) {} curAudio = null; }
     if (curSrcNode) { const n = curSrcNode; curSrcNode = null; try { n.onended = null; n.stop(); } catch (_) {} }
@@ -1155,6 +1156,7 @@
   /* Idle help: if she pauses, a clue appears by itself (before she can get stuck). */
   /* v2.8.1 (Sue: help the moment she hesitates): PAUSE_1 = the clue / the answer glows, PAUSE_2 = the answer is shown. */
   const PAUSE_1 = 5000, PAUSE_2 = 10000;
+  const QUIET_PAUSE = 15000; // v2.8.3 math: one silent glow after a long pause
   let LAST_ACT = 0;
   ['pointerdown', 'keydown', 'input'].forEach((ev) => document.addEventListener(ev, () => { LAST_ACT = Date.now(); }, true));
   // fn() once there has been ms of quiet (no voice playing, no tap or typing), counted from now + delay; stops when alive() is false.
@@ -1177,10 +1179,18 @@
     const btns = [];
     const fadeWrong = (keep) => { const wrong = btns.filter((x) => x.i !== 0 && !x.b.classList.contains('gone')); shuffle(wrong, seed + tries).slice(0, Math.max(0, wrong.length - keep)).forEach((x) => { x.b.classList.add('gone'); x.b.disabled = true; }); };
     const rightB = () => btns.find((x) => x.i === 0).b;
-    placeAnswer(opts.map((o, i) => ({ o, i })), (x) => x.i === 0, card ? card.spec.k : (((P.cards[P.idx] || {}).spec || {}).k || '?')).forEach(({ o, i }) => {
+    const items = opts.map((o, i) => ({ o, i }));
+    (card && card.fixedOrder ? items.sort((x, y) => card.fixedOrder.indexOf(x.o) - card.fixedOrder.indexOf(y.o))
+      : placeAnswer(items, (x) => x.i === 0, card ? card.spec.k : (((P.cards[P.idx] || {}).spec || {}).k || '?'))).forEach(({ o, i }) => {
       const b = btn('opt', null, () => {
         if (over || b.disabled) return;
         if (i === 0) { over = true; sparkle(b); onRight(tries === 0, b); }
+        else if (card && card.missMoveOn) { // v2.8.3 even/odd: one tap. A miss = no "wrong", no voice: the picture shows it, then we move on.
+          tries++; over = true; b.classList.add('gone'); b.disabled = true;
+          onWrong && onWrong(b, tries);
+          const r = rightB(); r.classList.add('glow', 'shown'); card.helped = true;
+          setTimeout(() => { r.classList.add('right'); onRight(false, r, { shown: true }); }, card.missMoveOn);
+        }
         else {
           tries++; shake(b); b.classList.add('gone'); b.disabled = true;
           onWrong && onWrong(b, tries);
@@ -1198,14 +1208,19 @@
     });
     // v2.8.1 (Sue: instant help the moment she hesitates): about 5 s after the voice ends the right answer glows (one other
     // choice left); about 10 s: only the answer is left, glowing, for an easy tap. Shown = helped, never a failure.
-    onIdle(() => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } }, PAUSE_1);
-    onIdle(() => { if (!over) { fadeWrong(0); rightB().classList.add('glow', 'shown'); if (card) card.helped = true; } }, PAUSE_2, { say: 'Here it is! Tap it! ✨' });
+    // v2.8.3 (Sue: math help that peeks in and cuts out sounds weird): math cards (card.quietHelp) never talk. After a longer
+    // pause the right answer just glows softly; nothing fades, nothing is said, and it is not counted as help.
+    if (card && card.quietHelp) onIdle(() => { if (!over) rightB().classList.add('glow', 'soft'); }, QUIET_PAUSE, { quiet: true });
+    else {
+      onIdle(() => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } }, PAUSE_1);
+      onIdle(() => { if (!over) { fadeWrong(0); rightB().classList.add('glow', 'shown'); if (card) card.helped = true; } }, PAUSE_2, { say: 'Here it is! Tap it! ✨' });
+    }
     if (!card) { // choices added after the card was built (e.g. the picture question after typing): same pause help
       const live = () => !over && row.isConnected && !(P.cards[P.idx] || {}).done;
       const st = afterQuiet(PAUSE_1, () => { fadeWrong(1); rightB().classList.add('glow'); }, live);
       afterQuiet(PAUSE_2, () => { fadeWrong(0); rightB().classList.add('glow', 'shown'); }, live, 0, st);
     }
-    if (card) card.help = () => { if (!over) { fadeWrong(1); rightB().classList.add('glow'); } };
+    if (card) card.help = () => { if (!over) { if (!card.quietHelp) fadeWrong(1); rightB().classList.add('glow'); } };
     parent.appendChild(row);
     return row;
   }
@@ -2624,9 +2639,9 @@
   /* ================= Zoo Math (v2.8) =================
      Data: math/zoo-math-<monday>.js (window.PIP_MATH, generated by content-draft/math/tools/gen_math.py; every answer is computed).
      Session: 3 warm-up wins (Topic 1 facts) + 6 cards at her math level (S.mathLevel, separate from reading) + feed.
-     One tap: pick an answer. 1st miss = a hint (the picture shows the strategy); 2nd miss = the answer is shown and we move on.
+     One tap: pick an answer. 1st miss = the picture lights up (no hint text, no voice); 2nd miss = the answer is shown and we move on.
+     v2.8.3: math is quiet (see BUILD.math). Even or odd: one miss = the pairs show it and we move on.
      Optional "type it" bonus (+1) after a first-try right answer; it never blocks (the feed moves on by itself). No timers. */
-  const MATH_SPEAK = (t) => String(t).replace(/×/g, ' times ').replace(/[−–]/g, ' minus ').replace(/ - /g, ' minus ').replace(/\+/g, ' plus ').replace(/=/g, ' is ').replace(/_+/g, ' blank ').replace(/\s+/g, ' ').trim();
   function mondayOf(ymdS) { const d = new Date(ymdS + 'T12:00:00'); const wd = d.getDay(); d.setDate(d.getDate() - ((wd + 6) % 7)); return ymd(d); }
   function mathWeek() {
     const M = window.PIP_MATH || {}; const keys = Object.keys(M).sort(); if (!keys.length) return null;
@@ -2652,10 +2667,12 @@
   }
   const MATH_KICK = { warm: '⚡ Quick win', evenodd: '🤝 Even or odd?', doubles: '👯 Two equal teams', skip: '🦘 Skip-count', array: '🟦 Rows', groups: '🧺 Equal groups', hundred: '💯 Hundred chart', openline: '📏 Number line', breakapart: '✂️ Break apart', comp: '🎁 Make it friendly', partial: '🧱 Tens and ones', multi: '➕ Add them all', story: '📖 Word problem' };
   const numTxt = (n) => String(n);
+  const mathEO = (c) => c.k === 'evenodd' || (c.k === 'story' && (c.a === 'even' || c.a === 'odd'));
+  const eoN = (c) => c.n || +((String(c.q || c.prompt || '').match(/(\d+) even or odd/) || [])[1] || 0);
   // The big question line: an equation where there is one ("27 + 14 = ?"), else a short question.
   function mathQ(c) {
-    if (c.k === 'story') return c.q;
-    if (c.k === 'evenodd') return `${c.n} ${c.emoji}  Even or odd?`;
+    if (c.k === 'story') return mathEO(c) ? 'Is this even or odd?' : c.q;
+    if (c.k === 'evenodd') return 'Is this even or odd?';
     if (c.k === 'doubles') return `${c.n} = ? + ?`;
     if (c.k === 'skip') return `Count by ${c.by}s`;
     if (c.k === 'array') return `${c.rows} rows of ${c.cols}`;
@@ -2682,11 +2699,14 @@
       if (m && c.tenFrame && (+m[1] + (m[2] === '+' ? +m[3] : 0)) <= 20) box.appendChild(tenFrames(+m[1], +m[3], m[2] === '+' ? '+' : '-'));
       else box.appendChild(el('div', 'mv-big', c.prompt));
       hint = (lv) => { if (lv >= 1) box.classList.add('lit'); };
-    } else if (c.k === 'evenodd' || c.k === 'doubles') {
-      const g = el('div', 'mv-pairs'); const items = emo(c.emoji, c.n, 'tap'); items.forEach((x) => g.appendChild(x)); box.appendChild(g);
+    } else if (c.k === 'evenodd' || c.k === 'doubles' || mathEO(c)) {
+      const eo = mathEO(c), n = eo ? eoN(c) : c.n;
+      if (c.k === 'story') { const st = el('div', 'mv-story'); st.appendChild(el('span', 'st-pic', c.emoji || '🦓')); const tx = el('div', 'st-text'); (c.text || []).forEach((t) => tx.appendChild(el('p', null, t))); st.appendChild(tx); box.appendChild(st); box.classList.add('mv-evenodd'); }
+      else if (eo) box.appendChild(el('div', 'mv-eo-n', String(n)));
+      const g = el('div', 'mv-pairs'); const items = emo(c.emoji, n, 'tap'); items.forEach((x) => g.appendChild(x)); box.appendChild(g);
       let sel = null, pairs = 0;
       const pairUp = (x, y) => { pairs++; x.classList.add('paired', 'p' + (pairs % 4)); y.classList.add('paired', 'p' + (pairs % 4)); g.appendChild(x); g.appendChild(y); sound('tap'); };
-      if (c.k === 'evenodd') items.forEach((x) => x.addEventListener('click', () => { if (x.classList.contains('paired')) return; if (!sel) { sel = x; x.classList.add('sel'); return; } if (sel === x) { x.classList.remove('sel'); sel = null; return; } sel.classList.remove('sel'); const s0 = sel; sel = null; pairUp(s0, x); const free = items.filter((y) => !y.classList.contains('paired')); if (free.length === 1) free[0].classList.add('alone'); }));
+      if (eo) items.forEach((x) => x.addEventListener('click', () => { if (x.classList.contains('paired')) return; if (!sel) { sel = x; x.classList.add('sel'); return; } if (sel === x) { x.classList.remove('sel'); sel = null; return; } sel.classList.remove('sel'); const s0 = sel; sel = null; pairUp(s0, x); const free = items.filter((y) => !y.classList.contains('paired')); if (free.length === 1) free[0].classList.add('alone'); }));
       hint = (lv) => {
         if (c.k === 'doubles') { if (box.classList.contains('split')) return; box.classList.add('split'); g.replaceChildren(); const t1 = el('div', 'team'), t2 = el('div', 'team t2'); items.forEach((x, i) => (i % 2 ? t2 : t1).appendChild(x)); g.append(t1, t2); if (lv >= 2) { t1.appendChild(el('b', 'team-n', String(t1.children.length))); t2.appendChild(el('b', 'team-n', String(t2.children.length))); } return; }
         const free = items.filter((y) => !y.classList.contains('paired')); if (sel) { sel.classList.remove('sel'); sel = null; }
@@ -2702,11 +2722,11 @@
       let n = 0; const done = new Set();
       for (let r = 0; r < c.rows; r++) { const row = el('div', 'arr-row'); emo(c.emoji, c.cols).forEach((x) => row.appendChild(x)); row.addEventListener('click', () => { if (done.has(r)) return; done.add(r); n += c.cols; row.classList.add('on'); row.appendChild(el('b', 'arr-n', String(n))); sum.textContent = [...Array(done.size)].map(() => c.cols).join(' + ') + ' = ' + n; sound('tap'); }); grid.appendChild(row); }
       box.append(grid, sum);
-      hint = (lv) => { [...grid.children].forEach((row, r) => { if (lv >= 2 || r === 0) setTimeout(() => row.click(), r * 180); }); if (lv >= 2 && c.eq) setTimeout(() => { sum.textContent = c.eq; }, c.rows * 180 + 50); };
+      hint = () => { box.classList.add('lit'); }; // v2.8.3: no counting done for her, no written sum
     } else if (c.k === 'groups') {
       const gs = el('div', 'mv-groups'); for (let i = 0; i < c.groups; i++) { const g = el('div', 'grp'); g.appendChild(el('span', 'grp-a', c.emoji)); const it = el('span', 'grp-i'); emo(c.item, c.each).forEach((x) => it.appendChild(x)); g.appendChild(it); gs.appendChild(g); }
       const sum = el('p', 'mv-sum', ''); box.append(gs, sum);
-      hint = (lv) => { const g = [...gs.children]; g.forEach((x, i) => { if (lv >= 2 || i === 0) { x.classList.add('on'); if (!x.querySelector('.grp-n')) x.appendChild(el('b', 'grp-n', String(c.each))); } }); if (lv >= 2 && c.eq) sum.textContent = c.eq; else sum.textContent = `Each ${c.emoji} gets ${c.each}.`; };
+      hint = () => { box.classList.add('lit'); }; // v2.8.3: the groups light up; no written walkthrough
     } else if (c.k === 'hundred') {
       const cells = [c.start].concat(c.path); const lo = Math.floor((Math.min(...cells) - 1) / 10), hi = Math.floor((Math.max(...cells) - 1) / 10);
       const ch = el('div', 'mv-hundred'); const at = {};
@@ -2725,23 +2745,14 @@
     } else if (c.k === 'partial' || c.k === 'breakapart' || c.k === 'comp') {
       const blocks = (n) => { const b = el('div', 'b10'); const h = Math.floor(n / 100), t = Math.floor((n % 100) / 10), o = n % 10; for (let i = 0; i < h; i++) b.appendChild(el('i', 'b-h')); for (let i = 0; i < t; i++) b.appendChild(el('i', 'b-t')); const os = el('span', 'b-os'); for (let i = 0; i < o; i++) os.appendChild(el('i', 'b-o')); b.appendChild(os); b.appendChild(el('b', 'b-n', String(n))); return b; };
       const row = el('div', 'mv-b10'); row.append(blocks(c.a1), el('span', 'b-plus', '+'), blocks(c.a2)); box.appendChild(row);
-      const steps = el('p', 'mv-sum', ''); box.appendChild(steps);
-      hint = (lv) => {
-        if (c.k === 'partial') steps.textContent = c.a1 >= 100 ? `${c.a1 - (c.a1 % 10)} + ${c.a2 - (c.a2 % 10)} = ${c.tens}.  ${c.a1 % 10} + ${c.a2 % 10} = ${c.ones}.` : `Tens: ${c.tens}.  Ones: ${c.ones}.` + (lv >= 2 ? `  ${c.tens} + ${c.ones} = ${c.a}` : '');
-        else if (c.k === 'breakapart') steps.textContent = `${c.a2} = ${c.split[0]} + ${c.split[1]}.  ` + (lv >= 2 ? c.steps.join('.  ') : c.steps[0]);
-        else steps.textContent = `${c.a1} + ${c.a2} = ${c.nice[0]} + ${c.nice[1]}` + (lv >= 2 ? ` = ${c.a}` : '');
-        box.classList.add('lit');
-      };
+      hint = () => { box.classList.add('lit'); }; // v2.8.3 (Sue): no "make a ten" steps, written or spoken; the blocks are the picture
     } else if (c.k === 'multi') {
       const row = el('div', 'mv-multi'); c.nums.forEach((n) => row.appendChild(el('span', 'mm', String(n)))); box.appendChild(row);
-      const steps = el('p', 'mv-sum', ''); box.appendChild(steps);
-      const tens = c.nums.reduce((a, n) => a + n - (n % 10), 0), ones = c.nums.reduce((a, n) => a + (n % 10), 0);
-      hint = (lv) => { steps.textContent = `Tens: ${tens}.  Ones: ${ones}.` + (lv >= 2 ? `  ${tens} + ${ones} = ${c.a}` : ''); };
+      hint = () => { box.classList.add('lit'); }; // v2.8.3: no tens/ones walkthrough
     } else if (c.k === 'story') {
       const st = el('div', 'mv-story'); st.appendChild(el('span', 'st-pic', c.emoji || '🦓'));
       const tx = el('div', 'st-text'); (c.text || []).forEach((t) => tx.appendChild(el('p', null, t))); st.appendChild(tx); box.appendChild(st);
-      const eq = el('p', 'mv-sum', ''); box.appendChild(eq);
-      hint = (lv) => { if (!c.eq) return; eq.textContent = lv >= 2 ? c.eq : String(c.eq).replace(/(=\s*)[\d]+$|^(\d+)(?= is)/, (m, a, b) => (a ? a + '?' : '?')); };
+      hint = () => { box.classList.add('lit'); }; // v2.8.3: no written equation walkthrough
     }
     return { el: box, hint };
   }
@@ -2756,7 +2767,7 @@
       if (typed.length < want.length) return;
       if (typed === want) { over = true; disp.classList.add('ok'); onDone(true); }
       else { miss++; disp.classList.remove('shake'); void disp.offsetWidth; disp.classList.add('shake'); typed = ''; setTimeout(show, 450);
-        if (miss >= 2) { over = true; setTimeout(() => { disp.textContent = want; disp.classList.add('ok'); onDone(false); }, 500); } else setFb(fb, `It has ${want.length} digit${want.length > 1 ? 's' : ''}. Look at your answer! 👀`, 'soft'); }
+        if (miss >= 2) { over = true; setTimeout(() => { disp.textContent = want; disp.classList.add('ok'); onDone(false); }, 500); } }
     };
     '1234567890'.split('').concat('⌫').forEach((d) => keys.appendChild(btn('mk' + (d === '⌫' ? ' del' : ''), d, () => press(d))));
     box.append(el('p', 'mpad-t', `Bonus: type it for +1 ${pet().food}`), disp, keys); show();
@@ -2765,29 +2776,40 @@
     return box;
   }
   BUILD.math = (card, sec) => {
+    /* v2.8.3 (Sue: "she should be able to see it"): math is quiet. The problem + a picture model (ten frame, blocks, groups,
+       pairs), one tap to answer, a short written "Yes!" with the cheer sound. The guide never explains a strategy or reads
+       the answer, and nothing peeks in by voice: the only pause help is a soft glow on the right answer after a long pause.
+       Word problems (not even/odd) are still read to her once, and 🔊 Hear it reads the story again (never a strategy).
+       Even or odd: written only, "Is this even or odd?", the objects to look at (she can pair them by tapping), Even / Odd.
+       A miss there = no "wrong", no voice: the pairs make themselves, the answer glows, and the feed moves on. */
     const c = card.spec.c; sec.classList.add('math-card');
-    const { vis, body } = frame(sec, { kicker: `🦓 Zoo Math · ${MATH_KICK[c.k] || ''}${c.boss ? ' · 👑 boss' : ''}` });
+    const { vis, body } = frame(sec, { kicker: `🦓 Zoo Math · ${MATH_KICK[mathEO(c) ? 'evenodd' : c.k] || ''}${c.boss ? ' · 👑 boss' : ''}` });
     vis.classList.add('hab-bg', 'pet-' + (S.chick.kind || 'penguin'), 'math-vis');
-    vis.appendChild(el('span', 'math-badge', c.k === 'story' ? (c.emoji || '🦓') : (c.emoji || '🦓')));
-    const isStory = c.k === 'story';
-    const pip = pipSay(vis, isStory ? c.q : c.say);
-    body.appendChild(el('h2', 'c-title math-q', mathQ(c)));
+    vis.appendChild(el('span', 'math-badge', c.emoji || '🦓'));
+    const eo = mathEO(c), isStory = c.k === 'story' && !eo;
+    const pip = pipSay(vis, isStory ? c.q : '');
+    card.noAutoSay = true; card.quietHelp = true; card.silentHelp = true;
+    if (eo) { card.missMoveOn = 1500; card.fixedOrder = ['Even', 'Odd']; }
+    body.appendChild(el('h2', 'c-title math-q' + (eo ? ' math-eo' : ''), mathQ(c)));
     const V = mathViz(c); body.appendChild(V.el);
-    const tools = el('div', 'math-tools');
-    const hearAll = () => { speakingWrap = pip; sayList([{ text: c.say, word: false }]); };
-    const hb = btn('hear-btn wide', '🔊 Hear it', (e) => { e.stopPropagation(); P.res.hearTaps = (P.res.hearTaps || 0) + 1; hearAll(); }); tools.appendChild(hb);
-    body.appendChild(tools);
-    if (isStory) { card.noAutoSay = true; card.onShow = () => { if (!card._heard && !card.done) { card._heard = true; setTimeout(() => { if (P.cards[P.idx] === card) hearAll(); }, 250); } }; }
+    if (isStory) {
+      const tools = el('div', 'math-tools');
+      const hearAll = () => { speakingWrap = pip; sayList([{ text: c.say, word: false }]); };
+      const hb = btn('hear-btn wide', '🔊 Hear it', (e) => { e.stopPropagation(); P.res.hearTaps = (P.res.hearTaps || 0) + 1; hearAll(); }); tools.appendChild(hb);
+      body.appendChild(tools);
+      card.onShow = () => { if (!card._heard && !card.done) { card._heard = true; setTimeout(() => { if (P.cards[P.idx] === card) hearAll(); }, 250); } };
+    }
     const fb = feedback(body);
     const disp = (o) => (o === 'even' ? 'Even' : o === 'odd' ? 'Odd' : numTxt(o));
     card.answer = disp(c.a);
-    const opts = c.opts.map(disp);
+    // Even / Odd always sit in the same order (Even left, Odd right: card.fixedOrder): one tap, nothing to hunt for.
+    const opts = eo ? [card.answer, card.answer === 'Even' ? 'Odd' : 'Even'] : c.opts.map(disp);
     let misses = 0;
-    const rightLine = () => (c.feedback && c.feedback.right) || (c.eq ? `Yes! ${c.eq} 🎉` : (c.part === 'warm' || card.spec.part === 'warm') ? 'Quick win! 🎉' : praise('first'));
+    const YES = ['Yes! 🎉', 'You got it! 🌟', 'Yes! ✨'];
+    const rightLine = () => (card.spec.part === 'warm' ? 'Quick win! 🎉' : YES[(card.i || 0) % YES.length]);
     const row = choices(body, opts, c.id + P.key, (first, b, info) => {
       V.hint(2);
-      const line = rightLine();
-      setFb(fb, line, 'good'); pip.say(MATH_SPEAK(line), undefined, false);
+      if (info && info.shown) setFb(fb, eo ? '👀' : '', 'soft'); else setFb(fb, rightLine(), 'good'); // written only: no voice
       const fish = c.fish || 1;
       if (first && c.input === 'pickThenType' && typeof c.a === 'number') {
         complete(card, { first: true, type: 'math:' + c.k }, { fish, stay: true });
@@ -2801,18 +2823,15 @@
         clearTimeout(advanceTimer); advanceTimer = setTimeout(function wait() { if (P.cards[P.idx] !== card) return; if (pad.touched()) return; goNext(); }, 5000);
         return;
       }
-      complete(card, { first, type: 'math:' + c.k }, { fish, delay: info && info.shown ? 2400 : 1500 });
+      complete(card, { first, type: 'math:' + c.k }, { fish, delay: info && info.shown ? (eo ? 1800 : 2400) : 1500 });
     }, () => {
       misses++;
-      V.hint(misses);
-      const h = misses === 1 ? ((c.feedback && c.feedback.wrong) || c.hint || 'Look at the picture. It can help!') : `The answer is ${card.answer}.`;
-      setFb(fb, h + (misses === 1 ? ' 💡' : ''), 'soft'); pip.say(misses === 1 ? h : `Here it is! ${card.answer}.`, 'oops');
+      V.hint(misses); // the picture helps (pairs, lit blocks, hops); no hint text, no voice
+      if (!eo) pip.pose('oops');
     }, typeof c.a === 'string' ? 'words two' : 'nums');
+    if (eo) row.classList.add('eo-row');
     body.insertBefore(row, fb);
     card.help = ((h) => () => { h && h(); V.hint(1); })(card.help);
-    onIdle(() => V.hint(1), PAUSE_1, { quiet: true });
-    // v2.8: even or odd = one tap. The buddy pairs make themselves (no "tap two at a time" step); a lone one stands out.
-    if (c.k === 'evenodd') { const before = card.onShow; card.onShow = () => { if (before) before(); if (!card._paired) { card._paired = true; setTimeout(() => { if (P.cards[P.idx] === card) V.hint(1); }, 900); } }; }
   };
 
   /* ---------------- end of session + level rules ----------------
@@ -3060,6 +3079,7 @@
     if (c.help) c.help();
     (c.idle || []).forEach((x) => x.fn());
     const helpSpoke = voiceBusy() && sayToken !== busy0; // the clue started its own audio: keep it, show the line as a caption
+    if (c.silentHelp) return; // v2.8.3 math: help is visual only, never a voice line
     if (c.pip) { c.pip.say(c.pip.text || 'Here is a clue! 💡', null, helpSpoke); }
   }
   function showScreen(id) {
@@ -3635,7 +3655,7 @@
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
       const wid = (() => { try { return ':' + currentWeek().id; } catch (_) { return ''; } })();
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.2' + wid) return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.3' + wid) return;
       // v2.8: five weeks of clips (~21 MB) would be a lot to fetch at once, so warm this week's words (+ names and other
       // words no week uses); another week's clips are fetched when it starts (and cached as they play).
       let list;
@@ -3644,7 +3664,7 @@
         list = [...new Set(Object.keys(AUD).filter((k) => { const b = k.replace(/^slow:/, ''); return cur.includes(b) || !all.some((t) => t.includes(b)); }).map((k) => AUD[k]))];
       } catch (_) { list = [...new Set(Object.values(AUD))]; }
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.8.2' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
+      try { localStorage.setItem('pipsAudioWarm', 'v2.8.3' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

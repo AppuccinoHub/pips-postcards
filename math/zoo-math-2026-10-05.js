@@ -25,7 +25,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "7 + 8 = ?",
      "say": "What is 7 plus 8?",
      "a": 15,
-     "hint": "Think 7 + 7, then 1 more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -46,7 +45,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "7 + 12 = ?",
      "say": "What is 7 plus 12?",
      "a": 19,
-     "hint": "Start with the bigger number and count on.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -67,7 +65,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "12 - 2 = ?",
      "say": "What is 12 minus 2?",
      "a": 10,
-     "hint": "Take away the ones. Ten is left.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -94,7 +91,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 2,
      "emoji": "🦓",
      "eq": "2 + 2 + 2 = 6",
-     "hint": "Add one row at a time.",
      "opts": [
       6,
       7,
@@ -116,7 +112,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 4,
      "emoji": "🐘",
      "eq": "4 + 4 = 8",
-     "hint": "Add one row at a time.",
      "opts": [
       8,
       9,
@@ -153,8 +148,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "17 turtles find a buddy. Is 17 even or odd?",
-     "say": "17 turtles find a buddy. Is anyone left over? Is 17 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "odd",
      "n": 17,
      "emoji": "🐢",
@@ -163,10 +158,6 @@ window.PIP_MATH['2026-10-05'] = {
       "even"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "One turtle is left over. Odd!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -181,7 +172,6 @@ window.PIP_MATH['2026-10-05'] = {
      "n": 16,
      "emoji": "🐸",
      "eq": "16 = 8 + 8",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       8,
       9,
@@ -226,7 +216,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 40 on the hundred chart. Add 22.",
-     "say": "Start at 40. Add 22. Hop down for tens, then right for ones.",
+     "say": "Start at 40. Add 22.",
      "a": 62,
      "start": 40,
      "plus": 22,
@@ -236,7 +226,6 @@ window.PIP_MATH['2026-10-05'] = {
       61,
       62
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       62,
       64,
@@ -251,8 +240,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "27 + 14 = ? Jump on the number line.",
-     "say": "What is 27 plus 14? Make jumps on the number line.",
+     "prompt": "27 + 14 = ?",
+     "say": "What is 27 plus 14?",
      "a": 41,
      "start": 27,
      "jumps": [
@@ -260,7 +249,6 @@ window.PIP_MATH['2026-10-05'] = {
       4
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       41,
       43,
@@ -275,8 +263,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "39 + 28 = ? Jump on the number line.",
-     "say": "What is 39 plus 28? Make jumps on the number line.",
+     "prompt": "39 + 28 = ?",
+     "say": "What is 39 plus 28?",
      "a": 67,
      "start": 39,
      "jumps": [
@@ -285,7 +273,6 @@ window.PIP_MATH['2026-10-05'] = {
       8
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       67,
       69,
@@ -380,7 +367,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 9,
      "emoji": "🐢",
      "eq": "9 × 9 = 81",
-     "hint": "Add one row at a time.",
      "opts": [
       81,
       91,
@@ -435,7 +421,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "7 + 3 = ?",
      "say": "What is 7 plus 3?",
      "a": 10,
-     "hint": "These two make 10!",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -456,7 +441,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "4 + 5 = ?",
      "say": "What is 4 plus 5?",
      "a": 9,
-     "hint": "Think 4 + 4, then 1 more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -477,7 +461,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "7 + 7 = ?",
      "say": "What is 7 plus 7?",
      "a": 14,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -548,7 +531,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 5,
      "emoji": "🦇",
      "eq": "5 + 5 = 10",
-     "hint": "Add one row at a time.",
      "opts": [
       10,
       11,
@@ -589,8 +571,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "6 giraffes find a buddy. Is 6 even or odd?",
-     "say": "6 giraffes find a buddy. Is anyone left over? Is 6 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "even",
      "n": 6,
      "emoji": "🦒",
@@ -599,10 +581,6 @@ window.PIP_MATH['2026-10-05'] = {
       "odd"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "Every giraffe has a buddy. Even!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -641,7 +619,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 33 on the hundred chart. Add 24.",
-     "say": "Start at 33. Add 24. Hop down for tens, then right for ones.",
+     "say": "Start at 33. Add 24.",
      "a": 57,
      "start": 33,
      "plus": 24,
@@ -653,7 +631,6 @@ window.PIP_MATH['2026-10-05'] = {
       56,
       57
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       57,
       67,
@@ -668,8 +645,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "32 + 27 = ? Jump on the number line.",
-     "say": "What is 32 plus 27? Make jumps on the number line.",
+     "prompt": "32 + 27 = ?",
+     "say": "What is 32 plus 27?",
      "a": 59,
      "start": 32,
      "jumps": [
@@ -678,7 +655,6 @@ window.PIP_MATH['2026-10-05'] = {
       7
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       59,
       61,
@@ -693,8 +669,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "32 + 18 = ? Jump on the number line.",
-     "say": "What is 32 plus 18? Make jumps on the number line.",
+     "prompt": "32 + 18 = ?",
+     "say": "What is 32 plus 18?",
      "a": 50,
      "start": 32,
      "jumps": [
@@ -702,7 +678,6 @@ window.PIP_MATH['2026-10-05'] = {
       8
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       50,
       52,
@@ -797,7 +772,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 8,
      "emoji": "🐢",
      "eq": "7 × 8 = 56",
-     "hint": "Add one row at a time.",
      "opts": [
       56,
       46,
@@ -852,7 +826,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "9 + 10 = ?",
      "say": "What is 9 plus 10?",
      "a": 19,
-     "hint": "Start with the bigger number and count on.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -873,7 +846,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "2 + 8 = ?",
      "say": "What is 2 plus 8?",
      "a": 10,
-     "hint": "These two make 10!",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -894,7 +866,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "7 + 7 = ?",
      "say": "What is 7 plus 7?",
      "a": 14,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -914,8 +885,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "15 elephants find a buddy. Is 15 even or odd?",
-     "say": "15 elephants find a buddy. Is anyone left over? Is 15 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "odd",
      "n": 15,
      "emoji": "🐘",
@@ -924,10 +895,6 @@ window.PIP_MATH['2026-10-05'] = {
       "even"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "One elephant is left over. Odd!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -943,7 +910,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 2,
      "emoji": "🦇",
      "eq": "2 + 2 + 2 + 2 = 8",
-     "hint": "Add one row at a time.",
      "opts": [
       8,
       9,
@@ -964,7 +930,6 @@ window.PIP_MATH['2026-10-05'] = {
      "n": 20,
      "emoji": "🦦",
      "eq": "20 = 10 + 10",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       10,
       8,
@@ -1057,7 +1022,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 37 on the hundred chart. Add 35.",
-     "say": "Start at 37. Add 35. Hop down for tens, then right for ones.",
+     "say": "Start at 37. Add 35.",
      "a": 72,
      "start": 37,
      "plus": 35,
@@ -1071,7 +1036,6 @@ window.PIP_MATH['2026-10-05'] = {
       71,
       72
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       72,
       62,
@@ -1086,8 +1050,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "29 + 17 = ? Jump on the number line.",
-     "say": "What is 29 plus 17? Make jumps on the number line.",
+     "prompt": "29 + 17 = ?",
+     "say": "What is 29 plus 17?",
      "a": 46,
      "start": 29,
      "jumps": [
@@ -1095,7 +1059,6 @@ window.PIP_MATH['2026-10-05'] = {
       7
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       46,
       36,
@@ -1110,8 +1073,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "47 + 25 = ? Jump on the number line.",
-     "say": "What is 47 plus 25? Make jumps on the number line.",
+     "prompt": "47 + 25 = ?",
+     "say": "What is 47 plus 25?",
      "a": 72,
      "start": 47,
      "jumps": [
@@ -1120,7 +1083,6 @@ window.PIP_MATH['2026-10-05'] = {
       5
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       72,
       74,
@@ -1215,7 +1177,6 @@ window.PIP_MATH['2026-10-05'] = {
      "cols": 5,
      "emoji": "🦒",
      "eq": "6 × 5 = 30",
-     "hint": "Add one row at a time.",
      "opts": [
       30,
       20,
@@ -1270,7 +1231,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "10 + 1 = ?",
      "say": "What is 10 plus 1?",
      "a": 11,
-     "hint": "Ten and some more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1291,7 +1251,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "14 - 4 = ?",
      "say": "What is 14 minus 4?",
      "a": 10,
-     "hint": "Take away the ones. Ten is left.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1312,7 +1271,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "9 + 9 = ?",
      "say": "What is 9 plus 9?",
      "a": 18,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1333,7 +1291,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 33 on the hundred chart. Add 25.",
-     "say": "Start at 33. Add 25. Hop down for tens, then right for ones.",
+     "say": "Start at 33. Add 25.",
      "a": 58,
      "start": 33,
      "plus": 25,
@@ -1346,7 +1304,6 @@ window.PIP_MATH['2026-10-05'] = {
       57,
       58
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       58,
       59,
@@ -1362,7 +1319,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 18 on the hundred chart. Add 11.",
-     "say": "Start at 18. Add 11. Hop down for tens, then right for ones.",
+     "say": "Start at 18. Add 11.",
      "a": 29,
      "start": 18,
      "plus": 11,
@@ -1370,7 +1327,6 @@ window.PIP_MATH['2026-10-05'] = {
       28,
       29
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       29,
       27,
@@ -1386,14 +1342,13 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 38 on the hundred chart. Add 10.",
-     "say": "Start at 38. Add 10. Hop down for tens, then right for ones.",
+     "say": "Start at 38. Add 10.",
      "a": 48,
      "start": 38,
      "plus": 10,
      "path": [
       48
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       48,
       50,
@@ -1435,7 +1390,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 18 on the hundred chart. Add 14.",
-     "say": "Start at 18. Add 14. Hop down for tens, then right for ones.",
+     "say": "Start at 18. Add 14.",
      "a": 32,
      "start": 18,
      "plus": 14,
@@ -1446,7 +1401,6 @@ window.PIP_MATH['2026-10-05'] = {
       31,
       32
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       32,
       34,
@@ -1490,15 +1444,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 4,
      "std": "2.NBT.B.6",
-     "prompt": "67 + 23 = ? Add tens, add ones, then put them together.",
-     "say": "What is 67 plus 23? Add the tens. Add the ones. Then put them together.",
+     "prompt": "67 + 23 = ?",
+     "say": "What is 67 plus 23?",
      "a": 90,
      "a1": 67,
      "a2": 23,
      "tens": 80,
      "ones": 10,
      "regroup": true,
-     "hint": "Tens: 80. Ones: 10. 10 ones make a new ten!",
      "opts": [
       90,
       80,
@@ -1513,15 +1466,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 4,
      "std": "2.NBT.B.6",
-     "prompt": "54 + 29 = ? Add tens, add ones, then put them together.",
-     "say": "What is 54 plus 29? Add the tens. Add the ones. Then put them together.",
+     "prompt": "54 + 29 = ?",
+     "say": "What is 54 plus 29?",
      "a": 83,
      "a1": 54,
      "a2": 29,
      "tens": 70,
      "ones": 13,
      "regroup": true,
-     "hint": "Tens: 70. Ones: 13. 10 ones make a new ten!",
      "opts": [
       83,
       85,
@@ -1537,14 +1489,13 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 4,
      "std": "2.NBT.B.6",
      "prompt": "34 + 19 + 35 = ?",
-     "say": "Add 34, 19, and 35. Look for two that are easy to add first.",
+     "say": "Add 34, 19, and 35.",
      "a": 88,
      "nums": [
       34,
       19,
       35
      ],
-     "hint": "Add the tens, then the ones.",
      "opts": [
       88,
       89,
@@ -1589,15 +1540,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "space",
      "topic": "G3",
      "std": "3.NBT.A.2",
-     "prompt": "394 + 351 = ? Hundreds, tens, ones.",
-     "say": "What is 394 plus 351? Add hundreds, then tens, then ones.",
+     "prompt": "394 + 351 = ?",
+     "say": "What is 394 plus 351?",
      "a": 745,
      "a1": 394,
      "a2": 351,
      "tens": 740,
      "ones": 5,
      "regroup": false,
-     "hint": "Line up hundreds, tens, and ones.",
      "opts": [
       745,
       735,
@@ -1612,15 +1562,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "space",
      "topic": "G3",
      "std": "3.NBT.A.2",
-     "prompt": "318 + 397 = ? Hundreds, tens, ones.",
-     "say": "What is 318 plus 397? Add hundreds, then tens, then ones.",
+     "prompt": "318 + 397 = ?",
+     "say": "What is 318 plus 397?",
      "a": 715,
      "a1": 318,
      "a2": 397,
      "tens": 700,
      "ones": 15,
      "regroup": true,
-     "hint": "Line up hundreds, tens, and ones.",
      "opts": [
       715,
       714,
@@ -1636,14 +1585,13 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": "G3",
      "std": "3.NBT.A.2",
      "prompt": "780 - 661 = ?",
-     "say": "What is 780 minus 661? Jump back on the number line.",
+     "say": "What is 780 minus 661?",
      "a": 119,
      "start": 780,
      "jumps": [
       661
      ],
      "dir": -1,
-     "hint": "Take away hundreds, then tens, then ones.",
      "opts": [
       119,
       117,
@@ -1698,7 +1646,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "10 + 5 = ?",
      "say": "What is 10 plus 5?",
      "a": 15,
-     "hint": "Ten and some more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1719,7 +1666,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "4 + 5 = ?",
      "say": "What is 4 plus 5?",
      "a": 9,
-     "hint": "Think 4 + 4, then 1 more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1740,7 +1686,6 @@ window.PIP_MATH['2026-10-05'] = {
      "prompt": "17 - 7 = ?",
      "say": "What is 17 minus 7?",
      "a": 10,
-     "hint": "Take away the ones. Ten is left.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1761,7 +1706,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 24 on the hundred chart. Add 11.",
-     "say": "Start at 24. Add 11. Hop down for tens, then right for ones.",
+     "say": "Start at 24. Add 11.",
      "a": 35,
      "start": 24,
      "plus": 11,
@@ -1769,7 +1714,6 @@ window.PIP_MATH['2026-10-05'] = {
       34,
       35
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       35,
       33,
@@ -1785,7 +1729,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 15 on the hundred chart. Add 23.",
-     "say": "Start at 15. Add 23. Hop down for tens, then right for ones.",
+     "say": "Start at 15. Add 23.",
      "a": 38,
      "start": 15,
      "plus": 23,
@@ -1796,7 +1740,6 @@ window.PIP_MATH['2026-10-05'] = {
       37,
       38
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       38,
       28,
@@ -1811,8 +1754,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "ground",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "47 + 28 = ? Jump on the number line.",
-     "say": "What is 47 plus 28? Make jumps on the number line.",
+     "prompt": "47 + 28 = ?",
+     "say": "What is 47 plus 28?",
      "a": 75,
      "start": 47,
      "jumps": [
@@ -1821,7 +1764,6 @@ window.PIP_MATH['2026-10-05'] = {
       8
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       75,
       74,
@@ -1837,7 +1779,7 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 3,
      "std": "2.NBT.B.5",
      "prompt": "Start at 15 on the hundred chart. Add 30.",
-     "say": "Start at 15. Add 30. Hop down for tens, then right for ones.",
+     "say": "Start at 15. Add 30.",
      "a": 45,
      "start": 15,
      "plus": 30,
@@ -1846,7 +1788,6 @@ window.PIP_MATH['2026-10-05'] = {
       35,
       45
      ],
-     "hint": "Down one row = 10 more. Right one box = 1 more.",
      "opts": [
       45,
       55,
@@ -1861,8 +1802,8 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "ground",
      "topic": 3,
      "std": "2.NBT.B.5",
-     "prompt": "26 + 13 = ? Jump on the number line.",
-     "say": "What is 26 plus 13? Make jumps on the number line.",
+     "prompt": "26 + 13 = ?",
+     "say": "What is 26 plus 13?",
      "a": 39,
      "start": 26,
      "jumps": [
@@ -1870,7 +1811,6 @@ window.PIP_MATH['2026-10-05'] = {
       3
      ],
      "dir": 1,
-     "hint": "Jump the tens first, then the ones.",
      "opts": [
       39,
       40,
@@ -1914,15 +1854,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 4,
      "std": "2.NBT.B.6",
-     "prompt": "25 + 25 = ? Add tens, add ones, then put them together.",
-     "say": "What is 25 plus 25? Add the tens. Add the ones. Then put them together.",
+     "prompt": "25 + 25 = ?",
+     "say": "What is 25 plus 25?",
      "a": 50,
      "a1": 25,
      "a2": 25,
      "tens": 40,
      "ones": 10,
      "regroup": true,
-     "hint": "Tens: 40. Ones: 10. 10 ones make a new ten!",
      "opts": [
       50,
       52,
@@ -1937,15 +1876,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "sky",
      "topic": 4,
      "std": "2.NBT.B.6",
-     "prompt": "46 + 39 = ? Add tens, add ones, then put them together.",
-     "say": "What is 46 plus 39? Add the tens. Add the ones. Then put them together.",
+     "prompt": "46 + 39 = ?",
+     "say": "What is 46 plus 39?",
      "a": 85,
      "a1": 46,
      "a2": 39,
      "tens": 70,
      "ones": 15,
      "regroup": true,
-     "hint": "Tens: 70. Ones: 15. 10 ones make a new ten!",
      "opts": [
       85,
       95,
@@ -1961,14 +1899,13 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": 4,
      "std": "2.NBT.B.6",
      "prompt": "13 + 15 + 18 = ?",
-     "say": "Add 13, 15, and 18. Look for two that are easy to add first.",
+     "say": "Add 13, 15, and 18.",
      "a": 46,
      "nums": [
       13,
       15,
       18
      ],
-     "hint": "Add the tens, then the ones.",
      "opts": [
       46,
       48,
@@ -2013,15 +1950,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "space",
      "topic": "G3",
      "std": "3.NBT.A.2",
-     "prompt": "432 + 171 = ? Hundreds, tens, ones.",
-     "say": "What is 432 plus 171? Add hundreds, then tens, then ones.",
+     "prompt": "432 + 171 = ?",
+     "say": "What is 432 plus 171?",
      "a": 603,
      "a1": 432,
      "a2": 171,
      "tens": 600,
      "ones": 3,
      "regroup": false,
-     "hint": "Line up hundreds, tens, and ones.",
      "opts": [
       603,
       593,
@@ -2036,15 +1972,14 @@ window.PIP_MATH['2026-10-05'] = {
      "level": "space",
      "topic": "G3",
      "std": "3.NBT.A.2",
-     "prompt": "325 + 182 = ? Hundreds, tens, ones.",
-     "say": "What is 325 plus 182? Add hundreds, then tens, then ones.",
+     "prompt": "325 + 182 = ?",
+     "say": "What is 325 plus 182?",
      "a": 507,
      "a1": 325,
      "a2": 182,
      "tens": 500,
      "ones": 7,
      "regroup": false,
-     "hint": "Line up hundreds, tens, and ones.",
      "opts": [
       507,
       505,
@@ -2060,14 +1995,13 @@ window.PIP_MATH['2026-10-05'] = {
      "topic": "G3",
      "std": "3.NBT.A.2",
      "prompt": "882 - 779 = ?",
-     "say": "What is 882 minus 779? Jump back on the number line.",
+     "say": "What is 882 minus 779?",
      "a": 103,
      "start": 882,
      "jumps": [
       779
      ],
      "dir": -1,
-     "hint": "Take away hundreds, then tens, then ones.",
      "opts": [
       103,
       113,

@@ -25,7 +25,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "3 + 7 = ?",
      "say": "What is 3 plus 7?",
      "a": 10,
-     "hint": "These two make 10!",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -46,7 +45,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "8 + 9 = ?",
      "say": "What is 8 plus 9?",
      "a": 17,
-     "hint": "Think 8 + 8, then 1 more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -67,7 +65,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "10 + 9 = ?",
      "say": "What is 10 plus 9?",
      "a": 19,
-     "hint": "Ten and some more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -87,8 +84,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "6 bats find a buddy. Is 6 even or odd?",
-     "say": "6 bats find a buddy. Is anyone left over? Is 6 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "even",
      "n": 6,
      "emoji": "🦇",
@@ -97,10 +94,6 @@ window.PIP_MATH['2026-09-28'] = {
       "odd"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "Every bat has a buddy. Even!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -109,8 +102,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "9 flamingos find a buddy. Is 9 even or odd?",
-     "say": "9 flamingos find a buddy. Is anyone left over? Is 9 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "odd",
      "n": 9,
      "emoji": "🦩",
@@ -119,10 +112,6 @@ window.PIP_MATH['2026-09-28'] = {
       "even"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "One flamingo is left over. Odd!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -131,8 +120,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "10 seals find a buddy. Is 10 even or odd?",
-     "say": "10 seals find a buddy. Is anyone left over? Is 10 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "even",
      "n": 10,
      "emoji": "🦭",
@@ -141,10 +130,6 @@ window.PIP_MATH['2026-09-28'] = {
       "odd"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "Every seal has a buddy. Even!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -153,8 +138,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "10 monkeys find a buddy. Is 10 even or odd?",
-     "say": "10 monkeys find a buddy. Is anyone left over? Is 10 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "even",
      "n": 10,
      "emoji": "🐒",
@@ -163,10 +148,6 @@ window.PIP_MATH['2026-09-28'] = {
       "odd"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "Every monkey has a buddy. Even!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -237,7 +218,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 3,
      "emoji": "🦩",
      "eq": "3 + 3 + 3 = 9",
-     "hint": "Add one row at a time.",
      "opts": [
       9,
       7,
@@ -259,7 +239,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 2,
      "emoji": "🦩",
      "eq": "2 + 2 + 2 + 2 = 8",
-     "hint": "Add one row at a time.",
      "opts": [
       8,
       7,
@@ -376,7 +355,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 8,
      "emoji": "🦩",
      "eq": "7 × 8 = 56",
-     "hint": "Add one row at a time.",
      "opts": [
       56,
       55,
@@ -430,7 +408,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "9 + 9 = ?",
      "say": "What is 9 plus 9?",
      "a": 18,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -451,7 +428,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "5 + 6 = ?",
      "say": "What is 5 plus 6?",
      "a": 11,
-     "hint": "Start with the bigger number and count on.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -472,7 +448,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "9 + 1 = ?",
      "say": "What is 9 plus 1?",
      "a": 10,
-     "hint": "These two make 10!",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -570,8 +545,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "13 seals find a buddy. Is 13 even or odd?",
-     "say": "13 seals find a buddy. Is anyone left over? Is 13 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "odd",
      "n": 13,
      "emoji": "🦭",
@@ -580,10 +555,6 @@ window.PIP_MATH['2026-09-28'] = {
       "even"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "One seal is left over. Odd!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -654,7 +625,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 4,
      "emoji": "🐸",
      "eq": "4 + 4 + 4 + 4 = 16",
-     "hint": "Add one row at a time.",
      "opts": [
       16,
       17,
@@ -676,7 +646,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 3,
      "emoji": "🦒",
      "eq": "3 + 3 + 3 + 3 + 3 = 15",
-     "hint": "Add one row at a time.",
      "opts": [
       15,
       17,
@@ -793,7 +762,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 2,
      "emoji": "🦦",
      "eq": "9 × 2 = 18",
-     "hint": "Add one row at a time.",
      "opts": [
       18,
       16,
@@ -847,7 +815,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "15 - 5 = ?",
      "say": "What is 15 minus 5?",
      "a": 10,
-     "hint": "Take away the ones. Ten is left.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -868,7 +835,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "7 + 3 = ?",
      "say": "What is 7 plus 3?",
      "a": 10,
-     "hint": "These two make 10!",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -889,7 +855,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "8 + 8 = ?",
      "say": "What is 8 plus 8?",
      "a": 16,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -915,7 +880,6 @@ window.PIP_MATH['2026-09-28'] = {
      "n": 14,
      "emoji": "🦦",
      "eq": "14 = 7 + 7",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       7,
       9,
@@ -936,7 +900,6 @@ window.PIP_MATH['2026-09-28'] = {
      "n": 18,
      "emoji": "🦒",
      "eq": "18 = 9 + 9",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       9,
       11,
@@ -951,8 +914,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "11 otters find a buddy. Is 11 even or odd?",
-     "say": "11 otters find a buddy. Is anyone left over? Is 11 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "odd",
      "n": 11,
      "emoji": "🦦",
@@ -961,10 +924,6 @@ window.PIP_MATH['2026-09-28'] = {
       "even"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "One otter is left over. Odd!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -979,7 +938,6 @@ window.PIP_MATH['2026-09-28'] = {
      "n": 12,
      "emoji": "🐧",
      "eq": "12 = 6 + 6",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       6,
       4,
@@ -994,8 +952,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "11 otters find a buddy. Is 11 even or odd?",
-     "say": "11 otters find a buddy. Is anyone left over? Is 11 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "odd",
      "n": 11,
      "emoji": "🦦",
@@ -1004,10 +962,6 @@ window.PIP_MATH['2026-09-28'] = {
       "even"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "One otter is left over. Odd!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -1052,7 +1006,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 5,
      "emoji": "🦩",
      "eq": "5 + 5 + 5 + 5 + 5 = 25",
-     "hint": "Add one row at a time.",
      "opts": [
       25,
       15,
@@ -1074,7 +1027,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 4,
      "emoji": "🦭",
      "eq": "4 + 4 + 4 + 4 = 16",
-     "hint": "Add one row at a time.",
      "opts": [
       16,
       17,
@@ -1191,7 +1143,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 4,
      "emoji": "🦭",
      "eq": "9 × 4 = 36",
-     "hint": "Add one row at a time.",
      "opts": [
       36,
       37,
@@ -1245,7 +1196,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "5 + 5 = ?",
      "say": "What is 5 plus 5?",
      "a": 10,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1266,7 +1216,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "3 + 7 = ?",
      "say": "What is 3 plus 7?",
      "a": 10,
-     "hint": "Start with the bigger number and count on.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1287,7 +1236,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "4 + 5 = ?",
      "say": "What is 4 plus 5?",
      "a": 9,
-     "hint": "Think 4 + 4, then 1 more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1314,7 +1262,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 2,
      "emoji": "🐧",
      "eq": "2 + 2 = 4",
-     "hint": "Add one row at a time.",
      "opts": [
       4,
       2,
@@ -1336,7 +1283,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 3,
      "emoji": "🐒",
      "eq": "3 + 3 = 6",
-     "hint": "Add one row at a time.",
      "opts": [
       6,
       4,
@@ -1383,7 +1329,6 @@ window.PIP_MATH['2026-09-28'] = {
      "n": 18,
      "emoji": "🐧",
      "eq": "18 = 9 + 9",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       9,
       8,
@@ -1398,8 +1343,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "14 turtles find a buddy. Is 14 even or odd?",
-     "say": "14 turtles find a buddy. Is anyone left over? Is 14 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "even",
      "n": 14,
      "emoji": "🐢",
@@ -1408,10 +1353,6 @@ window.PIP_MATH['2026-09-28'] = {
       "odd"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "Every turtle has a buddy. Even!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -1456,7 +1397,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 3,
      "emoji": "🦓",
      "eq": "3 + 3 + 3 + 3 = 12",
-     "hint": "Add one row at a time.",
      "opts": [
       12,
       14,
@@ -1478,7 +1418,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 2,
      "emoji": "🦒",
      "eq": "2 + 2 + 2 + 2 + 2 = 10",
-     "hint": "Add one row at a time.",
      "opts": [
       10,
       9,
@@ -1595,7 +1534,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 4,
      "emoji": "🦒",
      "eq": "8 × 4 = 32",
-     "hint": "Add one row at a time.",
      "opts": [
       32,
       34,
@@ -1649,7 +1587,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "7 + 7 = ?",
      "say": "What is 7 plus 7?",
      "a": 14,
-     "hint": "Doubles! Same number twice.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1670,7 +1607,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "10 + 4 = ?",
      "say": "What is 10 plus 4?",
      "a": 14,
-     "hint": "Ten and some more.",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1691,7 +1627,6 @@ window.PIP_MATH['2026-09-28'] = {
      "prompt": "4 + 6 = ?",
      "say": "What is 4 plus 6?",
      "a": 10,
-     "hint": "These two make 10!",
      "easy": true,
      "noTimer": true,
      "input": "pick",
@@ -1711,8 +1646,8 @@ window.PIP_MATH['2026-09-28'] = {
      "level": "ground",
      "topic": 2,
      "std": "2.OA.C.3",
-     "prompt": "8 penguins find a buddy. Is 8 even or odd?",
-     "say": "8 penguins find a buddy. Is anyone left over? Is 8 even or odd?",
+     "prompt": "Is this even or odd?",
+     "say": "Is this even or odd?",
      "a": "even",
      "n": 8,
      "emoji": "🐧",
@@ -1721,10 +1656,6 @@ window.PIP_MATH['2026-09-28'] = {
       "odd"
      ],
      "input": "pick",
-     "feedback": {
-      "right": "Every penguin has a buddy. Even!",
-      "wrong": "Look! Is one left alone? Then it is odd."
-     },
      "fish": 1
     },
     {
@@ -1739,7 +1670,6 @@ window.PIP_MATH['2026-09-28'] = {
      "n": 20,
      "emoji": "🦓",
      "eq": "20 = 10 + 10",
-     "hint": "Even numbers split into two same parts.",
      "opts": [
       10,
       11,
@@ -1761,7 +1691,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 5,
      "emoji": "🐢",
      "eq": "5 + 5 = 10",
-     "hint": "Add one row at a time.",
      "opts": [
       10,
       12,
@@ -1809,7 +1738,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 2,
      "emoji": "🐧",
      "eq": "2 + 2 = 4",
-     "hint": "Add one row at a time.",
      "opts": [
       4,
       3,
@@ -1860,7 +1788,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 5,
      "emoji": "🦊",
      "eq": "5 + 5 + 5 + 5 + 5 = 25",
-     "hint": "Add one row at a time.",
      "opts": [
       25,
       27,
@@ -1882,7 +1809,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 2,
      "emoji": "🦊",
      "eq": "2 + 2 = 4",
-     "hint": "Add one row at a time.",
      "opts": [
       4,
       6,
@@ -1999,7 +1925,6 @@ window.PIP_MATH['2026-09-28'] = {
      "cols": 5,
      "emoji": "🐢",
      "eq": "7 × 5 = 35",
-     "hint": "Add one row at a time.",
      "opts": [
       35,
       45,
