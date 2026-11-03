@@ -1,6 +1,6 @@
 # Pip's Postcards
 
-**[▶ Play online](https)** — open the live app in your browser.
+**[▶ Play online](https://appuccinohub.github.io/pips-postcards/)** — open the live app in your browser.
 
 
 A reading and spelling game for a 2nd grader. Her guide (she picks one on the first screen: pigeon, puffin, penguin explorer, sea otter, fox mail carrier or sea turtle, always a girl, and types its name) mails a postcard from a new animal habitat every day. She cracks a word code (the week's phonics and spelling), reads the postcard silently in small bites (each bite gets a picture check), answers Pip's question by tapping the sentence that proves it, gives Pip advice, reads the postcard out loud like a radio host, and feeds the baby animal she is raising.
