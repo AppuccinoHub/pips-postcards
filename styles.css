@@ -1063,3 +1063,9 @@ html.theme-dark { --green-d: #86dc8d; }
 .mviz.lit .arr-row { background: #fff7d6; }
 .mviz.lit .grp { border-color: #2f9e5b; background: #eefaf1; }
 .mviz.lit .b10, .mviz.lit .mm { border-color: #2f9e5b; box-shadow: 0 0 0 3px #bfe8cc; }
+
+/* v2.8.4: small tap-to-hear button inside a question line */
+.hear-mini { min-width: 44px; min-height: 44px; margin-left: 4px; padding: 0 10px; border-radius: 999px; background: #fff; border: 2px solid #d8e8f0; font-size: 1.05rem; vertical-align: middle; color: var(--teal-d); }
+.theme-dark .hear-mini { background: #2a3244; color: var(--ink); border-color: #465270; }
+.theme-dim .hear-mini { background-color: #f5ead3; }
+.is-done .hear-mini { opacity: 1; pointer-events: auto; }

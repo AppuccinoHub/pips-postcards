@@ -264,7 +264,7 @@
     right: 0.21, notyet: 0.11, food: 0.11, grow: 0.27, fanfare: 0.27, plink: 0.18,
     j_start: 0.24, j_grow: 0.27, j_day: 0.26, j_level: 0.27 }; // jingles (v2.5.1): session start, baby grows, day finished, level up
   const SFX_ALIAS = { ok: 'right', wrong: 'notyet', fish: 'food' };
-  const SFX_VER = '2.8.3';
+  const SFX_VER = '2.8.4';
   const sfx = { ctx: null, bus: null, raw: {}, buf: {}, pool: {}, last: {}, duck: false };
   const sfxAllowed = () => S.sfxOn !== false && !S.muted && vol() > 0;
   function sfxFetch() { Object.keys(SFX).forEach((k) => { if (!sfx.raw[k]) sfx.raw[k] = fetch('sfx/' + k + '.mp3?v=' + SFX_VER).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }); }
@@ -360,7 +360,8 @@
   function capMode(w) { if (!w || !w.classList) return; w.classList.toggle('cap-off', !w.classList.contains('content') && !capsShown()); if (w.fit) w.fit(); }
   function capsRefresh() { document.querySelectorAll('.pip-wrap, .guide-intro').forEach(capMode); }
   function voiceFailed() { voiceFails++; if (speakingWrap) { speakingWrap.classList.add('cap-fail'); if (speakingWrap.fit) speakingWrap.fit(); } if (voiceFails === 2) capsRefresh(); }
-  function voiceWorked() { if (voiceFails >= 2) { voiceFails = 0; capsRefresh(); } voiceFails = 0; }
+  function voiceWorked() { lastWorked = Date.now(); if (voiceFails >= 2) { voiceFails = 0; capsRefresh(); } voiceFails = 0; }
+  let lastWorked = 0, lastSayAt = 0; // v2.8.4: when a voice last really started / when the last one was asked for
   const AUD = window.PIP_AUDIO || {};
   const LINES = window.PIP_LINES || {};
   const lineKey = (s) => String(s).toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/'(?![a-z])|(^|\s)'/g, ' ').replace(/\s+/g, ' ').trim();
@@ -452,13 +453,17 @@
   }
   /* true while a spoken list (or its pauses) is still going, or any voice is audible */
   function voiceBusy() { return (listRunning && listTok === sayToken) || voiceActive(); }
-  function playEl(src, rate, alive, fin, setGuard) {
+  function playEl(src, rate, alive, fin, setGuard, retry) {
     const a = new Audio(); a.preload = 'auto'; a.src = src; routeVoice(a); a.playbackRate = rate; try { a.preservesPitch = true; a.webkitPreservesPitch = true; } catch (_) {}
     curAudio = a; let started = false;
-    setGuard(setTimeout(() => { if (!started) { if (window.__voiceStall) window.__voiceStall.push(src); voiceFailed(); fin(); } }, START_MS));
+    // v2.8.4: a clip that never started (iOS pending play(), blocked, load error) is released at once: it no longer counts as
+    // "voice playing", so nothing waits on it (the card advances, the next Hear it works). If the other route can play the
+    // same clip (decoded Web Audio buffer), try that before giving up, so a word is never silent.
+    const giveUp = () => { if (curAudio === a) { try { a.pause(); } catch (_) {} curAudio = null; } sfxDuck(); if (!started && retry && alive()) { const r = retry; retry = null; return r(); } fin(); };
+    setGuard(setTimeout(() => { if (!started) { if (window.__voiceStall) window.__voiceStall.push(src); voiceFailed(); giveUp(); } }, START_MS));
     a.onplaying = () => { if (started || !alive()) return; started = true; voiceWorked(); sfxDuck(); const d = isFinite(a.duration) && a.duration > 0 ? a.duration : 8; setGuard(setTimeout(fin, (d * 1000) / rate + 1500)); };
-    a.onended = () => fin(); a.onerror = () => { voiceFailed(); fin(); };
-    try { const pr = a.play(); if (pr && pr.catch) pr.catch((er) => { if (!er || er.name !== 'AbortError') voiceFailed(); fin(); }); } catch (_) { voiceFailed(); fin(); }
+    a.onended = () => fin(); a.onerror = () => { voiceFailed(); giveUp(); };
+    try { const pr = a.play(); if (pr && pr.catch) pr.catch((er) => { if (!er || er.name !== 'AbortError') { voiceFailed(); giveUp(); } else fin(); }); } catch (_) { voiceFailed(); giveUp(); }
   }
   function playWA(src, alive, fin, setGuard, fallback) {
     const c = sfx.ctx; let state = 'wait';
@@ -479,7 +484,7 @@
   }
   /* Speak one thing. opts: {rate, slow, lang, word} ; returns a Promise that resolves when done (always: see the guards). */
   function say1(text, opts) {
-    opts = opts || {};
+    opts = opts || {}; lastSayAt = Date.now();
     const t = plain(gtext(String(text || ''))).trim();
     if (window.__sayLog && t && !opts.piece) window.__sayLog.push(opts.lang ? opts.lang + ':' + t : t); // test hook
     if (!opts.piece && opts.lang !== 'it' && t && vol() > 0 && !(opts.word !== false && AUD[t.toLowerCase()])) {
@@ -502,7 +507,8 @@
         // slow: the slow clip at normal rate; a chunk (no slow clip; chunk clips are already made slowly) at normal rate
         const rate = slowSrc || (opts.slow && isW) ? 1 : opts.slow ? 0.8 : (/audio\/l\//.test(src) ? LINE_RATE : 1);
         if (window.__playLog) window.__playLog.push(src.split('audio/')[1]);
-        const el_ = () => { if (alive()) playEl(src, rate, alive, fin, setGuard); };
+        const retryWA = isW && rate === 1 && voicePath() !== 'wa' && sfx.ctx && sfx.ctx.state === 'running' ? () => playWA(src, alive, fin, setGuard, fin) : null;
+        const el_ = () => { if (alive()) playEl(src, rate, alive, fin, setGuard, retryWA); };
         if (isW && rate === 1 && voicePath() === 'wa' && sfx.ctx && sfx.ctx.state === 'running') playWA(src, alive, fin, setGuard, el_);
         else el_();
         return;
@@ -849,6 +855,8 @@
     if (card.done) return;
     card.done = true;
     card.el.classList.add('is-done');
+    // v2.8.4: a tap anywhere on a card she just finished moves on at once (never a dead, faded card while a voice finishes)
+    card.el.addEventListener('click', (e) => { if (P.idx === card.i && P.cards[card.i + 1] && !P.cards[card.i + 1].done && !(e.target.closest && e.target.closest('button, a, input, .hear-btn, .hear-mini, .replay'))) { clearTimeout(advanceTimer); stopVoice(); goNext(); } });
     if (result) P.res[card.i] = Object.assign({ k: card.spec.k }, result, card.helped ? { helped: true, first: false } : {});
     if (card.pip && !(opts && opts.pose === false)) card.pip.pose((opts && opts.pose) || (stopLast(card.i) ? 'love' : (result ? winPose() : card.pip.dataset.pose)));
     if (card.pip && card.pip.moveTo) card.pip.moveTo(stopFrac(card.i, true), true);
@@ -870,7 +878,9 @@
   function whenQuiet(fn) {
     const t0 = Date.now(); let waited = false;
     const tick = () => {
-      if (voiceBusy() && Date.now() - t0 < VOICE_WAIT_MAX) { waited = true; advanceTimer = setTimeout(tick, 100); return; }
+      // v2.8.4: wait for a voice that is really playing (up to 15 s), but never more than 2.5 s for one that has not started (iOS)
+      const silentStall = lastWorked < lastSayAt && Date.now() - lastSayAt > 2500;
+      if (voiceBusy() && !silentStall && Date.now() - t0 < VOICE_WAIT_MAX) { waited = true; advanceTimer = setTimeout(tick, 100); return; }
       if (waited) { waited = false; advanceTimer = setTimeout(tick, VOICE_BEAT); return; }
       fn();
     };
@@ -1529,6 +1539,12 @@
     });
     return b;
   }
+  /* v2.8.4: the question line of a "tap the sentence" card has a small tap-to-hear 🔊 (nothing plays by itself) */
+  function qLine(text) {
+    const p = el('p', 'c-q', fillName(text));
+    const h = btn('hear-mini', '🔊', (e) => { e.stopPropagation(); sayList([{ text: fillName(text), word: false }]); });
+    h.setAttribute('aria-label', 'Hear the question'); p.append(' ', h); return p;
+  }
   BUILD.question = (card, sec) => {
     const L = P.L, q = L.question;
     const pictureQ = q.pre && q.pre.picture;
@@ -1540,7 +1556,7 @@
     const pip = pipSay(vis, isPre ? q.pre.q : q.q);
     const fb = feedback(body);
     const evidence = () => {
-      body.insertBefore(el('p', 'c-q', fillName(q.q)), fb);
+      body.insertBefore(qLine(q.q), fb);
       if (other) body.insertBefore(peekOther(body, other), fb);
       const list = sentenceList(body, L, (i, s) => hasSub(s, q.a) ? 'right' : (q.near && hasSub(s, q.near) ? 'near' : false), (first) => {
         pip.say('You saved me, Mission Control! 🎉'); setFb(fb, first ? 'That is the proof! First try! 🌟' : 'That is the proof! 🎉', 'good');
@@ -1552,7 +1568,7 @@
       body.insertBefore(list, fb);
     };
     if (q.pre && card.spec.k === 'qpre') {
-      body.appendChild(el('p', 'c-q', fillName(q.pre.q)));
+      body.appendChild(qLine(q.pre.q));
       const row = choices(body, q.pre.opts, L.title + 'pre', (first) => {
         setFb(fb, 'Yes! 👍', 'good'); P.res.preFirst = first;
         complete(card, { first, type: 'qpre' });
@@ -1573,17 +1589,17 @@
     const fb = feedback(body);
     const done = (first, type) => { pip.say(step === 1 && a.type !== 'mistake' ? 'Good thinking! 👍' : 'Great advice! You are the best advisor! 🏅'); setFb(fb, 'Great thinking! 🏅', 'good'); complete(card, { first, type: type || 'advisor' }); };
     const evidence = (prompt, subs) => {
-      body.insertBefore(el('p', 'c-q', prompt), fb);
+      body.insertBefore(qLine(prompt), fb);
       const list = sentenceList(body, L, (i, s0) => hasSub(s0, subs) ? 'right' : false, (first) => done(first && P.res.advFirst !== false), () => { pip.say(a.mishap, 'oops'); setFb(fb, a.mishap, 'soft'); });
       body.insertBefore(list, fb);
     };
     body.appendChild(fb);
-    const ask = (q, opts, seed, onOk, cls) => { body.insertBefore(el('p', 'c-q', q), fb); body.insertBefore(choices(body, opts, L.title + seed, onOk, () => { pip.say('Hmm, look at the postcard for clues!', 'oops'); setFb(fb, a.mishap || 'Look again!', 'soft'); }, cls || 'stack'), fb); };
+    const ask = (q, opts, seed, onOk, cls) => { body.insertBefore(qLine(q), fb); body.insertBefore(choices(body, opts, L.title + seed, onOk, () => { pip.say('Hmm, look at the postcard for clues!', 'oops'); setFb(fb, a.mishap || 'Look again!', 'soft'); }, cls || 'stack'), fb); };
     if (a.type === 'mistake') { body.insertBefore(el('p', 'c-quote', 'Pip says: "' + a.pip + '"'), fb); evidence(a.q, a.a); return; }
     if (step === 1) {
       if (a.type === 'rather') {
         // an opinion: every choice is right (one tap), the reason comes on the next card
-        body.insertBefore(el('p', 'c-q', a.q), fb);
+        body.insertBefore(qLine(a.q), fb);
         const row = el('div', 'opts stack');
         a.choices.forEach((c, ci) => row.appendChild(btn('opt', c.label, (e) => { if (card.done) return; sparkle(e.currentTarget); P.res.rather = ci; done(true, 'advpick'); })));
         body.insertBefore(row, fb); return;
@@ -3655,7 +3671,7 @@
     // Warm the offline cache with the word audio (small files) once per version, a few at a time.
     setTimeout(async () => {
       const wid = (() => { try { return ':' + currentWeek().id; } catch (_) { return ''; } })();
-      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.3' + wid) return;
+      if (!navigator.onLine || localStorage.getItem('pipsAudioWarm') === 'v2.8.4' + wid) return;
       // v2.8: five weeks of clips (~21 MB) would be a lot to fetch at once, so warm this week's words (+ names and other
       // words no week uses); another week's clips are fetched when it starts (and cached as they play).
       let list;
@@ -3664,7 +3680,7 @@
         list = [...new Set(Object.keys(AUD).filter((k) => { const b = k.replace(/^slow:/, ''); return cur.includes(b) || !all.some((t) => t.includes(b)); }).map((k) => AUD[k]))];
       } catch (_) { list = [...new Set(Object.values(AUD))]; }
       for (let i = 0; i < list.length; i += 6) { try { await Promise.all(list.slice(i, i + 6).map((u) => fetch(u).catch(() => {}))); } catch (_) {} }
-      try { localStorage.setItem('pipsAudioWarm', 'v2.8.3' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
+      try { localStorage.setItem('pipsAudioWarm', 'v2.8.4' + wid); } catch (_) {}   // per version AND week: a new week warms its own clips
     }, 8000);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }

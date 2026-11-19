@@ -29,6 +29,12 @@ Full design notes are kept with the project in `ux-audit.md` (outside this repo)
 * **Optional extras:** a Bonus round (challenge word, which sound?, R/W pairs), a Boss postcard, and Italia on Fridays.
 * She is the teacher: the guide misreads a word and she corrects her. Praise is for effort and strategy, never "smart". Levels are never announced as going down.
 
+## Never silent, never stuck (v2.8.4)
+
+* A word clip that cannot start (iPhone Safari refusing or stalling `<audio>`) is released at once and retried through the other route (decoded Web Audio), so Hear it and Slower always have a way to play. A card never waits more than about 2.5 s for a voice that has not started; a tap on a card she just finished moves on at once.
+* "Tap the sentence" and advisor cards have a small tap-to-hear 🔊 on the question line (nothing plays by itself).
+* `tests/listen_audio.py` checks every word of every week file has a normal and a slow clip that exists and is not silent, every Listen word's Hear it and Slower, that sentence cards can be tapped (iPhone size), and that a stalled clip never locks a card.
+
 ## Zoo Math (v2.8)
 
 * A **🦓 Zoo Math** button on the home screen (today's math day; chips for Mon–Fri, so any day works on a weekend).
