@@ -1,5 +1,5 @@
 /* Pip's Postcards · Unit 2 Week 3 · Characters Facing Challenges  (STAGED DRAFT, not live)
-   School week: Mon Oct 26 – Fri Oct 30, 2026 (v2.8.2: schedule moved back one week). Halloween is Sat Oct 31 (school parties often land on Fri).
+   School week: Mon Nov 2 – Fri Nov 13 (a short 2-day week, so it holds two weeks), 2026 (v2.8.2: schedule moved back one week). Halloween is Sat Oct 31 (school parties often land on Fri).
    Schema = site/weeks/u1w2.js. Correct answer FIRST in every option list. "|" = syllables, [ ] = pattern letters.
    District source: 1-Grade2-ELA.txt, Unit 2, LEARNING ACTIVITIES Week 3 (long i; review long e; multisyllable
    long i; central message; character responses; poetry & figurative language; shades of meaning). District texts:
@@ -11,7 +11,7 @@
   unit: 2, week: 3,
   title: 'Challenges · Week 3',
   unitTitle: 'Characters Facing Challenges',
-  dates: { start: '2026-10-26', end: '2026-10-30', estimated: true },
+  dates: { start: '2026-11-02', end: '2026-11-13', estimated: true },
   school: {
     /* SWAP IN THE TEACHER'S LIST: replace `spelling` (and W.typeWords.ground) with her weekly sheet. */
     spelling: ['pie', 'tie', 'child', 'kind', 'sky', 'dry', 'high', 'lime', 'light', 'bright'],

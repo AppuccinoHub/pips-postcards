@@ -1,5 +1,5 @@
 /* Pip's Postcards · Unit 2 Week 1 · Characters Facing Challenges  (STAGED DRAFT, not live)
-   School week: Mon Oct 12 – Fri Oct 16, 2026 (v2.8.2: schedule moved back one week, Sue 2026-09-27; u1w2 = Sep 28, u1w3 = Oct 5).
+   School week: Mon Oct 19 – Fri Oct 23, 2026 (v2.8.2: schedule moved back one week, Sue 2026-09-27; u1w2 = Sep 28, u1w3 = Oct 5).
    Schema = site/weeks/u1w2.js. Correct answer FIRST in every option list. "|" = syllables, [ ] = pattern.
    District source: 1-Grade2-ELA.txt, Unit 2 "Characters Facing Challenges", LEARNING ACTIVITIES Week 1
    (long o; fables; central message; shades of meaning in verbs; character responses). District texts this week:
@@ -11,7 +11,7 @@
   unit: 2, week: 1,
   title: 'Challenges · Week 1',
   unitTitle: 'Characters Facing Challenges',
-  dates: { start: '2026-10-12', end: '2026-10-16', estimated: true },
+  dates: { start: '2026-10-19', end: '2026-10-23', estimated: true },
   school: {
     /* SWAP IN THE TEACHER'S LIST: replace `spelling` (and W.typeWords.ground) with her weekly sheet. */
     spelling: ['float', 'toe', 'roast', 'broke', 'globe', 'going', 'both', 'grow', 'bowl', 'throw'],

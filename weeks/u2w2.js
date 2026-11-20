@@ -1,5 +1,5 @@
 /* Pip's Postcards · Unit 2 Week 2 · Characters Facing Challenges  (STAGED DRAFT, not live)
-   School week: Mon Oct 19 – Fri Oct 23, 2026 (v2.8.2: schedule moved back one week). Schema = site/weeks/u1w2.js.
+   School week: Mon Oct 26 – Fri Oct 30, 2026 (v2.8.2: schedule moved back one week). Schema = site/weeks/u1w2.js.
    Correct answer FIRST in every option list. "|" = syllables, [ ] = pattern letters.
    District source: 1-Grade2-ELA.txt, Unit 2, LEARNING ACTIVITIES Week 2 (long e + plural endings; inferences;
    central message / moral; character responses; shades of meaning). District texts: "Yeh-Shen", "Bee and Daisy",
@@ -11,7 +11,7 @@
   unit: 2, week: 2,
   title: 'Challenges · Week 2',
   unitTitle: 'Characters Facing Challenges',
-  dates: { start: '2026-10-19', end: '2026-10-23', estimated: true },
+  dates: { start: '2026-10-26', end: '2026-10-30', estimated: true },
   school: {
     /* SWAP IN THE TEACHER'S LIST: replace `spelling` (and W.typeWords.ground) with her weekly sheet. */
     spelling: ['these', 'clean', 'happy', 'key', 'queen', 'leaf', 'funny', 'piece', 'thief', 'need'],

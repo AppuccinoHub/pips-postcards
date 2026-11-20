@@ -12,7 +12,7 @@ window.PIP_MATH['2026-10-05'] = {
   {
    "day": 1,
    "name": "Monday",
-   "focus": "Rows of animals: add them up",
+   "focus": "Arrays make addition sentences",
    "topic": "Topic 2: Work with Equal Groups",
    "est": true,
    "warmups": [
@@ -813,7 +813,7 @@ window.PIP_MATH['2026-10-05'] = {
   {
    "day": 3,
    "name": "Wednesday",
-   "focus": "A little of everything",
+   "focus": "Topic 2 mixed review",
    "topic": "Topic 2: Work with Equal Groups",
    "est": true,
    "warmups": [
@@ -1218,7 +1218,7 @@ window.PIP_MATH['2026-10-05'] = {
   {
    "day": 4,
    "name": "Thursday",
-   "focus": "Hundred chart: 10 more, 1 more",
+   "focus": "Hundred chart: +10 and +1",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [

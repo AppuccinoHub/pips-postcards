@@ -12,7 +12,7 @@ window.PIP_MATH['2026-10-19'] = {
   {
    "day": 1,
    "name": "Monday",
-   "focus": "Pick your favorite way",
+   "focus": "Topic 3 review: pick a strategy",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [
@@ -430,7 +430,7 @@ window.PIP_MATH['2026-10-19'] = {
   {
    "day": 2,
    "name": "Tuesday",
-   "focus": "Zoo stories up to 100",
+   "focus": "Word problems within 100",
    "topic": "Topic 3: Add Within 100 Using Strategies",
    "est": true,
    "warmups": [
@@ -849,7 +849,7 @@ window.PIP_MATH['2026-10-19'] = {
   {
    "day": 3,
    "name": "Wednesday",
-   "focus": "Tens first, then ones",
+   "focus": "Partial sums: tens, then ones",
    "topic": "Topic 4: Fluently Add Within 100",
    "est": true,
    "warmups": [
@@ -1256,7 +1256,7 @@ window.PIP_MATH['2026-10-19'] = {
   {
    "day": 4,
    "name": "Thursday",
-   "focus": "10 ones make a new ten",
+   "focus": "Partial sums: 10 ones make a ten",
    "topic": "Topic 4: Fluently Add Within 100",
    "est": true,
    "warmups": [
@@ -1659,7 +1659,7 @@ window.PIP_MATH['2026-10-19'] = {
   {
    "day": 5,
    "name": "Friday",
-   "focus": "Add bigger numbers",
+   "focus": "Add 2-digit numbers",
    "topic": "Topic 4: Fluently Add Within 100",
    "est": true,
    "warmups": [
