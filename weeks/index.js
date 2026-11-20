@@ -5,5 +5,5 @@
    u3w1 Nov 16 (long u; teacher's 10 spelling words; holds through Fri Nov 20),
    v2.9.1 (Nov 19, 2026), BEST GUESSES from the district curriculum (replace when a newsletter arrives):
    u3w1b Nov 23 (short week: long-u test-day practice Mon, ar preview Tue-Wed), u3w2 Nov 30 (ar). Each holds until the next starts.
-   u3w3 (Dec 7), u4w1 (Dec 14), u4w2 (Dec 21) are built in next/weeks but NOT loaded yet (see content-draft/full-winter-staging). */
-window.PIP_WEEK_LIST = ['u1w2', 'u1w3', 'u2w1', 'u2w2', 'u2w3', 'u3w1', 'u3w1b', 'u3w2', 'u3w3'];
+   u3w3 Dec 7 (v2.9.2), u4w1 Dec 14 (or/ore/oar) and u4w2 Dec 21 (ear/eer/ere; short week, Dec 23 staff day, break from Dec 24) (v2.9.3). u4w2 holds through winter break. */
+window.PIP_WEEK_LIST = ['u1w2', 'u1w3', 'u2w1', 'u2w2', 'u2w3', 'u3w1', 'u3w1b', 'u3w2', 'u3w3', 'u4w1', 'u4w2'];
