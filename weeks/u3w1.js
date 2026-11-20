@@ -2834,7 +2834,7 @@
        "split": "p[a]r|[a]d[e]",
        "say": "puh|rade",
        "look": [
-        "parrot",
+        "paper",
         "pirate"
        ],
        "pic": "🎺🥁",
@@ -4623,7 +4623,7 @@
   "split": "p[a]r|[a]d[e]",
   "say": "puh|rade",
   "look": [
-   "parrot",
+   "paper",
    "pirate"
   ],
   "pic": "🎺🥁",

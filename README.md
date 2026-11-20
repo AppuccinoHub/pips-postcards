@@ -47,6 +47,18 @@ Full design notes are kept with the project in `ux-audit.md` (outside this repo)
 * Fish go to the same baby as reading. The **math level is separate** (`S.mathLevel`): up after 3 strong sessions (at most 1 of 6 missed on the first try), back after 2 tricky ones. A grown-up can set or lock it in the parent area.
 * Data: `math/zoo-math-<monday>.js` (made by `content-draft/math/tools/gen_math.py`; every answer is computed; check with `node content-draft/math/tools/validate-math.js`). Topic dates are estimates.
 
+## Looking ahead (v2.9.1, Nov 20, 2026) - BEST GUESSES
+
+Weeks beyond the teacher's Nov 16 newsletter are **best guesses from the district curriculum** (`estimated: true` on each week and in `school.note`); replace them when a newsletter arrives.
+
+| Dates | Week | Spelling focus |
+|---|---|---|
+| Nov 16-20 | u3w1 | long u (teacher's list) |
+| **Nov 23-29** (short week: test Mon, half day Wed, no school Nov 26-27) | u3w1b | Mon = long-u test-day practice (same 10 words); Tue-Wed = light preview of ar. Thu/Fri reuse the Nov 16 poem and radio show |
+| Nov 30 - (holds until the next week is loaded) | u3w2 | ar: car, card, farm, park, star, dark, shark, barn, yard, start; sight words: move, never, once, round, small, their, too, walk, where, year |
+
+Zoo Math: `math/zoo-math-2026-11-23.js` (Topic 4 review, gentle Topic 5 start) and `2026-11-30.js`. Built but **not loaded yet** (kept in `content-draft/full-winter-staging/`, with their art, plus `math/zoo-math-2026-12-07.js`): u3w3 Dec 7 (er/ir/ur), u4w1 Dec 14 (or/ore/oar), u4w2 Dec 21 (ear/eer/ere). Until they are loaded, u3w2 and the Nov 30 math hold. Generators: `content-draft/u3/build_*.py`, `content-draft/math/tools/gen_math.py`; scenes `art/scenes_p3.py` (placeholder art). Word audio is Kokoro af_heart (`art/audiofix/make_words.py`, normal + slow clip per word; the grown-up list words and sight words always get clips). `tests/week291.py` holds the date-to-week map.
+
 ## Calendar catch-up (v2.9.0, Nov 19, 2026)
 
 The class calendar (district 2026-27 calendar + the teacher's Nov 16 newsletter) is now loaded, so the week picker lands on the right week:
