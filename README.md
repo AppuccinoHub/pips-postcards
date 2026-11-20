@@ -55,9 +55,10 @@ Weeks beyond the teacher's Nov 16 newsletter are **best guesses from the distric
 |---|---|---|
 | Nov 16-20 | u3w1 | long u (teacher's list) |
 | **Nov 23-29** (short week: test Mon, half day Wed, no school Nov 26-27) | u3w1b | Mon = long-u test-day practice (same 10 words); Tue-Wed = light preview of ar. Thu/Fri reuse the Nov 16 poem and radio show |
-| Nov 30 - (holds until the next week is loaded) | u3w2 | ar: car, card, farm, park, star, dark, shark, barn, yard, start; sight words: move, never, once, round, small, their, too, walk, where, year |
+| Nov 30 - Dec 6 | u3w2 | ar: car, card, farm, park, star, dark, shark, barn, yard, start; sight words: move, never, once, round, small, their, too, walk, where, year |
+| **Dec 7 -** (v2.9.2; holds until the next week is loaded) | u3w3 | er/ir/ur: bird, burn, girl, her, hurt, never, nurse, shirt, third, winter; sight words: all, away, better, by, change, done, even, found, learn, only (district file; BEST GUESS). Zoo Math: `math/zoo-math-2026-12-07.js` (Topic 5, subtract within 100, continues) |
 
-Zoo Math: `math/zoo-math-2026-11-23.js` (Topic 4 review, gentle Topic 5 start) and `2026-11-30.js`. Built but **not loaded yet** (kept in `content-draft/full-winter-staging/`, with their art, plus `math/zoo-math-2026-12-07.js`): u3w3 Dec 7 (er/ir/ur), u4w1 Dec 14 (or/ore/oar), u4w2 Dec 21 (ear/eer/ere). Until they are loaded, u3w2 and the Nov 30 math hold. Generators: `content-draft/u3/build_*.py`, `content-draft/math/tools/gen_math.py`; scenes `art/scenes_p3.py` (placeholder art). Word audio is Kokoro af_heart (`art/audiofix/make_words.py`, normal + slow clip per word; the grown-up list words and sight words always get clips). `tests/week291.py` holds the date-to-week map.
+Zoo Math: `math/zoo-math-2026-11-23.js` (Topic 4 review, gentle Topic 5 start) and `2026-11-30.js`. Built, **not loaded yet** except u3w3 (loaded in v2.9.2) (kept in `content-draft/full-winter-staging/`, with their art, plus `math/zoo-math-2026-12-07.js`): u3w3 Dec 7 (er/ir/ur), u4w1 Dec 14 (or/ore/oar), u4w2 Dec 21 (ear/eer/ere). Until they are loaded, u3w2 and the Nov 30 math hold. Generators: `content-draft/u3/build_*.py`, `content-draft/math/tools/gen_math.py`; scenes `art/scenes_p3.py` (placeholder art). Word audio is Kokoro af_heart (`art/audiofix/make_words.py`, normal + slow clip per word; the grown-up list words and sight words always get clips). `tests/week291.py` holds the date-to-week map.
 
 ## Calendar catch-up (v2.9.0, Nov 19, 2026)
 

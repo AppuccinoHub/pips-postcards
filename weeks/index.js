@@ -6,4 +6,4 @@
    v2.9.1 (Nov 19, 2026), BEST GUESSES from the district curriculum (replace when a newsletter arrives):
    u3w1b Nov 23 (short week: long-u test-day practice Mon, ar preview Tue-Wed), u3w2 Nov 30 (ar). Each holds until the next starts.
    u3w3 (Dec 7), u4w1 (Dec 14), u4w2 (Dec 21) are built in next/weeks but NOT loaded yet (see content-draft/full-winter-staging). */
-window.PIP_WEEK_LIST = ['u1w2', 'u1w3', 'u2w1', 'u2w2', 'u2w3', 'u3w1', 'u3w1b', 'u3w2'];
+window.PIP_WEEK_LIST = ['u1w2', 'u1w3', 'u2w1', 'u2w2', 'u2w3', 'u3w1', 'u3w1b', 'u3w2', 'u3w3'];
